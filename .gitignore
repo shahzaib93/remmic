@@ -1,0 +1,43 @@
+# Dependencies
+node_modules/
+
+# Next.js build output
+.next/
+out/
+
+# Production deployments / platform artifacts
+.vercel/
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Environment files
+.env*
+!.env.example
+
+# Editor / OS files
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+
+# Coverage / testing
+coverage/
+
+# Temporary or generated files
+*.local
+*.log
+*.tmp
+.temp/
+*.tgz
+
+# Data / cache artifacts
+.cache/
+.eslintcache
+
+
+.vercel

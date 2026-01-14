@@ -1,0 +1,209 @@
+/* ========================================
+   REMMIC Design Tokens
+   Based on Master Document Visual Identity
+   ======================================== */
+
+:root {
+  /* ===== Primary Colors ===== */
+
+  /* Black - Authority and Stability */
+  --color-black: #0a0a0a;
+  --color-black-soft: #1a1a1a;
+  --color-black-light: #2d2d2d;
+  --color-charcoal: #333333;
+
+  /* Gold - Actions, Value, and Trust Signals */
+  --color-gold: #c9a227;
+  --color-gold-light: #d4b13d;
+  --color-gold-dark: #a8861f;
+  --color-gold-pale: #f5e6b3;
+  --color-gold-gradient: linear-gradient(135deg, #c9a227 0%, #e6c453 50%, #c9a227 100%);
+  --color-gold-gradient-hover: linear-gradient(135deg, #d4b13d 0%, #f0d066 50%, #d4b13d 100%);
+
+  /* Chocolate Brown - Warmth, Depth, Exclusivity */
+  --color-brown: #4a3728;
+  --color-brown-light: #5d4637;
+  --color-brown-dark: #3a2a1e;
+  --color-brown-soft: #6b5344;
+  --color-chocolate: #7b5b3a;
+  --color-brown-gradient: linear-gradient(135deg, #4a3728 0%, #6b5344 50%, #4a3728 100%);
+  --color-brown-gradient-hover: linear-gradient(135deg, #5d4637 0%, #7b5b3a 50%, #5d4637 100%);
+
+  /* ===== Secondary/Neutral Colors ===== */
+  --color-white: #ffffff;
+  --color-off-white: #faf9f7;
+  --color-cream: #f5f3ef;
+  --color-gray-100: #f7f7f7;
+  --color-gray-200: #eeeeee;
+  --color-gray-300: #e0e0e0;
+  --color-gray-400: #bdbdbd;
+  --color-gray-500: #9e9e9e;
+  --color-gray-600: #757575;
+  --color-gray-700: #616161;
+  --color-gray-800: #424242;
+  --color-gray-900: #212121;
+
+  /* ===== Semantic Colors ===== */
+  --color-success: #2e7d32;
+  --color-success-light: #4caf50;
+  --color-success-bg: #e8f5e9;
+
+  --color-warning: #ed6c02;
+  --color-warning-light: #ff9800;
+  --color-warning-bg: #fff3e0;
+
+  --color-error: #c62828;
+  --color-error-light: #ef5350;
+  --color-error-bg: #ffebee;
+
+  --color-info: #0277bd;
+  --color-info-light: #03a9f4;
+  --color-info-bg: #e1f5fe;
+
+  /* ===== Text Colors ===== */
+  --text-primary: var(--color-black);
+  --text-secondary: var(--color-gray-700);
+  --text-muted: var(--color-gray-500);
+  --text-light: var(--color-gray-400);
+  --text-on-dark: var(--color-white);
+  --text-on-gold: var(--color-black);
+  --text-gold: var(--color-gold);
+
+  /* ===== Background Colors ===== */
+  --bg-primary: var(--color-white);
+  --bg-secondary: var(--color-off-white);
+  --bg-tertiary: var(--color-cream);
+  --bg-dark: var(--color-black);
+  --bg-dark-soft: var(--color-black-soft);
+  --bg-brown: var(--color-brown);
+  --bg-gold-tint: rgba(201, 162, 39, 0.08);
+  --bg-brown-tint: rgba(74, 55, 40, 0.05);
+  --bg-brown-tint-medium: rgba(74, 55, 40, 0.1);
+  --bg-brown-tint-strong: rgba(74, 55, 40, 0.15);
+
+  /* ===== Border Colors ===== */
+  --border-light: var(--color-gray-200);
+  --border-medium: var(--color-gray-300);
+  --border-dark: var(--color-gray-400);
+  --border-gold: var(--color-gold);
+  --border-brown: var(--color-brown);
+
+  /* ===== Shadows ===== */
+  --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.05);
+  --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.06);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.08);
+  --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.1);
+  --shadow-xl: 0 16px 48px rgba(0, 0, 0, 0.12);
+  --shadow-gold: 0 4px 20px rgba(201, 162, 39, 0.25);
+  --shadow-gold-hover: 0 8px 30px rgba(201, 162, 39, 0.35);
+  --shadow-dark: 0 4px 20px rgba(0, 0, 0, 0.2);
+  --shadow-brown: 0 4px 20px rgba(74, 55, 40, 0.2);
+  --shadow-brown-hover: 0 8px 30px rgba(74, 55, 40, 0.3);
+
+  /* ===== Typography ===== */
+  --font-family-primary: 'Manrope', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-family-display: 'Playfair Display', Georgia, serif;
+
+  /* Font Weights */
+  --font-weight-light: 300;
+  --font-weight-regular: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+  --font-weight-extrabold: 800;
+
+  /* Font Sizes */
+  --font-size-xs: 0.75rem;    /* 12px */
+  --font-size-sm: 0.875rem;   /* 14px */
+  --font-size-base: 1rem;     /* 16px */
+  --font-size-lg: 1.125rem;   /* 18px */
+  --font-size-xl: 1.25rem;    /* 20px */
+  --font-size-2xl: 1.5rem;    /* 24px */
+  --font-size-3xl: 1.875rem;  /* 30px */
+  --font-size-4xl: 2.25rem;   /* 36px */
+  --font-size-5xl: 3rem;      /* 48px */
+  --font-size-6xl: 3.75rem;   /* 60px */
+
+  /* Line Heights */
+  --line-height-tight: 1.2;
+  --line-height-snug: 1.375;
+  --line-height-normal: 1.5;
+  --line-height-relaxed: 1.625;
+  --line-height-loose: 2;
+
+  /* Letter Spacing */
+  --letter-spacing-tight: -0.025em;
+  --letter-spacing-normal: 0;
+  --letter-spacing-wide: 0.025em;
+  --letter-spacing-wider: 0.05em;
+  --letter-spacing-widest: 0.1em;
+
+  /* ===== Spacing ===== */
+  --space-1: 0.25rem;   /* 4px */
+  --space-2: 0.5rem;    /* 8px */
+  --space-3: 0.75rem;   /* 12px */
+  --space-4: 1rem;      /* 16px */
+  --space-5: 1.25rem;   /* 20px */
+  --space-6: 1.5rem;    /* 24px */
+  --space-8: 2rem;      /* 32px */
+  --space-10: 2.5rem;   /* 40px */
+  --space-12: 3rem;     /* 48px */
+  --space-16: 4rem;     /* 64px */
+  --space-20: 5rem;     /* 80px */
+  --space-24: 6rem;     /* 96px */
+
+  /* ===== Border Radius ===== */
+  --radius-none: 0;
+  --radius-sm: 0.25rem;    /* 4px */
+  --radius-md: 0.5rem;     /* 8px */
+  --radius-lg: 0.75rem;    /* 12px */
+  --radius-xl: 1rem;       /* 16px */
+  --radius-2xl: 1.5rem;    /* 24px */
+  --radius-full: 9999px;
+
+  /* ===== Transitions ===== */
+  --transition-fast: 150ms ease;
+  --transition-base: 250ms ease;
+  --transition-slow: 350ms ease;
+  --transition-bounce: 300ms cubic-bezier(0.34, 1.56, 0.64, 1);
+  --transition-smooth: 300ms cubic-bezier(0.4, 0, 0.2, 1);
+
+  /* ===== Z-Index Scale ===== */
+  --z-dropdown: 100;
+  --z-sticky: 200;
+  --z-fixed: 300;
+  --z-modal-backdrop: 400;
+  --z-modal: 500;
+  --z-popover: 600;
+  --z-tooltip: 700;
+  --z-toast: 800;
+
+  /* ===== Container Widths ===== */
+  --container-sm: 640px;
+  --container-md: 768px;
+  --container-lg: 1024px;
+  --container-xl: 1280px;
+  --container-2xl: 1440px;
+
+  /* ===== Standardized Breakpoints ===== */
+  /* Mobile: 0 - 767px */
+  /* Tablet: 768px - 1279px */
+  /* Desktop: 1280px+ */
+  --breakpoint-sm: 640px;
+  --breakpoint-md: 768px;
+  --breakpoint-lg: 1024px;
+  --breakpoint-xl: 1280px;
+  --breakpoint-2xl: 1440px;
+}
+
+/* ===== Dark Mode Variables (for future use) ===== */
+[data-theme="dark"] {
+  --bg-primary: var(--color-black);
+  --bg-secondary: var(--color-black-soft);
+  --bg-tertiary: var(--color-black-light);
+  --text-primary: var(--color-white);
+  --text-secondary: var(--color-gray-300);
+  --text-muted: var(--color-gray-500);
+  --border-light: var(--color-gray-800);
+  --border-medium: var(--color-gray-700);
+}

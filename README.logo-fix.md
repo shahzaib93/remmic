@@ -1,0 +1,267 @@
+# REMMIC Logo Fix Guide
+
+This guide explains how the logo system works and how to fix any logo loading issues.
+
+## Current Status
+
+✅ **Logo files are properly containerized**  
+✅ **Fallback system implemented**  
+✅ **Multiple format support ready**  
+❌ **Asset server may not be running** (this is the current issue)
+
+## Quick Fix (Immediate Solution)
+
+The application now uses local fallback logos by default. The logos should load from:
+
+1. **Primary**: `/remmic-logo.svg` (clean filename)
+2. **Fallback**: `/REMMIC LOGO SVG.svg` (original file)
+
+### Verify Logo Files Exist
+
+```bash
+# Check if logo files are in public directory
+ls -la public/*logo*
+
+# Should show:
+# REMMIC LOGO SVG.svg
+# remmic-logo.svg
+```
+
+### Test Logo Loading
+
+```bash
+# Start the application
+npm run dev
+
+# Open browser and check:
+# http://localhost:3008
+# The logo should appear in navbar and footer
+```
+
+## Asset Server System (Advanced)
+
+For optimal performance, the containerized asset system provides:
+
+### Start Asset Services
+
+```bash
+# Start all content services (includes asset server)
+npm run content:up
+
+# Check asset server status
+curl http://localhost:8080/health
+
+# Should return: "Assets server healthy"
+```
+
+### Enable Asset Server
+
+```bash
+# Create environment file
+cp .env.local.example .env.local
+
+# Edit .env.local and set:
+NEXT_PUBLIC_USE_ASSET_SERVER=true
+NEXT_PUBLIC_ASSETS_URL=http://localhost:8080
+```
+
+### Asset Server Benefits
+
+When enabled, the asset server provides:
+
+- **Optimized formats**: SVG, PNG (4 sizes), WebP, ICO
+- **Automatic compression**: Reduced file sizes
+- **Multiple variants**: Different sizes for different use cases
+- **Modern formats**: WebP for browsers that support it
+- **Caching headers**: Better performance
+
+## Logo URLs Available
+
+### Local Fallback (Default)
+```
+http://localhost:3008/remmic-logo.svg
+http://localhost:3008/REMMIC LOGO SVG.svg
+```
+
+### Asset Server (When Enabled)
+```
+http://localhost:8080/logo                    # Smart format selection
+http://localhost:8080/logo.svg               # Vector format
+http://localhost:8080/logo.png               # Standard PNG (400px)
+http://localhost:8080/logo.webp              # WebP format
+http://localhost:8080/logo-small.svg         # Small variant
+http://localhost:8080/logo-favicon.ico       # Favicon
+```
+
+## Troubleshooting
+
+### 1. Logo Not Showing
+
+**Check browser console** for errors:
+```javascript
+// Press F12 in browser, look for errors like:
+// "Failed to load resource: the server responded with a status of 404"
+```
+
+**Solutions**:
+```bash
+# Verify files exist
+ls -la public/remmic-logo.svg
+ls -la public/"REMMIC LOGO SVG.svg"
+
+# If missing, copy them:
+cp assets/logos/remmic-logo.svg public/
+cp assets/logos/"REMMIC LOGO SVG.svg" public/
+```
+
+### 2. Asset Server Not Working
+
+**Check if containers are running**:
+```bash
+docker ps | grep remmic
+
+# Should show containers like:
+# remmic-assets
+# remmic-minio
+# remmic-postgres
+```
+
+**Start asset services**:
+```bash
+# If not running, start them
+npm run content:up
+
+# Check logs
+npm run content:logs
+
+# Test asset server
+curl http://localhost:8080/health
+```
+
+### 3. Logo Shows But Wrong Size/Format
+
+**Check CSS**:
+```css
+/* Navbar logo should have these styles */
+.nav-logo {
+  height: 50px;
+  width: auto;
+}
+
+/* Footer logo styles */
+.footer__logo {
+  height: auto;
+  max-height: 40px;
+}
+```
+
+### 4. Performance Issues
+
+**Enable asset server for optimization**:
+```bash
+# Set in .env.local
+NEXT_PUBLIC_USE_ASSET_SERVER=true
+
+# Restart application
+npm run dev
+```
+
+## Component Usage
+
+### Basic Logo Component
+
+```jsx
+import { getLogoUrl } from '../lib/assets';
+
+function Logo() {
+  return (
+    <img 
+      src={getLogoUrl({ optimized: false })} 
+      alt="REMMIC Logo"
+      onError={(e) => {
+        // Fallback to original file
+        e.target.src = '/REMMIC LOGO SVG.svg';
+      }}
+    />
+  );
+}
+```
+
+### Responsive Logo with Modern Formats
+
+```jsx
+function ResponsiveLogo() {
+  return (
+    <picture>
+      <source 
+        srcSet="/optimized/logos/remmic-logo.webp" 
+        type="image/webp" 
+      />
+      <img 
+        src="/remmic-logo.svg" 
+        alt="REMMIC Logo"
+        onError={(e) => {
+          e.target.src = '/REMMIC LOGO SVG.svg';
+        }}
+      />
+    </picture>
+  );
+}
+```
+
+## System Architecture
+
+### Logo Flow Priority
+
+1. **Check environment**: Is asset server enabled?
+2. **Try asset server**: If enabled, get optimized version
+3. **Fallback to local**: Use `/remmic-logo.svg`
+4. **Final fallback**: Use `/REMMIC LOGO SVG.svg`
+
+### Files Structure
+
+```
+public/
+├── REMMIC LOGO SVG.svg    # Original logo (with spaces)
+├── remmic-logo.svg        # Clean filename copy
+└── logoremmic.png         # Legacy favicon
+
+assets/
+├── logos/
+│   ├── REMMIC LOGO SVG.svg    # Source file
+│   └── remmic-logo.svg        # Clean copy
+└── optimized/                 # Generated by asset server
+    └── logos/
+        ├── remmic-logo.png
+        ├── remmic-logo.webp
+        ├── favicon.ico
+        └── apple-touch-icon.png
+```
+
+## Immediate Fix Commands
+
+If logo is missing right now, run these commands:
+
+```bash
+# 1. Ensure logo files exist in public directory
+cp "public/REMMIC LOGO SVG.svg" public/remmic-logo.svg
+
+# 2. Restart the development server
+npm run dev
+
+# 3. Check in browser - logo should appear
+
+# 4. (Optional) Start asset services for optimization
+npm run content:up
+```
+
+## Production Deployment
+
+For production, consider:
+
+1. **Upload logos to CDN** for best performance
+2. **Enable asset server** with proper caching headers  
+3. **Use environment variables** to switch between local/CDN/asset-server
+4. **Monitor asset loading** performance
+
+The logo system is designed to be resilient with multiple fallback layers, so your logo should always load even if the asset server is unavailable.

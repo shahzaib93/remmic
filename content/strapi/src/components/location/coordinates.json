@@ -1,0 +1,38 @@
+{
+  "collectionName": "components_location_coordinates",
+  "info": {
+    "displayName": "Coordinates",
+    "description": "Geographic coordinates"
+  },
+  "options": {},
+  "attributes": {
+    "latitude": {
+      "type": "decimal",
+      "required": true,
+      "min": -90,
+      "max": 90
+    },
+    "longitude": {
+      "type": "decimal",
+      "required": true,
+      "min": -180,
+      "max": 180
+    },
+    "address": {
+      "type": "text"
+    },
+    "city": {
+      "type": "string"
+    },
+    "state": {
+      "type": "string"
+    },
+    "country": {
+      "type": "string",
+      "default": "Pakistan"
+    },
+    "postalCode": {
+      "type": "string"
+    }
+  }
+}

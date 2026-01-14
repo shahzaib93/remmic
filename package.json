@@ -1,0 +1,43 @@
+{
+  "name": "remmic-theme",
+  "version": "1.0.0",
+  "description": "REMMIC Real Estate Platform",
+  "scripts": {
+    "dev": "next dev -p 3008",
+    "build": "next build",
+    "start": "next start",
+    "docker:build": "docker build -t remmic-app .",
+    "docker:build-dev": "docker build -f Dockerfile.dev -t remmic-app:dev .",
+    "docker:run": "docker run -p 3008:3008 remmic-app",
+    "docker:run-dev": "docker run -p 3008:3008 -v $(pwd):/app -v /app/node_modules remmic-app:dev",
+    "docker:up": "docker-compose up -d",
+    "docker:up-dev": "docker-compose --profile development up -d",
+    "docker:down": "docker-compose down",
+    "docker:logs": "docker-compose logs -f",
+    "docker:clean": "docker system prune -f && docker volume prune -f",
+    "content:up": "docker-compose -f docker-compose.content.yml up -d",
+    "content:down": "docker-compose -f docker-compose.content.yml down",
+    "content:logs": "docker-compose -f docker-compose.content.yml logs -f",
+    "content:backup": "docker-compose -f docker-compose.content.yml --profile backup up -d content-backup",
+    "full:up": "docker-compose -f docker-compose.yml -f docker-compose.content.yml up -d",
+    "full:down": "docker-compose -f docker-compose.yml -f docker-compose.content.yml down",
+    "assets:build": "docker build -t remmic-assets ./assets",
+    "assets:setup": "docker-compose -f docker-compose.content.yml --profile setup up minio-setup",
+    "assets:backup": "docker run --rm -v $(pwd)/content/backups:/backups remmic-assets /content/scripts/asset-backup.sh"
+  },
+  "keywords": [
+    "real-estate",
+    "nextjs",
+    "remmic"
+  ],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "aos": "^2.3.4",
+    "firebase": "^12.4.0",
+    "jspdf": "^3.0.3",
+    "next": "^14.0.0",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0"
+  }
+}

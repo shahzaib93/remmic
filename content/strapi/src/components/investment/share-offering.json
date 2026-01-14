@@ -1,0 +1,72 @@
+{
+  "collectionName": "components_investment_share_offerings",
+  "info": {
+    "displayName": "Share Offering",
+    "description": "Investment share offering details"
+  },
+  "options": {},
+  "attributes": {
+    "totalShares": {
+      "type": "integer",
+      "required": true,
+      "min": 1
+    },
+    "sharesAvailable": {
+      "type": "integer",
+      "required": true,
+      "min": 0
+    },
+    "sharePrice": {
+      "type": "decimal",
+      "required": true,
+      "min": 0
+    },
+    "minSharesPerInvestor": {
+      "type": "integer",
+      "default": 1,
+      "min": 1
+    },
+    "maxSharesPerInvestor": {
+      "type": "integer",
+      "min": 1
+    },
+    "fundingGoal": {
+      "type": "decimal",
+      "required": true,
+      "min": 0
+    },
+    "fundingRaised": {
+      "type": "decimal",
+      "default": 0,
+      "min": 0
+    },
+    "investorCount": {
+      "type": "integer",
+      "default": 0,
+      "min": 0
+    },
+    "expectedReturn": {
+      "type": "decimal",
+      "min": 0
+    },
+    "offeringStartDate": {
+      "type": "datetime",
+      "required": true
+    },
+    "offeringEndDate": {
+      "type": "datetime",
+      "required": true
+    },
+    "status": {
+      "type": "enumeration",
+      "enum": [
+        "pending",
+        "active",
+        "funded",
+        "closed",
+        "cancelled"
+      ],
+      "default": "pending"
+    }
+  }
+}

@@ -1,0 +1,260 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database for Content Management
+  postgres:
+    image: postgres:15-alpine
+    container_name: remmic-postgres
+    environment:
+      POSTGRES_DB: remmic_content
+      POSTGRES_USER: remmic_user
+      POSTGRES_PASSWORD: remmic_password_2024
+      POSTGRES_HOST_AUTH_METHOD: trust
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./content/database/init:/docker-entrypoint-initdb.d
+    networks:
+      - remmic-content-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U remmic_user -d remmic_content"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  # Strapi Headless CMS
+  strapi:
+    build:
+      context: ./content/strapi
+      dockerfile: Dockerfile
+    container_name: remmic-strapi
+    environment:
+      NODE_ENV: production
+      DATABASE_CLIENT: postgres
+      DATABASE_HOST: postgres
+      DATABASE_PORT: 5432
+      DATABASE_NAME: remmic_content
+      DATABASE_USERNAME: remmic_user
+      DATABASE_PASSWORD: remmic_password_2024
+      DATABASE_SSL: false
+      JWT_SECRET: your-super-secret-jwt-token-here
+      ADMIN_JWT_SECRET: your-admin-jwt-secret-here
+      APP_KEYS: key1,key2,key3,key4
+      API_TOKEN_SALT: your-api-token-salt
+    ports:
+      - "1337:1337"
+    volumes:
+      - strapi_uploads:/app/public/uploads
+      - ./content/strapi/config:/app/config
+      - ./content/strapi/src:/app/src
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - remmic-content-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:1337/admin"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Redis for Content Caching
+  redis:
+    image: redis:7-alpine
+    container_name: remmic-redis
+    command: redis-server --appendonly yes --requirepass redis_password_2024
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+      - ./content/redis/redis.conf:/usr/local/etc/redis/redis.conf
+    networks:
+      - remmic-content-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "--raw", "incr", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Minio for File Storage (S3 Compatible)
+  minio:
+    image: minio/minio:latest
+    container_name: remmic-minio
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin123
+      MINIO_DOMAIN: minio
+      MINIO_SERVER_URL: http://minio:9000
+      MINIO_BROWSER_REDIRECT_URL: http://localhost:9001
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    volumes:
+      - minio_data:/data
+    command: server /data --console-address ":9001"
+    networks:
+      - remmic-content-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # MinIO Setup Service
+  minio-setup:
+    image: minio/mc:latest
+    container_name: remmic-minio-setup
+    volumes:
+      - ./content/minio/setup-assets.sh:/setup-assets.sh
+      - ./assets:/assets:ro
+    depends_on:
+      minio:
+        condition: service_healthy
+    networks:
+      - remmic-content-network
+    command: /setup-assets.sh
+    profiles:
+      - setup
+
+  # Assets Server
+  assets:
+    build:
+      context: ./assets
+      dockerfile: Dockerfile
+    container_name: remmic-assets
+    ports:
+      - "8080:80"
+    volumes:
+      - assets_optimized:/var/www/assets/optimized
+    networks:
+      - remmic-content-network
+      - remmic-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Elasticsearch for Content Search
+  elasticsearch:
+    image: elasticsearch:8.11.0
+    container_name: remmic-elasticsearch
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+    ports:
+      - "9200:9200"
+      - "9300:9300"
+    volumes:
+      - elasticsearch_data:/usr/share/elasticsearch/data
+    networks:
+      - remmic-content-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:9200/_cluster/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Content API Gateway
+  content-api:
+    build:
+      context: ./content/api
+      dockerfile: Dockerfile
+    container_name: remmic-content-api
+    environment:
+      NODE_ENV: production
+      PORT: 4000
+      DATABASE_URL: postgresql://remmic_user:remmic_password_2024@postgres:5432/remmic_content
+      REDIS_URL: redis://:redis_password_2024@redis:6379
+      STRAPI_URL: http://strapi:1337
+      ELASTICSEARCH_URL: http://elasticsearch:9200
+      MINIO_ENDPOINT: minio
+      MINIO_PORT: 9000
+      MINIO_ACCESS_KEY: minioadmin
+      MINIO_SECRET_KEY: minioadmin123
+    ports:
+      - "4000:4000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      strapi:
+        condition: service_healthy
+    volumes:
+      - ./content/api:/app
+      - /app/node_modules
+    networks:
+      - remmic-content-network
+    restart: unless-stopped
+
+  # Content Synchronization Service
+  content-sync:
+    build:
+      context: ./content/sync
+      dockerfile: Dockerfile
+    container_name: remmic-content-sync
+    environment:
+      NODE_ENV: production
+      STRAPI_URL: http://strapi:1337
+      NEXT_APP_URL: http://remmic-app:3008
+      REDIS_URL: redis://:redis_password_2024@redis:6379
+      SYNC_INTERVAL: 300000  # 5 minutes
+    depends_on:
+      strapi:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    volumes:
+      - ./content/sync:/app
+      - /app/node_modules
+    networks:
+      - remmic-content-network
+      - remmic-network
+    restart: unless-stopped
+
+  # Content Backup Service
+  content-backup:
+    image: postgres:15-alpine
+    container_name: remmic-content-backup
+    environment:
+      PGPASSWORD: remmic_password_2024
+    volumes:
+      - ./content/backups:/backups
+      - ./content/scripts/backup.sh:/backup.sh
+    command: >
+      sh -c "
+        chmod +x /backup.sh &&
+        echo '0 2 * * * /backup.sh' | crontab - &&
+        crond -f
+      "
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - remmic-content-network
+    restart: unless-stopped
+    profiles:
+      - backup
+
+volumes:
+  postgres_data:
+  redis_data:
+  minio_data:
+  elasticsearch_data:
+  strapi_uploads:
+  assets_optimized:
+
+networks:
+  remmic-content-network:
+    driver: bridge
+  remmic-network:
+    external: true

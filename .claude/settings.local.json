@@ -1,0 +1,38 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(tree:*)",
+      "Bash(npx eslint:*)",
+      "Bash(node -e:*)",
+      "Bash(npm run build:*)",
+      "Bash(timeout 30 npm run dev:*)",
+      "Bash(cat:*)",
+      "Bash(pkill:*)",
+      "Bash(npm run dev:*)",
+      "Bash(curl:*)",
+      "Bash(timeout 5 npm run dev:*)",
+      "Bash(firebase projects:list:*)",
+      "Bash(firebase firestore:rules:list:*)",
+      "Bash(git -C /mnt/d/remmic 2026/remmic2.0 diff --stat HEAD)",
+      "Bash(chmod:*)",
+      "Bash(node:*)",
+      "Bash(npm run lint:*)",
+      "Bash(git push:*)",
+      "Bash(git remote remove:*)",
+      "Bash(git remote add:*)",
+      "Bash(ssh:*)",
+      "Bash(git pull:*)",
+      "Bash(git config:*)",
+      "Bash(git merge:*)",
+      "Bash(grep:*)",
+      "Bash(xargs -I {} sh -c 'echo \"\"\"\"=== {} ===\"\"\"\" && head -20 {}')",
+      "WebFetch(domain:bidx1.com)",
+      "WebSearch",
+      "Bash(find:*)",
+      "Bash(wc:*)"
+    ],
+    "additionalDirectories": [
+      "/home/aicoder/Documents/Remmic"
+    ]
+  }
+}

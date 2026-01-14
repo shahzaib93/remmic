@@ -1,0 +1,73 @@
+version: '3.8'
+
+services:
+  # Main application
+  remmic-app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: runner
+    container_name: remmic-app
+    ports:
+      - "3008:3008"
+    environment:
+      - NODE_ENV=production
+      - PORT=3008
+    restart: unless-stopped
+    networks:
+      - remmic-network
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3008/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+
+  # Development version (optional - for development with hot reload)
+  remmic-dev:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    container_name: remmic-dev
+    ports:
+      - "3009:3008"
+    environment:
+      - NODE_ENV=development
+      - PORT=3008
+    volumes:
+      - .:/app
+      - /app/node_modules
+      - /app/.next
+    command: npm run dev
+    restart: unless-stopped
+    networks:
+      - remmic-network
+    profiles:
+      - development
+
+  # Nginx reverse proxy (optional - for production)
+  nginx:
+    image: nginx:alpine
+    container_name: remmic-nginx
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf
+      - ./nginx/default.conf:/etc/nginx/conf.d/default.conf
+      - ./ssl:/etc/nginx/ssl
+    depends_on:
+      - remmic-app
+    restart: unless-stopped
+    networks:
+      - remmic-network
+    profiles:
+      - production
+
+networks:
+  remmic-network:
+    driver: bridge
+
+volumes:
+  node_modules:
+  next_cache:

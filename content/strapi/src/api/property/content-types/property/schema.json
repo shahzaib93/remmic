@@ -1,0 +1,110 @@
+{
+  "kind": "collectionType",
+  "collectionName": "properties",
+  "info": {
+    "singularName": "property",
+    "pluralName": "properties",
+    "displayName": "Property",
+    "description": "Real estate property content"
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "title": {
+      "type": "string",
+      "required": true,
+      "maxLength": 255
+    },
+    "description": {
+      "type": "richtext",
+      "required": true
+    },
+    "slug": {
+      "type": "uid",
+      "targetField": "title",
+      "required": true
+    },
+    "price": {
+      "type": "decimal",
+      "required": true,
+      "min": 0
+    },
+    "area": {
+      "type": "string",
+      "required": true
+    },
+    "location": {
+      "type": "string",
+      "required": true
+    },
+    "propertyType": {
+      "type": "enumeration",
+      "enum": [
+        "residential_plot",
+        "commercial_plot", 
+        "house",
+        "apartment",
+        "office",
+        "warehouse",
+        "land"
+      ],
+      "required": true
+    },
+    "status": {
+      "type": "enumeration",
+      "enum": [
+        "available",
+        "sold",
+        "pending",
+        "draft"
+      ],
+      "default": "available"
+    },
+    "featured": {
+      "type": "boolean",
+      "default": false
+    },
+    "images": {
+      "type": "media",
+      "multiple": true,
+      "required": false,
+      "allowedTypes": ["images"]
+    },
+    "documents": {
+      "type": "media",
+      "multiple": true,
+      "required": false,
+      "allowedTypes": ["files"]
+    },
+    "coordinates": {
+      "type": "component",
+      "repeatable": false,
+      "component": "location.coordinates"
+    },
+    "amenities": {
+      "type": "relation",
+      "relation": "manyToMany",
+      "target": "api::amenity.amenity",
+      "mappedBy": "properties"
+    },
+    "shareOffering": {
+      "type": "component",
+      "repeatable": false,
+      "component": "investment.share-offering"
+    },
+    "seo": {
+      "type": "component",
+      "repeatable": false,
+      "component": "shared.seo"
+    },
+    "viewCount": {
+      "type": "integer",
+      "default": 0
+    },
+    "publishedAt": {
+      "type": "datetime"
+    }
+  }
+}

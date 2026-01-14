@@ -1,0 +1,35 @@
+{
+  "name": "remmic-strapi-cms",
+  "private": true,
+  "version": "1.0.0",
+  "description": "REMMIC Content Management System",
+  "scripts": {
+    "build": "strapi build",
+    "develop": "strapi develop",
+    "start": "strapi start",
+    "strapi": "strapi",
+    "deploy": "strapi deploy"
+  },
+  "dependencies": {
+    "@strapi/strapi": "^4.15.0",
+    "@strapi/plugin-users-permissions": "^4.15.0",
+    "@strapi/plugin-i18n": "^4.15.0",
+    "@strapi/plugin-graphql": "^4.15.0",
+    "@strapi/plugin-seo": "^1.9.0",
+    "@strapi/provider-upload-aws-s3": "^4.15.0",
+    "@strapi/provider-email-sendgrid": "^4.15.0",
+    "pg": "^8.8.0",
+    "redis": "^4.6.0",
+    "sharp": "^0.32.0",
+    "uuid": "^9.0.0"
+  },
+  "author": "REMMIC Team",
+  "strapi": {
+    "uuid": "remmic-content-management"
+  },
+  "engines": {
+    "node": ">=18.0.0 <=20.x.x",
+    "npm": ">=6.0.0"
+  },
+  "license": "MIT"
+}

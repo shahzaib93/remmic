@@ -1,0 +1,470 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Helper functions
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isAdmin() {
+      return isAuthenticated() &&
+        (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin' ||
+         request.auth.token.email.matches('.*admin.*'));
+    }
+
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    function isValidUser() {
+      return isAuthenticated() && !request.auth.token.firebase.sign_in_provider.matches('anonymous');
+    }
+
+    function isPropertyManager() {
+      return isAuthenticated() &&
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'property_manager';
+    }
+
+    function isEvaluator() {
+      return isAuthenticated() &&
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'evaluator';
+    }
+
+    function isLandowner() {
+      return isAuthenticated() &&
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'landowner';
+    }
+
+    function isAssignedPropertyManager(propertyId) {
+      return isPropertyManager() &&
+        get(/databases/$(database)/documents/properties/$(propertyId)).data.propertyManager.id == request.auth.uid;
+    }
+
+    // Users Collection
+    match /users/{userId} {
+      // Anyone can read their own profile
+      allow read: if isOwner(userId) || isAdmin();
+
+      // Users can create their own profile
+      allow create: if isOwner(userId);
+
+      // Users can update their own profile, admins can update any
+      allow update: if isOwner(userId) || isAdmin();
+
+      // Only admins can delete users
+      allow delete: if isAdmin();
+    }
+
+    // Properties Collection
+    match /properties/{propertyId} {
+      // Anyone can read approved properties, owners and admins can read all
+      allow read: if resource.data.status == 'approved' ||
+                    isAdmin() ||
+                    (isAuthenticated() && resource.data.userId == request.auth.uid);
+
+      // Authenticated users can create properties
+      allow create: if isValidUser();
+
+      // Property owners and admins can update
+      allow update: if isAdmin() ||
+                      (isAuthenticated() && resource.data.userId == request.auth.uid);
+
+      // Only admins can delete
+      allow delete: if isAdmin();
+    }
+
+    // Investments Collection
+    match /investments/{investmentId} {
+      // Users can read their own investments, admins can read all
+      allow read: if isAdmin() ||
+                    (isAuthenticated() && resource.data.userId == request.auth.uid);
+
+      // Authenticated users can create investments
+      allow create: if isValidUser();
+
+      // Admins can update any, users can update their pending investments
+      allow update: if isAdmin() ||
+                      (isAuthenticated() &&
+                       resource.data.userId == request.auth.uid &&
+                       resource.data.status == 'pending');
+
+      // Only admins can delete
+      allow delete: if isAdmin();
+    }
+
+    // Evaluations Collection
+    match /evaluations/{evaluationId} {
+      // Users can read their own evaluations, admins can read all
+      allow read: if isAdmin() ||
+                    (isAuthenticated() && resource.data.userId == request.auth.uid);
+
+      // Authenticated users can create evaluations
+      allow create: if isValidUser();
+
+      // Admins can update any evaluation
+      allow update: if isAdmin();
+
+      // Only admins can delete
+      allow delete: if isAdmin();
+    }
+
+    // Contact Messages Collection
+    match /contactMessages/{messageId} {
+      // Only admins can read messages
+      allow read: if isAdmin();
+
+      // Anyone can create a contact message (public contact form)
+      allow create: if true;
+
+      // Only admins can update/delete
+      allow update, delete: if isAdmin();
+    }
+
+    // Bids Collection
+    match /bids/{bidId} {
+      // Users can read their own bids, property owners and admins can read all bids for their properties
+      allow read: if isAdmin() ||
+                    (isAuthenticated() && resource.data.userId == request.auth.uid);
+
+      // Authenticated users can create bids
+      allow create: if isValidUser();
+
+      // Users can update their own pending bids
+      allow update: if isAdmin() ||
+                      (isAuthenticated() &&
+                       resource.data.userId == request.auth.uid &&
+                       resource.data.status == 'pending');
+
+      // Only admins can delete
+      allow delete: if isAdmin();
+    }
+
+    // Rentals Collection
+    match /rentals/{rentalId} {
+      // Anyone can read approved rentals
+      allow read: if resource.data.status == 'approved' ||
+                    isAdmin() ||
+                    (isAuthenticated() && resource.data.userId == request.auth.uid);
+
+      // Authenticated users can create rentals
+      allow create: if isValidUser();
+
+      // Property owners and admins can update
+      allow update: if isAdmin() ||
+                      (isAuthenticated() && resource.data.userId == request.auth.uid);
+
+      // Only admins can delete
+      allow delete: if isAdmin();
+    }
+
+    // Maintenance Requests Collection
+    match /maintenance/{maintenanceId} {
+      // Users can read their own requests, admins can read all
+      allow read: if isAdmin() ||
+                    (isAuthenticated() && resource.data.userId == request.auth.uid);
+
+      // Authenticated users can create maintenance requests
+      allow create: if isValidUser();
+
+      // Admins can update any, users can update their own
+      allow update: if isAdmin() ||
+                      (isAuthenticated() && resource.data.userId == request.auth.uid);
+
+      // Only admins can delete
+      allow delete: if isAdmin();
+    }
+
+    // Notifications Collection
+    match /notifications/{notificationId} {
+      // Users can read their own notifications
+      allow read: if isAuthenticated() && resource.data.userId == request.auth.uid;
+
+      // System/Admins can create notifications
+      allow create: if isAdmin() || isValidUser();
+
+      // Users can mark their notifications as read
+      allow update: if isAuthenticated() && resource.data.userId == request.auth.uid;
+
+      // Users can delete their own notifications
+      allow delete: if isAuthenticated() && resource.data.userId == request.auth.uid;
+    }
+
+    // Wallet/Transactions Collection
+    match /wallets/{walletId} {
+      allow read: if isOwner(walletId) || isAdmin();
+      allow create: if isOwner(walletId);
+      allow update: if isAdmin();
+      allow delete: if isAdmin();
+    }
+
+    match /transactions/{transactionId} {
+      allow read: if isAdmin() ||
+                    (isAuthenticated() && resource.data.userId == request.auth.uid);
+      allow create: if isValidUser();
+      allow update: if isAdmin();
+      allow delete: if isAdmin();
+    }
+
+    // Reports Collection (Admin only)
+    match /reports/{reportId} {
+      allow read, write: if isAdmin();
+    }
+
+    // Settings Collection (Admin only)
+    match /settings/{settingId} {
+      allow read: if isAuthenticated();
+      allow write: if isAdmin();
+    }
+
+    // Audit Logs (Admin only, append only for system)
+    match /auditLogs/{logId} {
+      allow read: if isAdmin();
+      allow create: if isAuthenticated();
+      allow update, delete: if false; // Immutable logs
+    }
+
+    // =========================================================================
+    // DEVELOPMENT MANAGEMENT MODEL COLLECTIONS
+    // =========================================================================
+
+    // Development Projects Collection
+    match /development_projects/{projectId} {
+      // Landowner can read their own projects, admins and investors can read all
+      allow read: if isAdmin() ||
+                    (isAuthenticated() && resource.data.userId == request.auth.uid) ||
+                    (isAuthenticated() && resource.data.landownerId == request.auth.uid);
+
+      // Only admins can create development projects
+      allow create: if isAdmin();
+
+      // Only admins can update
+      allow update: if isAdmin();
+
+      // Only admins can delete
+      allow delete: if isAdmin();
+    }
+
+    // Feasibility Reports Collection
+    match /feasibility_reports/{reportId} {
+      // Admins and project stakeholders can read
+      allow read: if isAdmin() ||
+                    (isAuthenticated() && resource.data.userId == request.auth.uid);
+
+      // Only admins can create/update/delete
+      allow create, update, delete: if isAdmin();
+    }
+
+    // Project Drawings Collection
+    match /project_drawings/{drawingId} {
+      // Admins and project stakeholders can read
+      allow read: if isAdmin() ||
+                    (isAuthenticated() && resource.data.userId == request.auth.uid);
+
+      // Only admins can create/update/delete
+      allow create, update, delete: if isAdmin();
+    }
+
+    // Project Financials Collection
+    match /project_financials/{financialId} {
+      // Admins can read all, investors can read for projects they invested in
+      allow read: if isAdmin() ||
+                    (isAuthenticated() && resource.data.userId == request.auth.uid);
+
+      // Only admins can manage financials
+      allow create, update, delete: if isAdmin();
+    }
+
+    // Project Milestones Collection
+    match /project_milestones/{milestoneId} {
+      // Admins and project stakeholders can read
+      allow read: if isAdmin() ||
+                    (isAuthenticated() && resource.data.userId == request.auth.uid);
+
+      // Only admins can create/update/delete
+      allow create, update, delete: if isAdmin();
+    }
+
+    // Project Expenses Collection
+    match /project_expenses/{expenseId} {
+      // Admins can read all
+      allow read: if isAdmin();
+
+      // Only admins can manage expenses
+      allow create, update, delete: if isAdmin();
+    }
+
+    // Project Reports Collection
+    match /project_reports/{reportId} {
+      // Published reports can be read by authenticated users
+      allow read: if isAdmin() ||
+                    (isAuthenticated() && resource.data.isPublished == true) ||
+                    (isAuthenticated() && resource.data.userId == request.auth.uid);
+
+      // Only admins can create/update/delete
+      allow create, update, delete: if isAdmin();
+    }
+
+    // =========================================================================
+    // REAL ESTATE MANAGEMENT MODULE COLLECTIONS
+    // =========================================================================
+
+    // Tenants Collection
+    match /tenants/{tenantId} {
+      // Property owners, assigned property managers, and admins can read
+      allow read: if isAdmin() ||
+                    (isAuthenticated() && resource.data.userId == request.auth.uid) ||
+                    isAssignedPropertyManager(resource.data.propertyId);
+
+      // Property owners and admins can create
+      allow create: if isAdmin() || isValidUser();
+
+      // Property owners, assigned managers, and admins can update
+      allow update: if isAdmin() ||
+                      (isAuthenticated() && resource.data.userId == request.auth.uid) ||
+                      isAssignedPropertyManager(resource.data.propertyId);
+
+      // Only admins can delete
+      allow delete: if isAdmin();
+    }
+
+    // Rent Records Collection
+    match /rent_records/{recordId} {
+      // Property owners, assigned managers, and admins can read
+      allow read: if isAdmin() ||
+                    (isAuthenticated() && resource.data.userId == request.auth.uid) ||
+                    isAssignedPropertyManager(resource.data.propertyId);
+
+      // Property owners and property managers can create
+      allow create: if isAdmin() || isValidUser() || isPropertyManager();
+
+      // Property owners, assigned managers, and admins can update
+      allow update: if isAdmin() ||
+                      (isAuthenticated() && resource.data.userId == request.auth.uid) ||
+                      isAssignedPropertyManager(resource.data.propertyId);
+
+      // Only admins can delete
+      allow delete: if isAdmin();
+    }
+
+    // Maintenance Requests Collection (updated path)
+    match /maintenance_requests/{requestId} {
+      // Property owners, tenants, assigned managers, and admins can read
+      allow read: if isAdmin() ||
+                    (isAuthenticated() && resource.data.userId == request.auth.uid) ||
+                    (isAuthenticated() && resource.data.reportedBy == request.auth.uid) ||
+                    isAssignedPropertyManager(resource.data.propertyId);
+
+      // Authenticated users can create maintenance requests
+      allow create: if isValidUser();
+
+      // Property owners, assigned managers, and admins can update
+      allow update: if isAdmin() ||
+                      (isAuthenticated() && resource.data.userId == request.auth.uid) ||
+                      isAssignedPropertyManager(resource.data.propertyId);
+
+      // Only admins can delete
+      allow delete: if isAdmin();
+    }
+
+    // Documents Vault Collection
+    match /documents_vault/{documentId} {
+      // Property owners, assigned managers, and admins can read
+      allow read: if isAdmin() ||
+                    (isAuthenticated() && resource.data.userId == request.auth.uid) ||
+                    isAssignedPropertyManager(resource.data.propertyId);
+
+      // Property owners and admins can create
+      allow create: if isAdmin() || isValidUser();
+
+      // Property owners and admins can update
+      allow update: if isAdmin() ||
+                      (isAuthenticated() && resource.data.userId == request.auth.uid);
+
+      // Only admins can delete
+      allow delete: if isAdmin();
+    }
+
+    // Activity Logs Collection (Immutable audit trail)
+    match /activity_logs/{logId} {
+      // Only admins can read activity logs
+      allow read: if isAdmin();
+
+      // Authenticated users can create logs (system logging)
+      allow create: if isAuthenticated();
+
+      // Logs are immutable - no updates or deletes
+      allow update, delete: if false;
+    }
+
+    // Property Managers Collection
+    match /property_managers/{managerId} {
+      // Admins and the manager themselves can read
+      allow read: if isAdmin() || isOwner(managerId);
+
+      // Only admins can create/update/delete property managers
+      allow create, update, delete: if isAdmin();
+    }
+
+    // Evaluators Collection
+    match /evaluators/{evaluatorId} {
+      // Admins and the evaluator themselves can read
+      allow read: if isAdmin() || isOwner(evaluatorId);
+
+      // Only admins can create/update/delete evaluators
+      allow create, update, delete: if isAdmin();
+    }
+
+    // Evaluation Assignments Collection
+    match /evaluation_assignments/{assignmentId} {
+      // Admins and assigned evaluators can read
+      allow read: if isAdmin() ||
+                    (isEvaluator() && resource.data.evaluatorId == request.auth.uid);
+
+      // Only admins can create assignments
+      allow create: if isAdmin();
+
+      // Admins and assigned evaluators can update status
+      allow update: if isAdmin() ||
+                      (isEvaluator() && resource.data.evaluatorId == request.auth.uid);
+
+      // Only admins can delete
+      allow delete: if isAdmin();
+    }
+
+    // Bidding Payments Collection
+    match /biddingPayments/{paymentId} {
+      // Users can read their own payments, admins can read all
+      allow read: if isAdmin() ||
+                    (isAuthenticated() && resource.data.userId == request.auth.uid);
+
+      // Authenticated users can create payments
+      allow create: if isValidUser();
+
+      // Only admins can update payment status
+      allow update: if isAdmin();
+
+      // Only admins can delete
+      allow delete: if isAdmin();
+    }
+
+    // Bidding Penalties Collection
+    match /biddingPenalties/{penaltyId} {
+      // Users can read their own penalties, admins can read all
+      allow read: if isAdmin() ||
+                    (isAuthenticated() && resource.data.bidderId == request.auth.uid);
+
+      // Only admins can create/update/delete penalties
+      allow create, update, delete: if isAdmin();
+    }
+
+    // Admin Settings Collection
+    match /adminSettings/{settingId} {
+      // Authenticated users can read public settings
+      allow read: if isAuthenticated();
+
+      // Only admins can write settings
+      allow write: if isAdmin();
+    }
+  }
+}

@@ -1,0 +1,1035 @@
+/* Loading and Error States */
+.loadingContainer,
+.errorContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  background: #f7f8fa;
+}
+
+.loader {
+  width: 50px;
+  height: 50px;
+  border: 4px solid #f0f0f0;
+  border-top: 4px solid #ff5e01;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 20px;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Main Container */
+.container {
+  background: #f7f8fa;
+  min-height: 100vh;
+  padding-bottom: 60px;
+}
+
+/* Header Section */
+.header {
+  background: white;
+  padding: 20px 40px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.backBtn {
+  background: transparent;
+  border: 2px solid #e0e0e0;
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-size: 14px;
+  color: #333;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-weight: 500;
+}
+
+.backBtn:hover {
+  background: #ff5e01;
+  color: white;
+  border-color: #ff5e01;
+  transform: translateX(-3px);
+}
+
+/* Media Section */
+.mediaSection {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+  padding: 20px 40px;
+  background: white;
+}
+
+.heroImage {
+  position: relative;
+  height: 400px;
+  border-radius: 16px;
+  overflow: hidden;
+  background: #000;
+}
+
+.heroImage::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(to bottom, transparent 50%, rgba(0,0,0,0.4) 75%, rgba(0,0,0,0.8) 100%);
+  z-index: 1;
+  pointer-events: none;
+}
+
+.heroImage img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.imageOverlay {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: linear-gradient(to top, rgba(0,0,0,0.95), rgba(0,0,0,0.7), transparent);
+  padding: 30px;
+  color: white;
+  z-index: 2;
+}
+
+.propertyType {
+  background: #ff5e01;
+  color: #ffffff;
+  padding: 5px 12px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  display: inline-block;
+  margin-bottom: 10px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+}
+
+.propertyTitle {
+  font-size: 28px;
+  font-weight: 700;
+  margin: 10px 0;
+  color: #ffffff;
+  text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+  letter-spacing: -0.5px;
+}
+
+.propertyLocation {
+  font-size: 16px;
+  color: #ffffff;
+  opacity: 0.95;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+}
+
+.propertyLocation svg {
+  flex-shrink: 0;
+  fill: #ffffff;
+  filter: drop-shadow(1px 1px 2px rgba(0,0,0,0.5));
+}
+
+.mapContainer {
+  height: 400px;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+}
+
+/* Media Actions Grid */
+.mediaActions {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 15px;
+  padding: 0 40px 25px 40px;
+  background: white;
+}
+
+.mediaCard {
+  background: white;
+  border: 1.5px solid #e0e0e0;
+  border-radius: 10px;
+  padding: 15px 12px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.mediaCard:hover:not(.disabled) {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 20px rgba(255, 94, 1, 0.15);
+  border-color: #ff5e01;
+}
+
+/* Removed first-child special styling to make all buttons consistent */
+
+.mediaCard.disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.mediaIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 24px;
+}
+
+.mediaIcon svg {
+  width: 24px;
+  height: 24px;
+}
+
+.mediaText {
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+/* Investment Summary Section */
+.investmentSummary {
+  background: white;
+  margin: 30px 40px;
+  padding: 40px;
+  border-radius: 16px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+}
+
+.summaryHeader {
+  margin-bottom: 30px;
+}
+
+.badges {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.badge {
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.riskBadge {
+  background: #e8f5e9;
+  color: #2e7d32;
+}
+
+.statusBadge {
+  background: #fff3e0;
+  color: #ef6c00;
+}
+
+.sectionTitle {
+  font-size: 28px;
+  font-weight: 700;
+  color: #1a1a1a;
+  margin: 15px 0;
+}
+
+.propertyDesc {
+  color: #666;
+  line-height: 1.6;
+  font-size: 16px;
+}
+
+/* Metrics Grid */
+.metricsGrid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 20px;
+  margin: 30px 0;
+}
+
+.metricCard {
+  background: #f7f8fa;
+  padding: 20px;
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.metricLabel {
+  font-size: 13px;
+  color: #888;
+  font-weight: 500;
+}
+
+.metricValue {
+  font-size: 20px;
+  font-weight: 700;
+  color: #1a1a1a;
+}
+
+/* Funding Progress */
+.fundingProgress {
+  background: #f7f8fa;
+  padding: 25px;
+  border-radius: 12px;
+  margin: 30px 0;
+}
+
+.progressHeader {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 15px;
+  font-weight: 600;
+  color: #333;
+}
+
+.progressBar {
+  width: 100%;
+  height: 12px;
+  background: #e0e0e0;
+  border-radius: 6px;
+  overflow: hidden;
+  margin-bottom: 10px;
+}
+
+.progressFill {
+  height: 100%;
+  background: linear-gradient(90deg, #ff5e01, #ff8a00);
+  border-radius: 6px;
+  transition: width 0.5s ease;
+}
+
+.progressStats {
+  display: flex;
+  justify-content: space-between;
+  font-size: 14px;
+  color: #666;
+}
+
+/* Snapshot Grid */
+.snapshotGrid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 20px;
+  margin: 30px 0;
+}
+
+.snapshotCard {
+  background: #1a1a1a;
+  color: white;
+  padding: 25px;
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.snapshotLabel {
+  font-size: 13px;
+  opacity: 0.7;
+  font-weight: 500;
+}
+
+.snapshotValue {
+  font-size: 24px;
+  font-weight: 700;
+}
+
+/* Highlights */
+.highlights {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin: 30px 0;
+}
+
+.highlightPill {
+  background: linear-gradient(135deg, #fff5f0, #ffe8dd);
+  color: #ff5e01;
+  padding: 10px 20px;
+  border-radius: 25px;
+  font-size: 14px;
+  font-weight: 600;
+  border: 1px solid #ffd4c0;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.highlightPill svg {
+  flex-shrink: 0;
+}
+
+/* Invest Button */
+.investButton {
+  width: 100%;
+  padding: 18px;
+  background: linear-gradient(135deg, #ff5e01, #ff8a00);
+  color: white;
+  border: none;
+  border-radius: 12px;
+  font-size: 18px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.investButton:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 30px rgba(255, 94, 1, 0.3);
+}
+
+/* Property Details Section */
+.propertyDetails {
+  background: white;
+  margin: 30px 40px;
+  padding: 40px;
+  border-radius: 16px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+}
+
+.downloadSection {
+  background: #f7f8fa;
+  padding: 20px;
+  border-radius: 12px;
+  margin: 20px 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.downloadSection p {
+  font-weight: 600;
+  color: #333;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.downloadSection p svg {
+  flex-shrink: 0;
+}
+
+.downloadLink {
+  color: #ff5e01;
+  text-decoration: none;
+  font-weight: 600;
+  padding: 10px 20px;
+  background: white;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+}
+
+.downloadLink:hover {
+  background: #ff5e01;
+  color: white;
+}
+
+/* Facts Grid */
+.factsGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+  margin: 30px 0;
+  padding: 30px 0;
+  border-top: 1px solid #e0e0e0;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.factItem {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.factLabel {
+  font-size: 13px;
+  color: #888;
+  font-weight: 500;
+}
+
+.factValue {
+  font-size: 16px;
+  font-weight: 600;
+  color: #1a1a1a;
+}
+
+/* Details Columns */
+.detailsColumns {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 40px;
+  margin: 40px 0;
+}
+
+.column h4 {
+  font-size: 18px;
+  font-weight: 700;
+  color: #1a1a1a;
+  margin-bottom: 20px;
+}
+
+.infoList {
+  list-style: none;
+  padding: 0;
+}
+
+.infoList li {
+  padding: 10px 0;
+  color: #666;
+  font-size: 14px;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+/* Feature Badges */
+.featureBadges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.featureBadge {
+  background: #e8f5e9;
+  color: #2e7d32;
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+/* Activity List */
+.activityList {
+  list-style: none;
+  padding: 0;
+}
+
+.activityList li {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  padding: 10px 0;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.activityDate {
+  font-size: 12px;
+  color: #888;
+}
+
+.activityAction {
+  font-size: 14px;
+  color: #333;
+  font-weight: 500;
+}
+
+.noActivity {
+  color: #888;
+  font-style: italic;
+  font-size: 14px;
+}
+
+/* Due Diligence */
+.dueDiligence {
+  background: #f7f8fa;
+  padding: 30px;
+  border-radius: 12px;
+  margin-top: 40px;
+}
+
+.dueDiligence h4 {
+  font-size: 18px;
+  font-weight: 700;
+  color: #1a1a1a;
+  margin-bottom: 20px;
+}
+
+.dueDiligenceList {
+  list-style: none;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 15px;
+}
+
+.dueDiligenceList li {
+  color: #2e7d32;
+  font-weight: 500;
+  font-size: 14px;
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+}
+
+.dueDiligenceList li svg {
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+/* Modals */
+.modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.modalContent {
+  background: white;
+  border-radius: 16px;
+  padding: 30px;
+  max-width: 90%;
+  max-height: 90%;
+  overflow: auto;
+  position: relative;
+  animation: slideUp 0.3s ease;
+}
+
+/* VR Tour Modal Specific Styling */
+.vrTourContainer {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  background: #000;
+  padding: 0;
+  margin: 0;
+  overflow: visible;
+}
+
+.vrTourContainer iframe {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  border: none;
+  display: block;
+}
+
+.modalContent h3 {
+  margin-top: 0;
+  margin-bottom: 10px;
+  font-size: 22px;
+  color: #1a1a1a;
+  font-weight: 600;
+}
+
+/* Ensure VR modal is wide enough */
+.modalContent:has(.vrTourContainer) {
+  width: 90vw;
+  max-width: 1400px;
+  height: 80vh;
+  max-height: 90vh;
+  padding: 15px;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Authentication Modal Styles */
+.authModalContent {
+  padding: 20px 0;
+  text-align: center;
+}
+
+.authIcon {
+  margin: 20px auto;
+  display: flex;
+  justify-content: center;
+}
+
+.authMessage {
+  color: #666;
+  font-size: 16px;
+  line-height: 1.6;
+  margin-bottom: 24px;
+}
+
+.authInfo {
+  background: #f8f9fa;
+  padding: 20px;
+  border-radius: 8px;
+  margin: 24px 0;
+  text-align: left;
+}
+
+.authInfo h4 {
+  margin-bottom: 12px;
+  color: #333;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.authInfo ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.authInfo li {
+  padding: 8px 0;
+  padding-left: 24px;
+  position: relative;
+  color: #555;
+  font-size: 14px;
+}
+
+.authInfo li::before {
+  content: "✓";
+  position: absolute;
+  left: 0;
+  color: #4caf50;
+  font-weight: bold;
+}
+
+.authActions {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  margin: 24px 0;
+}
+
+.loginButton,
+.signupButton {
+  padding: 12px 32px;
+  border-radius: 8px;
+  font-weight: 600;
+  text-decoration: none;
+  transition: all 0.3s;
+  display: inline-block;
+}
+
+.loginButton {
+  background: white;
+  color: #ff5e01;
+  border: 2px solid #ff5e01;
+}
+
+.loginButton:hover {
+  background: #ff5e01;
+  color: white;
+}
+
+.signupButton {
+  background: linear-gradient(135deg, #ff5e01, #ff8a3d);
+  color: white;
+  border: 2px solid transparent;
+}
+
+.signupButton:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(255, 94, 1, 0.3);
+}
+
+.authFooter {
+  color: #888;
+  font-size: 14px;
+  margin-top: 16px;
+}
+
+.authFooter a {
+  color: #ff5e01;
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.authFooter a:hover {
+  text-decoration: underline;
+}
+
+/* Investment Modal Styles */
+.investmentForm {
+  padding: 20px 0;
+}
+
+.investmentInfo {
+  background: #f8f9fa;
+  padding: 20px;
+  border-radius: 8px;
+  margin-bottom: 20px;
+}
+
+.investmentInfo p {
+  margin: 10px 0;
+  color: #333;
+  font-size: 15px;
+}
+
+.investmentInfo strong {
+  color: #1a1a1a;
+  font-weight: 600;
+}
+
+.investmentInputGroup {
+  margin: 20px 0;
+}
+
+.investmentInputGroup label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 600;
+  color: #333;
+}
+
+.investmentInput {
+  width: 100%;
+  padding: 12px;
+  border: 2px solid #e0e0e0;
+  border-radius: 8px;
+  font-size: 16px;
+  transition: border-color 0.3s;
+}
+
+.investmentInput:focus {
+  outline: none;
+  border-color: #ff5e01;
+}
+
+.sharesCalculation {
+  margin-top: 10px;
+  padding: 10px;
+  background: #e8f5e9;
+  border-radius: 6px;
+  color: #2e7d32;
+  font-size: 14px;
+}
+
+.investmentActions {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+  margin-top: 24px;
+}
+
+.cancelButton {
+  padding: 12px 24px;
+  background: #f5f5f5;
+  color: #666;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.3s;
+}
+
+.cancelButton:hover {
+  background: #e0e0e0;
+}
+
+.confirmInvestButton {
+  padding: 12px 24px;
+  background: linear-gradient(135deg, #ff5e01, #ff8a3d);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.confirmInvestButton:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(255, 94, 1, 0.3);
+}
+
+.confirmInvestButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Responsive modal sizing */
+@media (max-width: 768px) {
+  .modalContent:has(.vrTourContainer) {
+    width: 100vw;
+    height: 85vh;
+    padding: 10px;
+    border-radius: 8px;
+  }
+  
+  .vrTourContainer {
+    flex: 1;
+  }
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(50px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.modalContent h3 {
+  margin-bottom: 20px;
+  font-size: 24px;
+  font-weight: 700;
+  color: #1a1a1a;
+}
+
+.closeModal {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  background: transparent;
+  border: none;
+  font-size: 36px;
+  color: #666;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+}
+
+.closeModal:hover {
+  background: #f0f0f0;
+  color: #ff5e01;
+  transform: rotate(90deg);
+}
+
+/* Gallery Grid */
+.galleryGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 20px;
+  margin-top: 20px;
+}
+
+.galleryImage {
+  width: 100%;
+  height: 250px;
+  object-fit: cover;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.galleryImage:hover {
+  transform: scale(1.05);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+}
+
+/* Responsive Design */
+@media (max-width: 1200px) {
+  .metricsGrid,
+  .snapshotGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  .mediaActions {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 768px) {
+  .header {
+    padding: 15px 20px;
+  }
+  
+  .mediaSection {
+    grid-template-columns: 1fr;
+    padding: 15px 20px;
+  }
+  
+  .heroImage,
+  .mapContainer {
+    height: 250px;
+  }
+  
+  .mediaActions {
+    padding: 0 20px 20px 20px;
+  }
+  
+  .investmentSummary,
+  .propertyDetails {
+    margin: 20px;
+    padding: 25px;
+  }
+  
+  .metricsGrid,
+  .snapshotGrid,
+  .factsGrid {
+    grid-template-columns: 1fr;
+  }
+  
+  .detailsColumns {
+    grid-template-columns: 1fr;
+    gap: 30px;
+  }
+  
+  .dueDiligenceList {
+    grid-template-columns: 1fr;
+  }
+  
+  .galleryGrid {
+    grid-template-columns: 1fr;
+  }
+  
+  .sectionTitle {
+    font-size: 22px;
+  }
+  
+  .propertyTitle {
+    font-size: 22px;
+  }
+  
+  .modalContent {
+    max-width: 95%;
+    padding: 20px;
+  }
+}
+
+@media (max-width: 480px) {
+  .highlights {
+    flex-direction: column;
+  }
+  
+  .highlightPill {
+    width: 100%;
+    text-align: center;
+  }
+  
+  .downloadSection {
+    flex-direction: column;
+    gap: 15px;
+    text-align: center;
+  }
+  
+  .downloadLink {
+    width: 100%;
+    text-align: center;
+  }
+}
