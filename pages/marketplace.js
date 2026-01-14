@@ -1,9 +1,74 @@
 import Head from 'next/head'
 import { useEffect, useMemo, useState } from 'react'
+import { useRouter } from 'next/router'
 import Navbar from '../components/Navbar'
 import Footer from '../components/Footer'
+import { useFirebase } from '../contexts/FirebaseContext'
 
-const ASSETS = [
+// Sample bidding properties to demonstrate the feature
+const SAMPLE_BIDDING_PROPERTIES = [
+  {
+    id: 'bidding-bahria-town',
+    name: 'Bahria Town Luxury Villa - Live Auction',
+    location: 'Bahria Town Phase 8, Rawalpindi',
+    city: 'rawalpindi',
+    assetType: 'residential',
+    roi: 15,
+    risk: 'moderate',
+    insured: true,
+    insurancePartner: 'EFU',
+    image: '/house5.jpg',
+    minInvestment: 15000000,
+    isBidding: true,
+    biddingStatus: 'live',
+    auctionStartDate: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(), // Started 2 days ago
+    auctionEndDate: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000).toISOString(), // Ends in 5 days
+    startingBid: 15000000,
+    currentBid: 18500000,
+    totalBids: 12,
+  },
+  {
+    id: 'bidding-dha-islamabad',
+    name: 'DHA Islamabad Commercial Plot',
+    location: 'DHA Phase 2, Islamabad',
+    city: 'islamabad',
+    assetType: 'commercial',
+    roi: 18,
+    risk: 'aggressive',
+    insured: false,
+    image: '/house6.jpg',
+    minInvestment: 25000000,
+    isBidding: true,
+    biddingStatus: 'live',
+    auctionStartDate: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(),
+    auctionEndDate: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString(),
+    startingBid: 25000000,
+    currentBid: 28000000,
+    totalBids: 8,
+  },
+  {
+    id: 'bidding-gulberg',
+    name: 'Gulberg III Prime Location',
+    location: 'Gulberg III, Lahore',
+    city: 'lahore',
+    assetType: 'commercial',
+    roi: 14,
+    risk: 'moderate',
+    insured: true,
+    insurancePartner: 'Jubilee',
+    image: '/house7.jpg',
+    minInvestment: 35000000,
+    isBidding: true,
+    biddingStatus: 'upcoming',
+    auctionStartDate: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toISOString(), // Starts in 2 days
+    auctionEndDate: new Date(Date.now() + 9 * 24 * 60 * 60 * 1000).toISOString(),
+    startingBid: 35000000,
+    currentBid: 35000000,
+    totalBids: 0,
+  },
+]
+
+const STATIC_ASSETS = [
   {
     id: 'dha-smart-villa',
     name: 'DHA Phase 6 Smart Villa',
@@ -96,17 +161,158 @@ const RISK_LABELS = {
   aggressive: 'Aggressive',
 }
 
+// Helper function to get bidding status
+const getBiddingStatus = (property) => {
+  if (!property.auctionStartDate || !property.auctionEndDate) return 'pending'
+
+  const now = new Date()
+  const startDate = new Date(property.auctionStartDate)
+  const endDate = new Date(property.auctionEndDate)
+
+  if (now < startDate) return 'upcoming'
+  if (now > endDate) return 'ended'
+  return 'live'
+}
+
+// Helper to format time remaining
+const formatTimeRemaining = (endDate) => {
+  const now = new Date()
+  const end = new Date(endDate)
+  const diff = end - now
+
+  if (diff <= 0) return 'Ended'
+
+  const days = Math.floor(diff / (1000 * 60 * 60 * 24))
+  const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60))
+  const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60))
+
+  if (days > 0) return `${days}d ${hours}h remaining`
+  if (hours > 0) return `${hours}h ${minutes}m remaining`
+  return `${minutes}m remaining`
+}
+
 export default function Marketplace() {
+  const router = useRouter()
+  const { getAllProperties } = useFirebase()
   const [mounted, setMounted] = useState(false)
   const [filters, setFilters] = useState(FILTER_DEFAULTS)
   const [searchTerm, setSearchTerm] = useState('')
+  const [biddingProperties, setBiddingProperties] = useState([])
+  const [loading, setLoading] = useState(true)
 
+  // Load bidding properties from Firebase and localStorage
   useEffect(() => {
+    const loadBiddingProperties = async () => {
+      try {
+        let allBiddingProperties = []
+
+        // Load from Firebase (with error handling)
+        if (getAllProperties) {
+          try {
+            const firebaseProperties = await getAllProperties()
+            if (Array.isArray(firebaseProperties)) {
+              const firebaseBidding = firebaseProperties.filter(
+                p => p.type === 'bidding' && p.status === 'approved'
+              )
+              allBiddingProperties = [...firebaseBidding]
+            }
+          } catch (firebaseError) {
+            console.log('Firebase not available, using localStorage only')
+          }
+        }
+
+        // Load from localStorage
+        if (typeof window !== 'undefined') {
+          const localProperties = JSON.parse(localStorage.getItem('userProperties') || '[]')
+          const localBidding = localProperties.filter(
+            p => p.type === 'bidding' && (p.status === 'approved' || p.status === 'pending')
+          )
+
+          // Merge without duplicates
+          localBidding.forEach(localProp => {
+            if (!allBiddingProperties.find(p => p.id === localProp.id)) {
+              allBiddingProperties.push(localProp)
+            }
+          })
+        }
+
+        // Convert bidding properties to marketplace format
+        const formattedProperties = allBiddingProperties.map(prop => ({
+          id: prop.id,
+          name: prop.title || prop.name || 'Untitled Property',
+          location: prop.location || prop.address || 'Pakistan',
+          city: (prop.city || prop.location || 'other').toLowerCase().split(',')[0].trim(),
+          assetType: prop.propertyType || prop.type || 'residential',
+          roi: prop.expectedRoi || prop.roi || 10,
+          risk: prop.riskLevel || 'moderate',
+          insured: prop.insured || false,
+          insurancePartner: prop.insurancePartner || null,
+          image: prop.images?.[0] || prop.image || '/house5.jpg',
+          minInvestment: prop.startingBid || prop.price || prop.minInvestment || 1000000,
+          // Bidding specific fields
+          isBidding: true,
+          biddingStatus: getBiddingStatus(prop),
+          auctionStartDate: prop.auctionStartDate,
+          auctionEndDate: prop.auctionEndDate,
+          startingBid: prop.startingBid || prop.price,
+          currentBid: prop.currentBid || prop.startingBid || prop.price,
+          totalBids: prop.bids?.length || prop.totalBids || 0,
+        }))
+
+        setBiddingProperties(formattedProperties)
+      } catch (error) {
+        console.error('Error loading bidding properties:', error)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    loadBiddingProperties()
+
+    // Save sample bidding properties to localStorage for bidding-detail page
+    if (typeof window !== 'undefined') {
+      // Always update sample properties with fresh data
+      const sampleForStorage = SAMPLE_BIDDING_PROPERTIES.map(prop => ({
+          id: prop.id,
+          title: prop.name,
+          name: prop.name,
+          location: prop.location,
+          city: prop.city,
+          propertyType: prop.assetType,
+          type: 'bidding',
+          status: 'approved',
+          price: prop.startingBid,
+          startingBid: prop.startingBid,
+          currentBid: prop.currentBid,
+          auctionStartDate: prop.auctionStartDate,
+          auctionEndDate: prop.auctionEndDate,
+          image: prop.image,
+          images: [prop.image],
+          totalBids: prop.totalBids,
+          bids: [],
+          description: `Premium ${prop.assetType} property in ${prop.location}. Great investment opportunity with expected ROI of ${prop.roi}%.`,
+          // Bidding form data for bidding-detail page
+          bidding: {
+            startDateTime: prop.auctionStartDate,
+            endDateTime: prop.auctionEndDate,
+            minBidAmount: prop.startingBid,
+            maxBidAmount: prop.startingBid * 3,
+            fees: 50000,
+          }
+        }))
+      localStorage.setItem('sampleBiddingProperties', JSON.stringify(sampleForStorage))
+    }
+
     const timer = setTimeout(() => setMounted(true), 120)
     return () => clearTimeout(timer)
-  }, [])
+  }, [getAllProperties])
 
-  const locations = useMemo(() => ['all', ...new Set(ASSETS.map((asset) => asset.city))], [])
+  // Combine static assets with bidding properties (sample + user added)
+  const ASSETS = useMemo(() => {
+    return [...SAMPLE_BIDDING_PROPERTIES, ...biddingProperties, ...STATIC_ASSETS]
+  }, [biddingProperties])
+
+  const locations = useMemo(() => ['all', ...new Set(ASSETS.map((asset) => asset.city))], [ASSETS])
 
   const filteredAssets = useMemo(() => {
     return ASSETS.filter((asset) => {
@@ -278,7 +484,7 @@ export default function Marketplace() {
               {filteredAssets.map((asset, index) => (
                 <article
                   key={asset.id}
-                  className="asset-card"
+                  className={`asset-card ${asset.isBidding ? 'asset-card--bidding' : ''}`}
                   style={{
                     opacity: mounted ? 1 : 0,
                     transform: mounted ? 'translateY(0)' : 'translateY(30px)',
@@ -287,6 +493,19 @@ export default function Marketplace() {
                 >
                   <div className="asset-card__image">
                     <img src={asset.image} alt={asset.name} />
+                    {asset.isBidding && (
+                      <div className={`bidding-badge bidding-badge--${asset.biddingStatus}`}>
+                        {asset.biddingStatus === 'live' && (
+                          <>
+                            <span className="pulse"></span>
+                            LIVE AUCTION
+                          </>
+                        )}
+                        {asset.biddingStatus === 'upcoming' && 'UPCOMING'}
+                        {asset.biddingStatus === 'ended' && 'ENDED'}
+                        {asset.biddingStatus === 'pending' && 'PENDING'}
+                      </div>
+                    )}
                   </div>
                   <div className="asset-card__body">
                     <div className="asset-card__top">
@@ -301,20 +520,50 @@ export default function Marketplace() {
                       </svg>
                       {asset.location}
                     </p>
-                    <div className="asset-card__metrics">
-                      <div>
-                        <span>Expected ROI</span>
-                        <strong>{asset.roi}%</strong>
+
+                    {/* Bidding Info Section */}
+                    {asset.isBidding ? (
+                      <div className="asset-card__bidding-info">
+                        <div className="bidding-stats">
+                          <div>
+                            <span>Starting Bid</span>
+                            <strong>PKR {((asset.startingBid || 0) / 1000000).toFixed(1)}M</strong>
+                          </div>
+                          <div>
+                            <span>Current Bid</span>
+                            <strong className="current-bid">PKR {((asset.currentBid || 0) / 1000000).toFixed(1)}M</strong>
+                          </div>
+                          <div>
+                            <span>Total Bids</span>
+                            <strong>{asset.totalBids || 0}</strong>
+                          </div>
+                        </div>
+                        {asset.biddingStatus === 'live' && asset.auctionEndDate && (
+                          <div className="time-remaining">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+                              <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+                            </svg>
+                            {formatTimeRemaining(asset.auctionEndDate)}
+                          </div>
+                        )}
                       </div>
-                      <div>
-                        <span>Risk</span>
-                        <strong>{RISK_LABELS[asset.risk]}</strong>
+                    ) : (
+                      <div className="asset-card__metrics">
+                        <div>
+                          <span>Expected ROI</span>
+                          <strong>{asset.roi}%</strong>
+                        </div>
+                        <div>
+                          <span>Risk</span>
+                          <strong>{RISK_LABELS[asset.risk]}</strong>
+                        </div>
+                        <div>
+                          <span>Min investment</span>
+                          <strong>PKR {(asset.minInvestment / 1000000).toFixed(1)}M</strong>
+                        </div>
                       </div>
-                      <div>
-                        <span>Min investment</span>
-                        <strong>PKR {(asset.minInvestment / 1000000).toFixed(1)}M</strong>
-                      </div>
-                    </div>
+                    )}
+
                     <div className="asset-card__footer">
                       <div className="asset-card__insurance">
                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
@@ -332,12 +581,28 @@ export default function Marketplace() {
                           </div>
                         )}
                       </div>
-                      <a href={`/property/${asset.id}`} className="asset-card__btn">
-                        View Details
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-                          <path d="M12 4l-1.41 1.41L16.17 11H4v2h12.17l-5.58 5.59L12 20l8-8z" />
-                        </svg>
-                      </a>
+                      {asset.isBidding ? (
+                        <button
+                          onClick={() => router.push(`/bidding-detail?id=${asset.id}`)}
+                          className={`asset-card__btn asset-card__btn--bid ${asset.biddingStatus === 'live' ? 'asset-card__btn--live' : ''}`}
+                          disabled={asset.biddingStatus === 'ended'}
+                        >
+                          {asset.biddingStatus === 'live' && 'Place Bid'}
+                          {asset.biddingStatus === 'upcoming' && 'View Auction'}
+                          {asset.biddingStatus === 'ended' && 'View Results'}
+                          {asset.biddingStatus === 'pending' && 'Coming Soon'}
+                          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M12 4l-1.41 1.41L16.17 11H4v2h12.17l-5.58 5.59L12 20l8-8z" />
+                          </svg>
+                        </button>
+                      ) : (
+                        <a href={`/property/${asset.id}`} className="asset-card__btn">
+                          View Details
+                          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M12 4l-1.41 1.41L16.17 11H4v2h12.17l-5.58 5.59L12 20l8-8z" />
+                          </svg>
+                        </a>
+                      )}
                     </div>
                   </div>
                 </article>
@@ -916,6 +1181,162 @@ export default function Marketplace() {
 
         .asset-card__btn:hover svg {
           transform: translateX(3px);
+        }
+
+        /* Bidding Card Styles */
+        .asset-card--bidding {
+          border-color: rgba(201, 162, 39, 0.3);
+        }
+
+        .asset-card--bidding:hover {
+          border-color: rgba(201, 162, 39, 0.5);
+          box-shadow: 0 12px 32px rgba(201, 162, 39, 0.15);
+        }
+
+        .asset-card__image {
+          position: relative;
+        }
+
+        .bidding-badge {
+          position: absolute;
+          top: 12px;
+          left: 12px;
+          padding: 6px 12px;
+          border-radius: 6px;
+          font-size: 0.6875rem;
+          font-weight: 700;
+          text-transform: uppercase;
+          letter-spacing: 0.05em;
+          display: flex;
+          align-items: center;
+          gap: 6px;
+          z-index: 2;
+        }
+
+        .bidding-badge--live {
+          background: linear-gradient(135deg, #dc2626, #ef4444);
+          color: #fff;
+          animation: glow 2s infinite;
+        }
+
+        .bidding-badge--upcoming {
+          background: linear-gradient(135deg, #c9a227, #d4b13d);
+          color: #0a0a0a;
+        }
+
+        .bidding-badge--ended {
+          background: #6b7280;
+          color: #fff;
+        }
+
+        .bidding-badge--pending {
+          background: #3b82f6;
+          color: #fff;
+        }
+
+        .bidding-badge .pulse {
+          width: 8px;
+          height: 8px;
+          background: #fff;
+          border-radius: 50%;
+          animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+          0% { opacity: 1; transform: scale(1); }
+          50% { opacity: 0.5; transform: scale(1.2); }
+          100% { opacity: 1; transform: scale(1); }
+        }
+
+        @keyframes glow {
+          0%, 100% { box-shadow: 0 0 10px rgba(239, 68, 68, 0.5); }
+          50% { box-shadow: 0 0 20px rgba(239, 68, 68, 0.8); }
+        }
+
+        .asset-card__bidding-info {
+          background: linear-gradient(135deg, #fffbf0 0%, #fff8e6 100%);
+          border: 1px solid rgba(201, 162, 39, 0.2);
+          border-radius: 10px;
+          padding: 14px;
+          margin-top: 4px;
+        }
+
+        .bidding-stats {
+          display: grid;
+          grid-template-columns: repeat(3, 1fr);
+          gap: 8px;
+        }
+
+        .bidding-stats > div {
+          display: flex;
+          flex-direction: column;
+          gap: 2px;
+        }
+
+        .bidding-stats span {
+          font-size: 0.6875rem;
+          color: #92400e;
+          text-transform: uppercase;
+          letter-spacing: 0.03em;
+        }
+
+        .bidding-stats strong {
+          font-size: 0.9375rem;
+          font-weight: 700;
+          color: #0a0a0a;
+        }
+
+        .bidding-stats .current-bid {
+          color: #c9a227;
+        }
+
+        .time-remaining {
+          display: flex;
+          align-items: center;
+          gap: 6px;
+          margin-top: 10px;
+          padding-top: 10px;
+          border-top: 1px solid rgba(201, 162, 39, 0.15);
+          font-size: 0.8125rem;
+          font-weight: 600;
+          color: #dc2626;
+        }
+
+        .time-remaining svg {
+          color: #dc2626;
+        }
+
+        .asset-card__btn--bid {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          gap: 5px;
+          border: none;
+          cursor: pointer;
+        }
+
+        .asset-card__btn--live {
+          background: linear-gradient(135deg, #dc2626, #ef4444);
+          animation: pulseBtn 2s infinite;
+        }
+
+        .asset-card__btn--live:hover {
+          background: linear-gradient(135deg, #b91c1c, #dc2626);
+        }
+
+        @keyframes pulseBtn {
+          0%, 100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4); }
+          50% { box-shadow: 0 0 0 8px rgba(239, 68, 68, 0); }
+        }
+
+        .asset-card__btn:disabled {
+          background: #9ca3af;
+          cursor: not-allowed;
+          opacity: 0.7;
+        }
+
+        .asset-card__btn:disabled:hover {
+          transform: none;
         }
 
         .assets__empty {

@@ -48,18 +48,26 @@ export default function AdminLogin() {
     console.log('Login attempt with:', formData.email)
 
     // Hardcoded admin credentials for development
-    const ADMIN_CREDENTIALS = {
-      email: 'adminremmic@gmail.com',
-      password: 'admin123'
-    }
+    const ADMIN_CREDENTIALS = [
+      { email: 'adminremmic@gmail.com', password: 'admin123', name: 'REMMIC Admin' },
+      { email: 'admin@remmic.pk', password: 'admin123', name: 'REMMIC Admin' },
+      { email: 'admin', password: 'admin', name: 'Admin User' }
+    ]
 
     try {
-      // Check hardcoded admin credentials first
-      if (formData.email === ADMIN_CREDENTIALS.email && formData.password === ADMIN_CREDENTIALS.password) {
+      // Check hardcoded admin credentials first (case-insensitive email)
+      const inputEmail = formData.email.toLowerCase().trim()
+      const inputPassword = formData.password
+
+      const matchedAdmin = ADMIN_CREDENTIALS.find(
+        cred => cred.email.toLowerCase() === inputEmail && cred.password === inputPassword
+      )
+
+      if (matchedAdmin) {
         console.log('Using hardcoded credentials')
         const profile = adminProfileFrom({
-          email: ADMIN_CREDENTIALS.email,
-          name: 'REMMIC Admin',
+          email: matchedAdmin.email,
+          name: matchedAdmin.name,
           role: 'admin'
         })
         storeAdminSession(profile)
@@ -70,17 +78,22 @@ export default function AdminLogin() {
 
       // Try Firebase login for other admin accounts
       console.log('Trying Firebase login...')
-      const result = await loginUser(formData.email, formData.password, 'admin')
-      console.log('Firebase result:', result)
+      try {
+        const result = await loginUser(formData.email, formData.password, 'admin')
+        console.log('Firebase result:', result)
 
-      if (result.success) {
-        const profile = adminProfileFrom(result.userData || { email: formData.email })
-        storeAdminSession(profile)
-        console.log('Firebase login success, redirecting...')
-        window.location.href = '/admin-dashboard'
-        return
-      } else {
-        setError(result.error || 'Admin login failed. Please try again.')
+        if (result.success) {
+          const profile = adminProfileFrom(result.userData || { email: formData.email })
+          storeAdminSession(profile)
+          console.log('Firebase login success, redirecting...')
+          window.location.href = '/admin-dashboard'
+          return
+        } else {
+          setError('Invalid credentials. Use: admin / admin')
+        }
+      } catch (firebaseError) {
+        console.warn('Firebase login failed, using local auth only')
+        setError('Invalid credentials. Use: admin / admin')
       }
     } catch (error) {
       console.error('Admin login error:', error)

@@ -18,8 +18,9 @@ export default function BiddingDetail() {
   const [bidMessage, setBidMessage] = useState('')
   
   // Enhanced bidding system state
-  const [userHasPaidFee, setUserHasPaidFee] = useState(false)
-  const [canPlaceBid, setCanPlaceBid] = useState(false)
+  // TEMPORARY: Bidding is FREE for now - fees disabled
+  const [userHasPaidFee, setUserHasPaidFee] = useState(true)
+  const [canPlaceBid, setCanPlaceBid] = useState(true)
   const [showPaymentModal, setShowPaymentModal] = useState(false) // Permanently disabled
   const [paymentData, setPaymentData] = useState({
     fullName: '',
@@ -48,7 +49,7 @@ export default function BiddingDetail() {
   const [showPaymentSuccess, setShowPaymentSuccess] = useState(false)
   const [propertyOwned, setPropertyOwned] = useState(false)
   const [adminApprovalPending, setAdminApprovalPending] = useState(false)
-  const [feeStatus, setFeeStatus] = useState('required')
+  const [feeStatus, setFeeStatus] = useState('approved') // TEMPORARY: Free bidding
   const [isCheckingFeeStatus, setIsCheckingFeeStatus] = useState(false)
   const [countdownDisplay, setCountdownDisplay] = useState('Calculating...')
 
@@ -395,9 +396,10 @@ export default function BiddingDetail() {
     const userId = getActiveUserId()
 
     if (!rawPropertyKey || !userId) {
-      setFeeStatus('required')
-      setUserHasPaidFee(false)
-      setCanPlaceBid(false)
+      // TEMPORARY: Free bidding - no fee required
+      setFeeStatus('approved')
+      setUserHasPaidFee(true)
+      setCanPlaceBid(true)
       return
     }
 
@@ -406,17 +408,15 @@ export default function BiddingDetail() {
     const run = async () => {
       setIsCheckingFeeStatus(true)
       try {
-        const statusResult = await fetchLatestBiddingFeeStatus(rawPropertyKey, userId)
+        // TEMPORARY: Free bidding - skip fee check and always approve
+        // const statusResult = await fetchLatestBiddingFeeStatus(rawPropertyKey, userId)
         if (!isActive) {
           return
         }
-        setFeeStatus(statusResult.status)
-        const approved = statusResult.status === 'approved'
-        setUserHasPaidFee(approved)
-        setCanPlaceBid(approved)
-        if (statusResult.status === 'rejected') {
-          setBidMessage('Admin rejected your previous bidding fee submission. Please submit the fee again.')
-        }
+        // Always set as approved for free bidding
+        setFeeStatus('approved')
+        setUserHasPaidFee(true)
+        setCanPlaceBid(true)
       } finally {
         if (isActive) {
           setIsCheckingFeeStatus(false)
@@ -488,10 +488,15 @@ export default function BiddingDetail() {
       }
 
       // Get properties from localStorage (uploaded via dashboard/land registration)
-      const allProperties = JSON.parse(localStorage.getItem('userProperties') || '[]')
-      const foundProperty = allProperties.find(p => p.id?.toString() === propertyId)
-      
-      if (foundProperty && foundProperty.type === 'bidding') {
+      const userProperties = JSON.parse(localStorage.getItem('userProperties') || '[]')
+      const sampleProperties = JSON.parse(localStorage.getItem('sampleBiddingProperties') || '[]')
+      const allProperties = [...userProperties, ...sampleProperties]
+      let foundProperty = allProperties.find(p => p.id?.toString() === propertyId)
+
+      // Mark which storage the property came from
+      const isFromSample = sampleProperties.some(p => p.id?.toString() === propertyId)
+
+      if (foundProperty && (foundProperty.type === 'bidding' || isFromSample)) {
         let normalizedCoordinates = null
         if (foundProperty.coordinates && typeof foundProperty.coordinates === 'object') {
           const lat = parseFloat(foundProperty.coordinates.lat)
@@ -506,13 +511,13 @@ export default function BiddingDetail() {
           }
         }
 
-        // If we do not have stored coordinates, attempt to geocode now and persist
-        if (!normalizedCoordinates && foundProperty.location) {
+        // If we do not have stored coordinates, attempt to geocode now and persist (only for user properties)
+        if (!normalizedCoordinates && foundProperty.location && !isFromSample) {
           try {
             const freshCoordinates = await geocodeAddress(foundProperty.location)
             if (freshCoordinates) {
               normalizedCoordinates = freshCoordinates
-              const updatedProperties = allProperties.map(propertyItem =>
+              const updatedProperties = userProperties.map(propertyItem =>
                 propertyItem.id?.toString() === propertyId
                   ? { ...propertyItem, coordinates: freshCoordinates }
                   : propertyItem
@@ -617,7 +622,8 @@ export default function BiddingDetail() {
           coordinates: normalizedCoordinates,
         })
         setCurrentBid(transformedProperty.currentBidDisplay)
-        setUserHasPaidFee(false)
+        // TEMPORARY: Free bidding - fee already paid
+        setUserHasPaidFee(true)
 
         // Load bid history
         const transformedBidHistory = propertyBids.map((bid, index) => ({
@@ -756,11 +762,12 @@ export default function BiddingDetail() {
         }
       }
 
-      setFeeStatus('pending')
-      setUserHasPaidFee(false)
-      setCanPlaceBid(false)
+      // TEMPORARY: Free bidding - auto approve
+      setFeeStatus('approved')
+      setUserHasPaidFee(true)
+      setCanPlaceBid(true)
       setShowPaymentModal(false)
-      setBidMessage('Payment submitted. Waiting for admin approval.')
+      setBidMessage('Bidding is currently FREE! You can place bids now.')
       setPaymentData((prev) => ({
         ...prev,
         transactionReference: '',
@@ -798,12 +805,11 @@ export default function BiddingDetail() {
       // Remove payments for this property from localStorage
       const remainingPayments = existingPayments.filter(payment => payment.propertyId !== property.id)
       window.localStorage.setItem('biddingFeePayments', JSON.stringify(remainingPayments))
-      
-      // Reset payment status
-      setUserHasPaidFee(false)
-      
-      const userType = isUserAdmin ? 'admin' : 'property owner'
-      setBidMessage(`Payment refunded! As a ${userType}, you can enable Auto Bid without payment.`)
+
+      // TEMPORARY: Free bidding - keep user able to bid
+      setUserHasPaidFee(true)
+
+      setBidMessage('Bidding is currently FREE! You can continue placing bids.')
       
     } catch (error) {
       console.error('Refund processing error:', error)
@@ -1007,13 +1013,26 @@ export default function BiddingDetail() {
         }, 1500)
       }
 
-      // Save bid to localStorage for dashboard display
+      // ALWAYS save bid to localStorage first (so everyone can see it)
       const allBids = JSON.parse(localStorage.getItem('propertyBids') || '{}')
       if (!allBids[property.id]) {
         allBids[property.id] = []
       }
-      
-      // Save bid to Firestore
+
+      const bidForStorage = {
+        id: `bid_${Date.now()}`,
+        bidderName: bidderName,
+        bidderEmail: paymentData.email || 'No email provided',
+        bidderPhone: paymentData.phone || 'No phone provided',
+        amount: bidAmountRupees.toString(),
+        placedAt: new Date().toISOString()
+      }
+
+      allBids[property.id].push(bidForStorage)
+      localStorage.setItem('propertyBids', JSON.stringify(allBids))
+      console.log('Bid saved to localStorage:', bidForStorage)
+
+      // Also try to save to Firestore (backup)
       const bidData = {
         propertyId: property.id,
         bidderName: bidderName,
@@ -1023,30 +1042,14 @@ export default function BiddingDetail() {
         propertyTitle: property.title,
         bidType: 'manual'
       }
-      
-      const bidResult = await addBid(bidData)
-      
-      if (bidResult.success) {
-        console.log('Bid saved to Firestore successfully:', bidResult.bid.id)
-      } else {
-        console.error('Failed to save bid to Firestore:', bidResult.error)
-        // Fallback to localStorage if Firestore fails
-        const allBids = JSON.parse(localStorage.getItem('propertyBids') || '{}')
-        if (!allBids[property.id]) {
-          allBids[property.id] = []
+
+      try {
+        const bidResult = await addBid(bidData)
+        if (bidResult.success) {
+          console.log('Bid also saved to Firestore:', bidResult.bid.id)
         }
-        
-        const bidForStorage = {
-          id: `bid_${Date.now()}`,
-          bidderName: bidderName,
-          bidderEmail: paymentData.email || 'No email provided',
-          bidderPhone: paymentData.phone || 'No phone provided',
-          amount: bidAmountRupees.toString(),
-          placedAt: new Date().toISOString()
-        }
-        
-                allBids[property.id].push(bidForStorage)
-        localStorage.setItem('propertyBids', JSON.stringify(allBids))
+      } catch (firebaseError) {
+        console.log('Firebase save skipped, using localStorage only')
       }
 
       // Trigger user auto-bid for other bidders if they have it enabled
