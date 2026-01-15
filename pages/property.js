@@ -3,7 +3,6 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
-import PropertyMap from '../components/PropertyMap';
 import { useFirebase } from '../contexts/FirebaseContext';
 import { ensurePropertyImage } from '../utils/propertyStorage';
 
@@ -18,6 +17,56 @@ export default function Property() {
   const [loading, setLoading] = useState(true);
 
   const RUPEES_PER_CRORE = 10000000;
+
+  const propertyServices = [
+    {
+      title: 'Browse Properties',
+      description: 'Explore curated listings with valuation insights, amenities, and immersive media.',
+      cta: 'Browse marketplace',
+      href: '/property',
+      image: 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=535&h=400&fit=crop&crop=center&auto=format&q=80'
+    },
+    {
+      title: 'Investment Shares',
+      description: 'Fractionalize trophy assets, automate payouts, and monitor investor allocations.',
+      cta: 'View live offerings',
+      href: '/investment-shares',
+      image: 'https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?w=535&h=400&fit=crop&crop=center&auto=format&q=80'
+    },
+    {
+      title: 'Rental Management',
+      description: 'Screen tenants, trigger digital leases, and reconcile rent with automated alerts.',
+      cta: 'Manage rentals',
+      href: '/rental',
+      image: 'https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=535&h=400&fit=crop&crop=center&auto=format&q=80'
+    },
+    {
+      title: 'Live Auctions',
+      description: 'Host transparent bidding rounds with compliance workflows baked in.',
+      cta: 'Launch auction',
+      href: '/bidding',
+      image: 'https://images.unsplash.com/photo-1529429617124-aee711a70412?w=535&h=400&fit=crop&crop=center&auto=format&q=80'
+    },
+    {
+      title: 'Property Evaluation',
+      description: 'AI-assisted evaluations and legal verification packs for institutional investors.',
+      cta: 'Schedule evaluation',
+      href: '/evaluation',
+      image: 'https://images.unsplash.com/photo-1469474968028-56623f02e42e?w=535&h=400&fit=crop&crop=center&auto=format&q=80'
+    },
+    {
+      title: 'Register Property',
+      description: 'Onboard new assets, digitize compliance trails, and unlock liquidity faster.',
+      cta: 'Register asset',
+      href: '/land-registration',
+      image: 'https://images.unsplash.com/photo-1600566753086-00f18fb6b3ea?w=535&h=400&fit=crop&crop=center&auto=format&q=80'
+    }
+  ];
+
+  const ctaLinks = [
+    { label: 'For Investors', href: '/contact' },
+    { label: 'For Landowners', href: '/land-registration' }
+  ];
 
   const toRupees = (value) => {
     if (value == null) return null;
@@ -373,23 +422,6 @@ const getTypeBadgePresentation = (type) => {
         <meta content="Property - REMMIC" property="twitter:title" />
         <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
         <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-        <style dangerouslySetInnerHTML={{
-          __html: `
-            .feature-bottom-card:hover .feature-bottom-image-wrapper a {
-              opacity: 1 !important;
-            }
-            .feature-bottom-card:hover .feature-bottom-image-wrapper::after {
-              content: '';
-              position: absolute;
-              top: 0;
-              left: 0;
-              right: 0;
-              bottom: 0;
-              background: rgba(0, 0, 0, 0.3);
-              z-index: 5;
-            }
-          `
-        }} />
       </Head>
 
       <div className="page-wrapper">
@@ -397,295 +429,186 @@ const getTypeBadgePresentation = (type) => {
         <Navbar />
 
         {/* Feature Section */}
-        <section data-wf-feature-variant="base" className="section-feature">
-          <div className="padding-global">
-            <div className="container-large">
-              <div className="padding-section-medium">
-                <div data-w-id="a6792325-465d-c3c7-29b9-8e788dd4558e" className="feature-component">
-                  <div className="feature-top-content-wrapper">
-                    <div className="section-tag">
-                      <div>Feature</div>
+        <section className="property-marketplace">
+          <div className="property-marketplace__intro">
+            <span className="eyebrow">Marketplace</span>
+            <h1>Trusted projects, smarter research, faster investments.</h1>
+            <p>
+              Every asset passes REMMIC evaluation, legal, and monitoring standards before it reaches investors. Track performance,
+              diligence assets, and move from discovery to transaction inside a single workspace.
+            </p>
+          </div>
+
+          {loading && (
+            <div className="property-state">
+              <h3>Loading properties…</h3>
+              <p>Please hold on while we fetch the latest verified opportunities.</p>
+            </div>
+          )}
+
+          {!loading && filteredProperties.length === 0 && properties.length === 0 && (
+            <div className="property-state">
+              <h3>No properties available</h3>
+              <p>We're onboarding new assets. Check back shortly for fresh drops.</p>
+            </div>
+          )}
+
+          {!loading && filteredProperties.length === 0 && properties.length > 0 && (
+            <div className="property-state">
+              <h3>No matches for your filters</h3>
+              <p>Adjust your keywords or sorting to explore other opportunities.</p>
+              <button
+                className="btn btn--ghost"
+                onClick={() => {
+                  setSearchQuery('');
+                  setSortBy('');
+                  setFilteredProperties(properties);
+                }}
+              >
+                Clear search
+              </button>
+            </div>
+          )}
+
+          <div className="property-grid">
+            {filteredProperties.map((property) => (
+              <article
+                key={property.id}
+                className="property-card"
+                onClick={() => router.push(getPropertyRoute(property))}
+              >
+                <div className="property-card__media">
+                  <img
+                    src={property.image}
+                    alt={property.title}
+                    loading="lazy"
+                    onError={(e) => {
+                      if (!e.target.hasAttribute('data-fallback-1')) {
+                        e.target.setAttribute('data-fallback-1', 'true')
+                        e.target.src = 'https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=1200&auto=format&fit=crop&q=80'
+                      } else if (!e.target.hasAttribute('data-fallback-2')) {
+                        e.target.setAttribute('data-fallback-2', 'true')
+                        e.target.src = '/images/property-placeholder.svg'
+                      } else {
+                        e.target.src = 'data:image/svg+xml;base64,' + btoa(`
+                          <svg width="300" height="200" xmlns="http://www.w3.org/2000/svg">
+                            <rect width="100%" height="100%" fill="#f3f4f6"/>
+                            <text x="50%" y="50%" font-family="Arial" font-size="14" fill="#6b7280" text-anchor="middle" dy=".3em">Property Image</text>
+                          </svg>
+                        `)
+                      }
+                    }}
+                  />
+                  <span className="property-card__badge property-card__badge--status" style={{
+                    background: property.statusCode === 'approved' ? 'rgba(255, 94, 1, 0.9)' :
+                                property.statusCode === 'evaluated' ? 'rgba(16, 185, 129, 0.9)' :
+                                property.status?.toLowerCase().includes('rented') ? 'rgba(15, 23, 42, 0.85)' :
+                                property.type === 'bidding' ? 'rgba(239, 68, 68, 0.9)' :
+                                property.type === 'rental' ? 'rgba(16, 185, 129, 0.9)' :
+                                'rgba(15, 23, 42, 0.85)'
+                  }}>
+                    {property.status}
+                  </span>
+                  <span className="property-card__badge property-card__badge--type" style={{
+                    background: property.typeBadgeBackground,
+                    color: property.typeBadgeColor
+                  }}>
+                    {property.typeLabel}
+                  </span>
+                  <span className="property-card__cta">View details</span>
+                </div>
+                <div className="property-card__body">
+                  <h3>{property.title}</h3>
+                  <p className="property-card__meta">{property.location} · {property.area}</p>
+                  <p className="property-card__description">{property.description}</p>
+                  <div className="property-card__footer">
+                    <div>
+                      <span className="property-card__price">{property.price}</span>
+                      <span className="property-card__status">{property.source === 'land-registration' ? 'Verified land record' : 'Dashboard listing'}</span>
                     </div>
-                    <h2 
-                      className="heading-style-h2" 
-                      style={{
-                        textAlign: 'center', 
-                        fontSize: '2.8rem', 
-                        lineHeight: '1.3', 
-                        fontWeight: 'bold', 
-                        margin: '0 auto'
+                    <button
+                      className="btn btn--ghost"
+                      type="button"
+                      onClick={(event) => {
+                        event.stopPropagation();
+                        router.push(getPropertyRoute(property));
                       }}
                     >
-                      Trusted projects, smarter research, faster investments.
-                    </h2>
+                      Open listing
+                    </button>
                   </div>
-                  <div className="padding-bottom padding-large"></div>
-                  
-                  {/* Loading State */}
-                  {loading && (
-                    <div style={{
-                      textAlign: 'center',
-                      padding: '60px 20px',
-                      margin: '40px 0'
-                    }}>
-                      <h3 style={{fontSize: '1.5rem', color: '#6b7280', marginBottom: '10px'}}>Loading Properties...</h3>
-                      <p style={{color: '#9ca3af'}}>Please wait while we fetch the latest properties from our database.</p>
-                    </div>
-                  )}
-                  
-                  {/* No Results Message */}
-                  {!loading && filteredProperties.length === 0 && properties.length === 0 && (
-                    <div style={{
-                      textAlign: 'center',
-                      padding: '60px 20px',
-                      background: '#f9fafb',
-                      borderRadius: '16px',
-                      border: '2px dashed #d1d5db',
-                      margin: '40px 0'
-                    }}>
-                      <h3 style={{fontSize: '1.5rem', color: '#6b7280', marginBottom: '10px'}}>No Properties Available</h3>
-                      <p style={{color: '#9ca3af', marginBottom: '20px'}}>No properties have been uploaded yet. Check back later for new listings.</p>
-                    </div>
-                  )}
-                  
-                  {/* No Search Results */}
-                  {!loading && filteredProperties.length === 0 && properties.length > 0 && (
-                    <div style={{
-                      textAlign: 'center',
-                      padding: '60px 20px',
-                      background: '#f9fafb',
-                      borderRadius: '16px',
-                      border: '2px dashed #d1d5db',
-                      margin: '40px 0'
-                    }}>
-                      <h3 style={{fontSize: '1.5rem', color: '#6b7280', marginBottom: '10px'}}>No Properties Found</h3>
-                      <p style={{color: '#9ca3af', marginBottom: '20px'}}>No properties match your search criteria. Try adjusting your search terms.</p>
-                      <button
-                        onClick={() => {
-                          setSearchQuery('');
-                          setSortBy('');
-                          setFilteredProperties(properties);
-                        }}
-                        style={{
-                          padding: '12px 24px',
-                          background: 'linear-gradient(135deg, #c9a227 0%, #ff8732 100%)',
-                          color: '#fff',
-                          border: 'none',
-                          borderRadius: '8px',
-                          cursor: 'pointer',
-                          fontWeight: '600',
-                          boxShadow: '0 15px 35px -12px rgba(255, 94, 1, 0.6)'
-                        }}
-                      >
-                        Clear Search
-                      </button>
-                    </div>
-                  )}
-                  
-                  {/* Dynamic Property Cards */}
-                  {filteredProperties.map((property, index) => {
-                    const cardClass = index === 0 ? 'second-card' : 
-                                    index === 1 ? 'second-card' : 
-                                    index === 2 ? 'third' : 'fourth';
-                    const wrapperClass = index === 0 ? 'second' : 
-                                       index === 1 ? 'second' : 
-                                       index === 2 ? 'third' : 'third';
-                    
-                    return (
-                      <div
-                        key={property.id}
-                        className={`feature-bottom-card ${cardClass}`}
-                        style={{ cursor: 'pointer' }}
-                        onClick={() => router.push(getPropertyRoute(property))}
-                      >
-                        <div
-                          className={`feature-bottom-image-wrapper ${wrapperClass}`}
-                          style={{ position: 'relative' }}
-                          onMouseEnter={(event) => {
-                            const link = event.currentTarget.querySelector('a')
-                            if (link) link.style.opacity = '1'
-                          }}
-                          onMouseLeave={(event) => {
-                            const link = event.currentTarget.querySelector('a')
-                            if (link) link.style.opacity = '0'
-                          }}
-                        >
-                          <img
-                            src={property.image}
-                            loading="lazy"
-                            alt={property.title}
-                            className="feature-bottom-image"
-                            style={{ width: '100%', display: 'block' }}
-                            onError={(e) => {
-                              console.log('Image failed to load:', property.image, 'for property:', property.title)
-                              // Enhanced fallback with multiple attempts
-                              if (!e.target.hasAttribute('data-fallback-1')) {
-                                e.target.setAttribute('data-fallback-1', 'true')
-                                e.target.src = 'https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=1200&auto=format&fit=crop&q=80'
-                              } else if (!e.target.hasAttribute('data-fallback-2')) {
-                                e.target.setAttribute('data-fallback-2', 'true')
-                                e.target.src = '/images/property-placeholder.svg'
-                              } else {
-                                // Final fallback: data URL placeholder
-                                e.target.src = 'data:image/svg+xml;base64,' + btoa(`
-                                  <svg width="300" height="200" xmlns="http://www.w3.org/2000/svg">
-                                    <rect width="100%" height="100%" fill="#f3f4f6"/>
-                                    <text x="50%" y="50%" font-family="Arial" font-size="14" fill="#6b7280" text-anchor="middle" dy=".3em">Property Image</text>
-                                  </svg>
-                                `)
-                              }
-                            }}
-                          />
-                          
-                          {/* Property Status Badge */}
-                          <div style={{
-                            position: 'absolute',
-                            top: '10px',
-                            left: '10px',
-                            padding: '4px 8px',
-                            background: property.statusCode === 'approved' ? 'rgba(255, 94, 1, 0.9)' :
-                                        property.statusCode === 'evaluated' ? 'rgba(16, 185, 129, 0.9)' :
-                                        property.status?.toLowerCase().includes('rented') ? 'rgba(15, 23, 42, 0.85)' :
-                                        property.type === 'bidding' ? 'rgba(239, 68, 68, 0.9)' :
-                                        property.type === 'rental' ? 'rgba(16, 185, 129, 0.9)' :
-                                        'rgba(15, 23, 42, 0.85)',
-                            color: '#ffffff',
-                            fontSize: '12px',
-                            borderRadius: '4px',
-                            fontWeight: '600'
-                          }}>
-                            {property.status}
-                          </div>
-                          <div style={{
-                            position: 'absolute',
-                            top: '10px',
-                            right: '10px',
-                            padding: '4px 8px',
-                            background: property.typeBadgeBackground,
-                            color: property.typeBadgeColor,
-                            fontSize: '12px',
-                            borderRadius: '4px',
-                            fontWeight: 600,
-                            letterSpacing: '0.03em',
-                            textTransform: 'uppercase'
-                          }}>
-                            {property.typeLabel}
-                          </div>
-
-                          <a 
-                            href={getPropertyRoute(property)}
-                            onClick={(event) => event.stopPropagation()}
-                            style={{
-                              position: 'absolute', 
-                              bottom: '15px', 
-                              left: '50%', 
-                              transform: 'translateX(-50%)',
-                              padding: '8px 18px', 
-                              background: '#000', 
-                              color: '#fff', 
-                              fontSize: '14px',
-                              borderRadius: '5px', 
-                              textDecoration: 'none', 
-                              opacity: '0',
-                              transition: 'opacity 0.3s ease', 
-                              zIndex: '10'
-                            }}
-                            onMouseOver={(e) => e.target.style.opacity = '1'}
-                            onMouseOut={(e) => e.target.style.opacity = '0'}
-                          >
-                            View More
-                          </a>
-                        </div>
-                        <div className="feature-bottom-content">
-                          <h5 className="heading-style-h5">{property.title}</h5>
-                          <div className="text-size-regular">
-                            {property.location}<br/>
-                            {property.area}<br/>
-                            {property.description}
-                          </div>
-                          <div style={{marginTop: '10px', fontSize: '16px', fontWeight: '600', color: '#0f172a'}}>
-                            {property.price}
-                          </div>
-                        </div>
-                      </div>
-                    );
-                  })}
                 </div>
-              </div>
-            </div>
+              </article>
+            ))}
           </div>
         </section>
 
         {/* Search Bar Section */}
-        <section className="section-search-bar" style={{padding: '40px 0', background: '#fff'}}>
-          <div className="padding-global">
-            <div className="container-large">
-              <form 
-                className="project-search-form" 
-                onSubmit={(e) => {
-                  e.preventDefault();
-                  const query = e.target.querySelector('input').value;
-                  const sort = e.target.querySelector('select').value;
-                  
-                  let filtered = [...properties];
-                  
-                  if (query.trim()) {
-                    const searchTerm = query.toLowerCase().trim();
-                    filtered = filtered.filter(property => 
-                      property.title.toLowerCase().includes(searchTerm) ||
-                      property.location.toLowerCase().includes(searchTerm) ||
-                      property.description.toLowerCase().includes(searchTerm) ||
-                      property.category.toLowerCase().includes(searchTerm) ||
-                      property.type.toLowerCase().includes(searchTerm)
-                    );
+        <section className="property-toolbar">
+          <div className="property-toolbar__card">
+            <form
+              className="property-toolbar__form"
+              onSubmit={(e) => {
+                e.preventDefault();
+                const query = e.target.querySelector('input').value;
+                const sort = e.target.querySelector('select').value;
+
+                let filtered = [...properties];
+
+                if (query.trim()) {
+                  const searchTerm = query.toLowerCase().trim();
+                  filtered = filtered.filter(property => 
+                    property.title.toLowerCase().includes(searchTerm) ||
+                    property.location.toLowerCase().includes(searchTerm) ||
+                    property.description.toLowerCase().includes(searchTerm) ||
+                    property.category.toLowerCase().includes(searchTerm) ||
+                    property.type.toLowerCase().includes(searchTerm)
+                  );
+                }
+
+                if (sort) {
+                  switch (sort) {
+                    case 'price-low-high':
+                      filtered.sort((a, b) => {
+                        const priceA = parseInt(a.price.replace(/[^0-9]/g, '')) || 0;
+                        const priceB = parseInt(b.price.replace(/[^0-9]/g, '')) || 0;
+                        return priceA - priceB;
+                      });
+                      break;
+                    case 'price-high-low':
+                      filtered.sort((a, b) => {
+                        const priceA = parseInt(a.price.replace(/[^0-9]/g, '')) || 0;
+                        const priceB = parseInt(b.price.replace(/[^0-9]/g, '')) || 0;
+                        return priceB - priceA;
+                      });
+                      break;
+                    case 'newest':
+                      filtered.sort((a, b) => new Date(b.createdAt || Date.now()) - new Date(a.createdAt || Date.now()));
+                      break;
+                    case 'oldest':
+                      filtered.sort((a, b) => new Date(a.createdAt || Date.now()) - new Date(b.createdAt || Date.now()));
+                      break;
+                    default:
+                      break;
                   }
-                  
-                  if (sort) {
-                    switch (sort) {
-                      case 'price-low-high':
-                        filtered.sort((a, b) => {
-                          const priceA = parseInt(a.price.replace(/[^0-9]/g, '')) || 0;
-                          const priceB = parseInt(b.price.replace(/[^0-9]/g, '')) || 0;
-                          return priceA - priceB;
-                        });
-                        break;
-                      case 'price-high-low':
-                        filtered.sort((a, b) => {
-                          const priceA = parseInt(a.price.replace(/[^0-9]/g, '')) || 0;
-                          const priceB = parseInt(b.price.replace(/[^0-9]/g, '')) || 0;
-                          return priceB - priceA;
-                        });
-                        break;
-                      case 'newest':
-                        filtered.sort((a, b) => new Date(b.createdAt || Date.now()) - new Date(a.createdAt || Date.now()));
-                        break;
-                      case 'oldest':
-                        filtered.sort((a, b) => new Date(a.createdAt || Date.now()) - new Date(b.createdAt || Date.now()));
-                        break;
-                    }
-                  }
-                  
-                  setFilteredProperties(filtered);
-                  setSearchQuery(query);
-                  setSortBy(sort);
-                }}
-                style={{
-                  display: 'flex', 
-                  gap: '15px', 
-                  width: '100%', 
-                  maxWidth: '1000px', 
-                  margin: '0 auto'
-                }}
-              >
-                <input 
-                  type="text" 
-                  placeholder="Search city, area, or project..." 
-                  className="footer-input w-input" 
+                }
+
+                setFilteredProperties(filtered);
+                setSearchQuery(query);
+                setSortBy(sort);
+              }}
+            >
+              <div className="property-toolbar__field">
+                <label htmlFor="property-search">Search portfolio</label>
+                <input
+                  id="property-search"
+                  type="text"
+                  placeholder="City, area, asset type…"
                   value={searchQuery}
                   onChange={(e) => {
                     const value = e.target.value;
                     setSearchQuery(value);
-                    
+
                     let filtered = [...properties];
                     if (value.trim()) {
                       const searchTerm = value.toLowerCase().trim();
@@ -699,16 +622,18 @@ const getTypeBadgePresentation = (type) => {
                     }
                     setFilteredProperties(filtered);
                   }}
-                  style={{flex: '1', padding: '15px', fontSize: '16px'}} 
                 />
+              </div>
 
-                <select 
-                  className="footer-input w-input" 
+              <div className="property-toolbar__field">
+                <label htmlFor="property-sort">Sort results</label>
+                <select
+                  id="property-sort"
                   value={sortBy}
                   onChange={(e) => {
                     const value = e.target.value;
                     setSortBy(value);
-                    
+
                     let filtered = [...filteredProperties];
                     if (value) {
                       switch (value) {
@@ -732,11 +657,12 @@ const getTypeBadgePresentation = (type) => {
                         case 'oldest':
                           filtered.sort((a, b) => new Date(a.createdAt || Date.now()) - new Date(b.createdAt || Date.now()));
                           break;
+                        default:
+                          break;
                       }
                       setFilteredProperties(filtered);
                     }
                   }}
-                  style={{padding: '15px', fontSize: '16px'}}
                 >
                   <option value="">Sort by</option>
                   <option value="price-low-high">Price: Low to High</option>
@@ -744,263 +670,445 @@ const getTypeBadgePresentation = (type) => {
                   <option value="newest">Newest</option>
                   <option value="oldest">Oldest</option>
                 </select>
+              </div>
 
-                <button 
-                  type="submit" 
-                  className="button w-button" 
-                  style={{padding: '15px 40px', fontSize: '16px'}}
+              <div className="property-toolbar__actions">
+                <button type="submit" className="btn btn--primary">Search</button>
+                <button
+                  type="button"
+                  className="btn btn--ghost"
+                  onClick={() => {
+                    setSearchQuery('');
+                    setSortBy('');
+                    setFilteredProperties(properties);
+                  }}
                 >
-                  Search
+                  Reset
                 </button>
-              </form>
-            </div>
+              </div>
+            </form>
           </div>
         </section>
 
 
         {/* Services Section */}
-        <section data-w-id="3616b13b-cf18-9839-3e56-d339fa6c63fd" className="section-process">
-          <div className="page-lode">
-            <div className="process-component">
-              <div className="process-top-content">
-                <div className="process-head-line">
-                  <div>Quick Links</div>
+        <section className="property-services">
+          <div className="property-services__header">
+            <span className="eyebrow">Services</span>
+            <h2>Everything you need to operate premium assets</h2>
+            <p>
+              Deploy REMMIC modules individually or bundle them into a full-stack operations suite. Each workflow includes
+              institutional security, audit-friendly activity logs, and collaborative workspaces.
+            </p>
+          </div>
+
+          <div className="property-services__grid">
+            {propertyServices.map((service) => (
+              <article className="service-card" key={service.title}>
+                <div className="service-card__media">
+                  <img src={service.image} alt={service.title} loading="lazy" />
                 </div>
-                <h2 className="heading-style-h2">Explore Our Services</h2>
-              </div>
-              <div className="process-bottom-content">
-                <div className="process-card-list-wrapper">
-                  
-                  {/* Service 1 - Browse Properties */}
-                  <div className="process-card-wrapper fast">
-                    <div className="process-line-wrapper">
-                      <div className="process-number first">
-                        <h6 data-w-id="ad81eb1f-e905-668e-f2e8-fd336f52b855" className="heading-style-h6">01</h6>
-                      </div>
-                      <div className="process-line">
-                        <div data-w-id="4c5562e1-8782-df07-921c-19c518f2e8de" className="process-hover-line"></div>
-                      </div>
-                    </div>
-                    <div id="w-node-a7c0caf3-34e8-c2db-29d9-af706a3fa852-039500ab" className="process-card first">
-                      <img 
-                        src="https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=535&h=400&fit=crop&crop=center&auto=format&q=80" 
-                        loading="lazy" 
-                        sizes="(max-width: 535px) 100vw, 535px" 
-                        alt="Browse Properties" 
-                        className="process-card-image"
-                      />
-                      <div className="process-card-content">
-                        <h6 className="heading-style-h6">Browse Properties</h6>
-                        <div className="text-size-regular">
-                          Explore our curated collection of premium properties with detailed listings and virtual tours.
-                        </div>
-                        <a href="/property" className="button is-secondary w-inline-block" style={{marginTop: "20px"}}>
-                          <div>Browse Properties</div>
-                        </a>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Service 2 - Investment Shares */}
-                  <div id="w-node-d9d084c9-b42a-7895-03fb-e8397585a944-039500ab" className="process-card-wrapper">
-                    <div className="process-card second">
-                      <img 
-                        src="https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?w=535&h=400&fit=crop&crop=center&auto=format&q=80" 
-                        loading="lazy" 
-                        sizes="(max-width: 535px) 100vw, 535px" 
-                        alt="Investment Shares" 
-                        className="process-card-image"
-                      />
-                      <div className="process-card-content">
-                        <h6 className="heading-style-h6">Investment Shares</h6>
-                        <div className="text-size-regular">
-                          Fractional ownership opportunities with detailed ROI analysis and transparent returns.
-                        </div>
-                        <a href="/investment-shares" className="button is-secondary w-inline-block" style={{marginTop: "20px"}}>
-                          <div>Investment Shares</div>
-                        </a>
-                      </div>
-                    </div>
-                    <div className="process-line-wrapper">
-                      <div className="process-number second">
-                        <h6 data-w-id="5eb120f0-efaa-46ad-0feb-57dfdfbeecaf" className="heading-style-h6">02</h6>
-                      </div>
-                      <div className="process-line">
-                        <div data-w-id="de6dbf9d-e5da-69a1-d249-8afdd7a5ef19" className="process-second-hover-line"></div>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Service 3 - Rental Management */}
-                  <div className="process-card-wrapper">
-                    <div className="process-line-wrapper">
-                      <div className="process-number third">
-                        <h6 data-w-id="2720b254-e069-03e4-1e51-b5d0af0ac48b" className="heading-style-h6">03</h6>
-                      </div>
-                      <div className="process-line">
-                        <div className="process-third-hover-line"></div>
-                      </div>
-                    </div>
-                    <div id="w-node-fefd2574-931d-8619-5c53-556169d80ae5-039500ab" className="process-card third">
-                      <img 
-                        src="https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=535&h=400&fit=crop&crop=center&auto=format&q=80" 
-                        loading="lazy" 
-                        sizes="(max-width: 535px) 100vw, 535px" 
-                        alt="Rental Management" 
-                        className="process-card-image"
-                      />
-                      <div className="process-card-content">
-                        <h6 className="heading-style-h6">Rental Management</h6>
-                        <div className="text-size-regular">
-                          Comprehensive property rental and tenant management with automated workflows.
-                        </div>
-                        <a href="/rental" className="button is-secondary w-inline-block" style={{marginTop: "20px"}}>
-                          <div>Rental Management</div>
-                        </a>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Service 4 - Live Auctions */}
-                  <div id="w-node-d9d084c9-b42a-7895-03fb-e8397585a946-039500ab" className="process-card-wrapper">
-                    <div className="process-card second">
-                      <img 
-                        src="https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=535&h=400&fit=crop&crop=center&auto=format&q=80" 
-                        loading="lazy" 
-                        sizes="(max-width: 535px) 100vw, 535px" 
-                        alt="Live Auctions" 
-                        className="process-card-image"
-                      />
-                      <div className="process-card-content">
-                        <h6 className="heading-style-h6">Live Auctions</h6>
-                        <div className="text-size-regular">
-                          Real-time property auctions with transparent bidding and competitive pricing.
-                        </div>
-                        <a href="/bidding" className="button is-secondary w-inline-block" style={{marginTop: "20px"}}>
-                          <div>Live Auctions</div>
-                        </a>
-                      </div>
-                    </div>
-                    <div className="process-line-wrapper">
-                      <div className="process-number second">
-                        <h6 data-w-id="5eb120f0-efaa-46ad-0feb-57dfdfbeecb1" className="heading-style-h6">04</h6>
-                      </div>
-                      <div className="process-line">
-                        <div data-w-id="de6dbf9d-e5da-69a1-d249-8afdd7a5ef1b" className="process-second-hover-line"></div>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Service 5 - Property Evaluation */}
-                  <div className="process-card-wrapper">
-                    <div className="process-line-wrapper">
-                      <div className="process-number third">
-                        <h6 data-w-id="2720b254-e069-03e4-1e51-b5d0af0ac48d" className="heading-style-h6">05</h6>
-                      </div>
-                      <div className="process-line">
-                        <div className="process-third-hover-line"></div>
-                      </div>
-                    </div>
-                    <div id="w-node-fefd2574-931d-8619-5c53-556169d80ae7-039500ab" className="process-card third">
-                      <img 
-                        src="https://images.unsplash.com/photo-1600585154526-990dced4db0d?w=535&h=400&fit=crop&crop=center&auto=format&q=80" 
-                        loading="lazy" 
-                        sizes="(max-width: 535px) 100vw, 535px" 
-                        alt="Property Evaluation" 
-                        className="process-card-image"
-                      />
-                      <div className="process-card-content">
-                        <h6 className="heading-style-h6">Property Evaluation</h6>
-                        <div className="text-size-regular">
-                          AI-powered property valuations and comprehensive market analysis reports.
-                        </div>
-                        <a href="/evaluation" className="button is-secondary w-inline-block" style={{marginTop: "20px"}}>
-                          <div>Property Evaluation</div>
-                        </a>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Service 6 - Register Property */}
-                  <div id="w-node-d9d084c9-b42a-7895-03fb-e8397585a947-039500ab" className="process-card-wrapper">
-                    <div className="process-card second">
-                      <img 
-                        src="https://images.unsplash.com/photo-1600566753086-00f18fb6b3ea?w=535&h=400&fit=crop&crop=center&auto=format&q=80" 
-                        loading="lazy" 
-                        sizes="(max-width: 535px) 100vw, 535px" 
-                        alt="Register Property" 
-                        className="process-card-image"
-                      />
-                      <div className="process-card-content">
-                        <h6 className="heading-style-h6">Register Property</h6>
-                        <div className="text-size-regular">
-                          List your property for auction or sale with our streamlined registration process.
-                        </div>
-                        <a href="/land-registration" className="button is-secondary w-inline-block" style={{marginTop: "20px"}}>
-                          <div>Register Property</div>
-                        </a>
-                      </div>
-                    </div>
-                    <div className="process-line-wrapper">
-                      <div className="process-number second">
-                        <h6 data-w-id="5eb120f0-efaa-46ad-0feb-57dfdfbeecb2" className="heading-style-h6">06</h6>
-                      </div>
-                      <div className="process-line">
-                        <div data-w-id="de6dbf9d-e5da-69a1-d249-8afdd7a5ef1c" className="process-second-hover-line"></div>
-                      </div>
-                    </div>
-                  </div>
+                <div className="service-card__body">
+                  <h3>{service.title}</h3>
+                  <p>{service.description}</p>
+                  <a className="btn btn--ghost" href={service.href}>
+                    {service.cta}
+                  </a>
                 </div>
+              </article>
+            ))}
+          </div>
+        </section>
+
+        <section className="property-cta">
+          <div className="property-cta__grid">
+            <div>
+              <span className="eyebrow">Get started</span>
+              <h2>Your property, investor ready in days.</h2>
+              <p>
+                Whether you are raising capital or digitizing a portfolio, REMMIC gives you compliance workflows, structured data,
+                and investor-grade reporting from day one.
+              </p>
+              <div className="property-cta__actions">
+                {ctaLinks.map((link) => (
+                  <a className="btn btn--primary" href={link.href} key={link.href}>
+                    {link.label}
+                  </a>
+                ))}
               </div>
+            </div>
+            <div className="property-cta__media">
+              <img
+                src="https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=802&auto=format&fit=crop&q=80"
+                alt="Luxury property"
+                loading="lazy"
+              />
             </div>
           </div>
         </section>
 
-        {/* CTA Section */}
-        <section className="section-cta">
-          <div className="padding-global">
-            <div className="container-large">
-              <div className="padding-section-medium">
-                <div data-w-id="03b4adc1-f918-bae5-37d1-18bef1a11870" className="cta-component">
-                  <div className="cta-content">
-                    <h2 className="heading-style-h2">Your Property, Just a Click Away.</h2>
-                    <div className="cta-button-wrapper">
-                      <a href="/contact" className="button is-secondary w-inline-block">
-                        <div className="button-text">investors</div>
-                      </a>
-                      <a href="#" className="button w-inline-block">
-                        <div className="button-text">landowner</div>
-                      </a>
-                    </div>
-                  </div>
-                  <div className="cta-image-wrapper">
-                    <img 
-                      src="https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=802&auto=format&fit=crop&q=80" 
-                      loading="lazy" 
-                      sizes="(max-width: 802px) 100vw, 802px" 
-                      srcSet="https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=500&auto=format&fit=crop&q=80 500w, https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=800&auto=format&fit=crop&q=80 800w, https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=802&auto=format&fit=crop&q=80 802w" 
-                      alt="House" 
-                      className="cta-image"
-                      onError={(e) => {
-                        console.log('CTA image failed to load')
-                        e.target.src = 'data:image/svg+xml;base64,' + btoa(`
-                          <svg width="802" height="600" xmlns="http://www.w3.org/2000/svg">
-                            <rect width="100%" height="100%" fill="#f3f4f6"/>
-                            <text x="50%" y="50%" font-family="Arial" font-size="24" fill="#6b7280" text-anchor="middle" dy=".3em">Property Image</text>
-                          </svg>
-                        `)
-                      }}
-                    />
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
+
+
 
 
         <Footer />
       </div>
+
+      <style jsx>{`
+        .property-marketplace {
+          max-width: 1200px;
+          margin: 0 auto;
+          padding: 80px 5% 20px;
+        }
+
+        .property-marketplace__intro {
+          text-align: center;
+          max-width: 800px;
+          margin: 0 auto 48px;
+        }
+
+        .property-marketplace__intro h1 {
+          font-size: clamp(2.3rem, 5vw, 3.4rem);
+          color: #0f172a;
+          margin-bottom: 16px;
+        }
+
+        .property-marketplace__intro p {
+          font-size: 1.05rem;
+          color: #475467;
+          line-height: 1.7;
+        }
+
+        .eyebrow {
+          display: inline-flex;
+          padding: 8px 16px;
+          border-radius: 999px;
+          text-transform: uppercase;
+          font-size: 0.8rem;
+          letter-spacing: 0.08em;
+          color: #c9a227;
+          background: rgba(201, 162, 39, 0.12);
+          border: 1px solid rgba(201, 162, 39, 0.3);
+          margin-bottom: 16px;
+        }
+
+        .property-state {
+          text-align: center;
+          border: 1px dashed rgba(148, 163, 184, 0.7);
+          border-radius: 24px;
+          padding: 48px 24px;
+          margin-bottom: 40px;
+          background: #f9fafb;
+        }
+
+        .property-state h3 {
+          margin-bottom: 12px;
+          color: #0f172a;
+        }
+
+        .property-grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+          gap: 24px;
+        }
+
+        .property-card {
+          border: 1px solid rgba(15, 23, 42, 0.08);
+          border-radius: 24px;
+          overflow: hidden;
+          display: flex;
+          flex-direction: column;
+          box-shadow: 0 20px 45px -35px rgba(15, 23, 42, 0.4);
+          cursor: pointer;
+          background: #fff;
+          transition: transform 0.25s ease, box-shadow 0.25s ease;
+        }
+
+        .property-card:hover {
+          transform: translateY(-4px);
+          box-shadow: 0 25px 60px -30px rgba(15, 23, 42, 0.4);
+        }
+
+        .property-card__media {
+          position: relative;
+          aspect-ratio: 4 / 3;
+        }
+
+        .property-card__media img {
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+        }
+
+        .property-card__badge {
+          position: absolute;
+          top: 16px;
+          padding: 6px 12px;
+          border-radius: 999px;
+          font-size: 0.75rem;
+          font-weight: 600;
+          color: #fff;
+        }
+
+        .property-card__badge--status {
+          left: 16px;
+        }
+
+        .property-card__badge--type {
+          right: 16px;
+        }
+
+        .property-card__cta {
+          position: absolute;
+          bottom: 16px;
+          left: 50%;
+          transform: translateX(-50%);
+          background: rgba(0, 0, 0, 0.7);
+          color: #fff;
+          padding: 10px 20px;
+          border-radius: 999px;
+          font-size: 0.85rem;
+          opacity: 0;
+          transition: opacity 0.2s ease;
+        }
+
+        .property-card:hover .property-card__cta {
+          opacity: 1;
+        }
+
+        .property-card__body {
+          padding: 24px;
+          display: flex;
+          flex-direction: column;
+          gap: 12px;
+        }
+
+        .property-card__body h3 {
+          margin: 0;
+          font-size: 1.25rem;
+          color: #0f172a;
+        }
+
+        .property-card__meta {
+          font-size: 0.95rem;
+          color: #475467;
+        }
+
+        .property-card__description {
+          color: #555;
+          line-height: 1.6;
+          flex: 1;
+        }
+
+        .property-card__footer {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          margin-top: 8px;
+          flex-wrap: wrap;
+          gap: 16px;
+        }
+
+        .property-card__price {
+          font-size: 1.25rem;
+          font-weight: 700;
+          color: #0f172a;
+          display: block;
+        }
+
+        .property-card__status {
+          font-size: 0.85rem;
+          color: #64748b;
+        }
+
+        .property-toolbar {
+          padding: 40px 5%;
+        }
+
+        .property-toolbar__card {
+          border: 1px solid rgba(15, 23, 42, 0.08);
+          border-radius: 24px;
+          padding: 32px;
+          background: #fff;
+          max-width: 1100px;
+          margin: 0 auto;
+          box-shadow: 0 20px 60px -45px rgba(15, 23, 42, 0.4);
+        }
+
+        .property-toolbar__form {
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+          gap: 24px;
+          align-items: end;
+        }
+
+        .property-toolbar__field label {
+          display: block;
+          font-size: 0.85rem;
+          text-transform: uppercase;
+          letter-spacing: 0.08em;
+          margin-bottom: 8px;
+          color: #475467;
+        }
+
+        .property-toolbar__field input,
+        .property-toolbar__field select {
+          width: 100%;
+          border-radius: 12px;
+          border: 1px solid rgba(15, 23, 42, 0.12);
+          padding: 14px 16px;
+          font-size: 1rem;
+        }
+
+        .property-toolbar__actions {
+          display: flex;
+          gap: 12px;
+          flex-wrap: wrap;
+        }
+
+        .btn {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          padding: 12px 20px;
+          border-radius: 999px;
+          text-transform: capitalize;
+          font-weight: 600;
+          border: none;
+          cursor: pointer;
+          transition: transform 0.2s ease, box-shadow 0.2s ease;
+          text-decoration: none;
+        }
+
+        .btn:hover {
+          transform: translateY(-1px);
+          box-shadow: 0 12px 25px -20px rgba(15, 23, 42, 0.45);
+        }
+
+        .btn--primary {
+          background: linear-gradient(135deg, #c9a227, #ff8732);
+          color: #fff;
+        }
+
+        .btn--ghost {
+          border: 1px solid rgba(15, 23, 42, 0.15);
+          background: transparent;
+          color: #0f172a;
+        }
+
+        .property-services {
+          padding: 100px 5%;
+          background: radial-gradient(circle at top right, rgba(201, 162, 39, 0.15), rgba(10, 10, 10, 0.95));
+          color: #fff;
+        }
+
+        .property-services__header {
+          max-width: 820px;
+          margin: 0 auto 48px;
+          text-align: center;
+        }
+
+        .property-services__header h2 {
+          font-size: clamp(2.4rem, 5vw, 3rem);
+          margin-bottom: 16px;
+        }
+
+        .property-services__header p {
+          color: rgba(255, 255, 255, 0.8);
+          line-height: 1.7;
+        }
+
+        .property-services__grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+          gap: 24px;
+        }
+
+        .service-card {
+          background: rgba(255, 255, 255, 0.05);
+          border-radius: 24px;
+          overflow: hidden;
+          display: flex;
+          flex-direction: column;
+          border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .service-card__media img {
+          width: 100%;
+          height: 220px;
+          object-fit: cover;
+        }
+
+        .service-card__body {
+          padding: 24px;
+          display: flex;
+          flex-direction: column;
+          gap: 12px;
+        }
+
+        .service-card__body h3 {
+          margin: 0;
+        }
+
+        .service-card__body p {
+          color: rgba(255, 255, 255, 0.7);
+          flex: 1;
+        }
+
+        .service-card .btn {
+          align-self: flex-start;
+          color: #fff;
+          border-color: rgba(255, 255, 255, 0.4);
+        }
+
+        .property-cta {
+          padding: 80px 5% 120px;
+        }
+
+        .property-cta__grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+          gap: 40px;
+          align-items: center;
+          max-width: 1100px;
+          margin: 0 auto;
+        }
+
+        .property-cta h2 {
+          font-size: clamp(2rem, 4vw, 2.8rem);
+          margin-bottom: 16px;
+          color: #0f172a;
+        }
+
+        .property-cta p {
+          color: #475467;
+          line-height: 1.8;
+          margin-bottom: 24px;
+        }
+
+        .property-cta__media img {
+          width: 100%;
+          border-radius: 32px;
+          box-shadow: 0 30px 70px -40px rgba(15, 23, 42, 0.4);
+        }
+
+        .property-cta__actions {
+          display: flex;
+          gap: 12px;
+          flex-wrap: wrap;
+        }
+
+        @media (max-width: 768px) {
+          .property-toolbar__form {
+            grid-template-columns: 1fr;
+          }
+
+          .property-card__footer {
+            flex-direction: column;
+            align-items: flex-start;
+          }
+        }
+      `}</style>
     </>
   );
 }

@@ -1,0 +1,2 @@
+(()=>{"use strict";$((function(){var r=$(".country-tiles-slider"),i=$(".secondary-navigator#country-tiles-next-arrow"),t=$(".secondary-navigator#country-tiles-prev-arrow");r.slick({infinite:!0,variableWidth:!0,mobileFirst:!0,nextArrow:i,prevArrow:t})}))})();
+//# sourceMappingURL=country_tiles.js.map

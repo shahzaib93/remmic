@@ -1,0 +1,4040 @@
+We use cookies to provide you with the best experience.By clicking “Accept All”, you agree to the storing of cookies on your device to enhance site navigation, analyse site usage, and assist in our marketing efforts.  Privacy PolicyCustomise  Accept AllManage Consent Preferences When you visit any website, it may store or retrieve information on your browser, mostly in the form of cookies. This information might be about you, your preferences or your device and is mostly used to make the site work as you expect it to. The information does not usually directly identify you, but it can give you a more personalized web experience. Because we respect your right to privacy, you can choose not to allow some types of cookies. Click on the different category headings to find out more and change our default settings. However, blocking some types of cookies may impact your experience of the site and the services we are able to offer.Strictly Necessary CookiesAlways ActiveThese cookies are necessary for the website to function and cannot be switched off in our systems. They are usually only set in response to actions made by you which amount to a request for services, such as setting your privacy preferences, logging in or filling in forms. You can set your browser to block or alert you about these cookies, but some parts of the site will not then work. These cookies do not store any personally identifiable information.CookietimezoneDurationsessionDescriptionRemembers user's current time zone so dates and times on the website are displayed according to your local settings.  Time zone identifier (e.g., “Europe/London”, “America/New_York”) is stored, does not contain personal information. CookiecsrftokenDuration1 yearDescriptionThis cookie is used to help protect the website against Cross-Site Request Forgery attacksCookiedjango_languageDuration1 yearDescriptionThis cookie is used for storing the language of the website.CookiesessionidDuration12 hoursDescriptionThis cookie is used to identify a user’s session between requests.  It enables core site functionality such as keeping users logged in and remembering actions as they navigate the website.
+A randomly generated unique session identifier is stored; does not contain any personal information.CookienextDurationsessionDescriptionRemembers the page a user was trying to access before logging in, so they can be redirected there immediately after successful authentication.
+The cookie contains the URL or path of the originally intended destination page.
+This cookie improves user experience by streamlining navigation after login, does not contain personal information.CookieactionDurationsessionDescriptionRemembers the action a user was trying to perform before logging in, so they can be redirected  immediately after successful authentication and trigger the action.
+This cookie improves user experience by streamlining navigation after login, does not contain any personal information.Cookierc::aDurationNever ExpiresDescriptionThis cookie is set by the Google recaptcha service to identify bots to protect the website against malicious spam attacks.Cookierc::cDurationsessionDescriptionThis cookie is set by the Google recaptcha service to identify bots to protect the website against malicious spam attacks.Cookie_cfuvidDurationsessionDescriptionCloudflare sets this cookie to track users across sessions to optimize user experience by maintaining session consistency and providing personalized servicesCookiedevice_idDuration1 yearDescriptionA device ID is a unique identifier assigned to a device (phone, laptop, etc.) during multi-factor authentication (MFA). It helps the system recognise trusted devices, prevent fraud, and streamline verification.Cookie_grecaptchaDurationNever ExpiresDescriptionThis is a key stored in your browser’s local storage by Google reCAPTCHA.
+It is used to store a unique identifier for your session, helping Google determine if you are a real user or a bot.Cookie_x_divisionDurationsessionDescriptionStores the most recently selected division (Residential, Commercial, All) on the home page search form.Cookie_x_selectedPriceDurationsessionDescriptionStores the most recently selected Max Price on the home page search form.Cookie_x_selectedRegionsDurationsessionDescriptionStores the most recently selected countries on the home page search form.CookiejwtDuration12 hoursDescriptionThis cookie is used to identify a user’s session between requests.  It enables core site functionality such as keeping users logged in and remembering actions as they navigate the website.  A randomly generated unique session identifier is stored; does not contain any personal information.Cookiecookieyes-consentDuration1 yearDescriptionRemembers the user’s cookie consent preferences (which categories they accepted or rejected).  It 
+ensures the user’s cookie choices are respected on future visits.Cookieai_sessionDurationsessionDescriptionai_session` is a first-party cookie set by the Azure Application Insights JavaScript SDK.
+It stores a unique session identifier for each user’s browser session for application insights.Cookieai_userDurationsessionDescriptionThis is a first-party cookie created by the Azure Application Insights JavaScript SDK.
+It stores a unique, randomly generated user ID and the timestamp of the user’s first visit.Functional CookiesThese cookies enable the website to provide enhanced functionality and personalisation. They may be set by us or by third party providers whose services we have added to our pages. If you do not allow these cookies then some or all of these services may not function properly.Cookieyt.innertube::nextIdDurationNever ExpiresDescriptionYouTube sets this cookie to register a unique ID to store data on what videos from YouTube the user has seen.Cookieyt.innertube::requestsDurationNever ExpiresDescriptionYouTube sets this cookie to register a unique ID to store data on what videos from YouTube the user has seen.Cookieyt-remote-connected-devicesDurationNever ExpiresDescriptionYouTube sets this cookie to store the user's video preferences using embedded YouTube videos.Cookieytidb::LAST_RESULT_ENTRY_KEYDurationNever ExpiresDescriptionThe cookie ytidb::LAST_RESULT_ENTRY_KEY is used by YouTube to store the last search result entry that was clicked by the user. This information is used to improve the user experience by providing more relevant search results in the future.Cookieyt-remote-device-idDurationNever ExpiresDescriptionYouTube sets this cookie to store the user's video preferences using embedded YouTube videos.Cookieyt-remote-session-nameDurationsessionDescriptionThe yt-remote-session-name cookie is used by YouTube to store the user's video player preferences using embedded YouTube video.Cookieyt-remote-session-appDurationsessionDescriptionThe yt-remote-session-app cookie is used by YouTube to store user preferences and information about the interface of the embedded YouTube video player.Cookieyt-remote-fast-check-periodDurationsessionDescriptionThe yt-remote-fast-check-period cookie is used by YouTube to store the user's video player preferences for embedded YouTube videos.Cookieyt-remote-cast-availableDurationsessionDescriptionThe yt-remote-cast-available cookie is used to store the user's preferences regarding whether casting is available on their YouTube video player.Cookieyt-remote-cast-installedDurationsessionDescriptionThe yt-remote-cast-installed cookie is used to store the user's video player preferences using embedded YouTube video.Performance CookiesThese cookies allow us to count visits and traffic sources so we can measure and improve the performance of our site. They help us to know which pages are the most and least popular and see how visitors move around the site. All information these cookies collect is aggregated and therefore anonymous. If you do not allow these cookies we will not know when you have visited our site, and will not be able to monitor its performance.CookiefullStorySessionDurationsessionDescriptionWe use FullStory to analyze user behavior and improve our website. FullStory cookies help us record and replay user sessions for analytics and audit purposes. 
+Developers and support teams use the session ID to retrieve a direct link to the session in FullStory.
+This cookie contains the session ID stored in FullStory to analyze, or troubleshoot user or website issues.Cookie_ga_*Duration1 year 1 month 4 daysDescriptionGoogle Analytics sets this cookie to store and count page views.Cookie_gaDuration1 year 1 month 4 daysDescriptionGoogle Analytics sets this cookie to calculate visitor, session and campaign data and track site usage for the site's analytics report. The cookie stores information anonymously and assigns a randomly generated number to recognise unique visitors.Cookiefs_luaDurationNever ExpiresDescriptionThis Fullstory cookie records the timestamp of the last interaction a user had on your website
+This cookie does not store personal information—just a timestamp.
+It is used for analytics and performance, not for marketing or tracking across sites.Cookiefs_uidDuration1 yearDescriptionThis Fullstory cookie assigns a unique, anonymous identifier to each user. It enables replay of user sessions for analytics, helping website owners understand and improve user experience and diagnose site issues.Targeting CookiesThese cookies may be set through our site by our advertising partners. They may be used by those companies to build a profile of your interests and show you relevant adverts on other sites. They do not store directly personal information, but are based on uniquely identifying your browser and internet device. If you do not allow these cookies, you will experience less targeted advertising.Cookie_gcl_auDuration3 monthsDescriptionGoogle Tag Manager sets this cookie to experiment advertisement efficiency of websites using their services, does not store personal information, only a unique click ID.Cookie_gcl_lsDurationNever ExpiresDescriptionThis is a key stored in your browser’s local storage by Google Ads (and related services).
+It records information about ad clicks and user interactions to help attribute conversions (e.g., purchases, signups) back to specific ad campaigns.Accept All Save My Preferences 
+    
+        
+<iframe src="https://www.googletagmanager.com/ns.html?id=GTM-M8GBTZJ"
+    height="0" width="0" style="display:none;visibility:hidden"></iframe>
+
+        
+        
+        
+        
+            
+                
+                    
+                    
+
+
+    
+        
+            
+                
+            
+        
+        
+            
+            
+            
+            Menu
+        
+        
+            
+
+
+    
+        
+        
+        
+            
+            
+            
+            
+            
+            
+                
+                    Eng
+                
+                >
+            
+            
+                
+                    
+                        English
+                    
+                
+                    
+                        Español
+                    
+                
+                    
+                        Ελληνικά
+                    
+                
+            
+        
+    
+
+
+            
+            
+                Log In
+            
+            
+                Sign Up
+            
+            
+        
+    
+    
+        
+
+
+    
+        
+          
+        
+        
+          
+            
+                Properties 
+                
+                  
+                      
+                        
+                              South Africa
+                          
+                      
+                  
+                      
+                        
+                              Ireland
+                          
+                      
+                  
+                      
+                        
+                              United Kingdom
+                          
+                      
+                  
+                      
+                        
+                              Cyprus
+                          
+                      
+                  
+                      
+                  
+                      
+                  
+                      
+                  
+                      
+                  
+                      
+                  
+                      
+                  
+                      
+                  
+                
+            
+          
+            
+        
+          
+            
+                About Us 
+                
+                  
+                      
+                  
+                      
+                  
+                      
+                  
+                      
+                  
+                      
+                        
+                              Careers
+                          
+                      
+                  
+                      
+                  
+                      
+                  
+                      
+                  
+                      
+                        
+                              Our Story
+                          
+                      
+                  
+                      
+                        
+                              Sell With Us
+                          
+                      
+                  
+                      
+                        
+                              Sustainability
+                          
+                      
+                  
+                
+            
+          
+            
+        
+          
+            
+                Discover 
+                
+                  
+                      
+                  
+                      
+                  
+                      
+                  
+                      
+                  
+                      
+                  
+                      
+                        
+                              How it Works
+                          
+                      
+                  
+                      
+                        
+                              News & Blog
+                          
+                      
+                  
+                      
+                        
+                              Contact Us
+                          
+                      
+                  
+                      
+                  
+                      
+                  
+                      
+                  
+                
+            
+          
+            
+        
+        
+          
+              
+                  Log In
+              
+              
+                  Sign Up
+              
+          
+        
+    
+    
+      
+          
+              
+                  Log In
+              
+              
+                  Sign Up
+              
+          
+      
+      
+          
+              Properties
+              
+                  
+                      
+                          South Africa
+                      
+                  
+              
+                  
+                      
+                          Ireland
+                      
+                  
+              
+                  
+                      
+                          United Kingdom
+                      
+                  
+              
+                  
+                      
+                          Cyprus
+                      
+                  
+              
+                  
+              
+                  
+              
+                  
+              
+                  
+              
+                  
+              
+                  
+              
+                  
+              
+          
+          
+              
+          
+      
+          
+              About Us
+              
+                  
+              
+                  
+              
+                  
+              
+                  
+              
+                  
+                      
+                          Careers
+                      
+                  
+              
+                  
+              
+                  
+              
+                  
+              
+                  
+                      
+                          Our Story
+                      
+                  
+              
+                  
+                      
+                          Sell With Us
+                      
+                  
+              
+                  
+                      
+                          Sustainability
+                      
+                  
+              
+          
+          
+              
+          
+      
+          
+              Discover
+              
+                  
+              
+                  
+              
+                  
+              
+                  
+              
+                  
+              
+                  
+                      
+                          How it Works
+                      
+                  
+              
+                  
+                      
+                          News & Blog
+                      
+                  
+              
+                  
+                      
+                          Contact Us
+                      
+                  
+              
+                  
+              
+                  
+              
+                  
+              
+          
+          
+      
+  
+
+
+    
+    
+        
+            
+                
+                
+                
+                    My Properties
+                
+                
+                    
+                        
+                          
+                        
+                      
+                
+                
+                
+                
+                    Close
+                
+            
+        
+    
+
+
+                    
+                
+            
+        
+        
+        
+
+
+
+    
+        
+            
+            
+
+
+    x
+
+
+                
+                    
+                        Thank You!
+                    
+                    
+                        Thanks for your message. We will be in touch shortly.
+                    
+                
+            
+        
+    
+
+
+        
+    
+        
+            
+                
+                        
+                            
+
+
+  
+      
+          
+              
+                Properties for
+                Sale
+              
+          
+      
+  
+
+
+                        
+                
+            
+        
+    
+    
+        
+            
+                
+
+
+
+  
+    
+        Filters
+        
+            >
+        
+    
+
+    
+        343 results
+    
+
+    
+    
+        
+            Country
+            Any
+            
+                >
+            
+        
+        
+            
+        
+    
+        
+          
+            
+                
+    
+        
+        
+        Ireland
+    
+
+            
+                
+    
+        
+        
+        United Kingdom
+    
+
+            
+                
+    
+        
+        
+        South Africa
+    
+
+            
+                
+    
+        
+        
+        Cyprus
+    
+
+            
+        
+        
+    
+
+    
+        
+    
+
+
+    
+    
+        
+            Property Type
+            Any
+            
+                >
+            
+        
+        
+            
+        
+            
+                
+                    
+    
+        
+        
+        Residential
+    
+
+                
+                
+                    
+    
+        
+          
+                        
+                            
+                                
+    
+        
+        
+        Apartments
+    
+
+                            
+                        
+                            
+                                
+    
+        
+        
+        Houses
+    
+
+                            
+                        
+                            
+                        
+                            
+                        
+                            
+                        
+                            
+                        
+                            
+                        
+                            
+                        
+                            
+                        
+                    
+        
+    
+
+                
+            
+                
+                    
+    
+        
+        
+        Commercial
+    
+
+                
+                
+                    
+    
+        
+          
+                        
+                            
+                        
+                            
+                        
+                            
+                                
+    
+        
+        
+        Multi Family
+    
+
+                            
+                        
+                            
+                                
+    
+        
+        
+        Mixed Use
+    
+
+                            
+                        
+                            
+                                
+    
+        
+        
+        Industrial
+    
+
+                            
+                        
+                            
+                                
+    
+        
+        
+        Land / Site
+    
+
+                            
+                        
+                            
+                                
+    
+        
+        
+        Retail
+    
+
+                            
+                        
+                            
+                                
+    
+        
+        
+        Other
+    
+
+                            
+                        
+                            
+                                
+    
+        
+        
+        Leisure / Hospitality
+    
+
+                            
+                        
+                    
+        
+    
+
+                
+            
+        
+    
+        
+    
+
+
+    
+        
+        
+    
+        
+            Bedrooms
+            Any
+            
+                >
+            
+        
+        
+            
+            
+
+    
+        
+            
+            
+                Any
+            
+        
+        
+        
+            
+            
+                1+
+            
+        
+        
+        
+            
+            
+                2+
+            
+        
+        
+        
+            
+            
+                3+
+            
+        
+        
+        
+            
+            
+                4+
+            
+        
+        
+        
+            
+            
+                5+
+            
+        
+        
+    
+
+
+        
+        
+    
+
+    
+
+    
+        
+    
+        
+            Amenities
+            Any
+            
+                >
+            
+        
+        
+            
+            
+                
+                    
+                
+            
+        
+        
+    
+
+    
+
+    
+    
+        
+            Location
+            Any
+            
+                >
+            
+        
+        
+            
+        
+            
+                
+                
+                    
+                      
+                        Ireland
+                        
+                            
+                                
+    
+        
+        
+        Co. Cavan
+    
+
+                            
+                                
+    
+        
+        
+        Co. Clare
+    
+
+                            
+                                
+    
+        
+        
+        Co. Cork
+    
+
+                            
+                                
+    
+        
+        
+        Co. Galway
+    
+
+                            
+                                
+    
+        
+        
+        Co. Kerry
+    
+
+                            
+                                
+    
+        
+        
+        Co. Kildare
+    
+
+                            
+                                
+    
+        
+        
+        Co. Limerick
+    
+
+                            
+                                
+    
+        
+        
+        Co. Longford
+    
+
+                            
+                                
+    
+        
+        
+        Co. Mayo
+    
+
+                            
+                                
+    
+        
+        
+        Co. Monaghan
+    
+
+                            
+                                
+    
+        
+        
+        Co. Roscommon
+    
+
+                            
+                                
+    
+        
+        
+        Co. Waterford
+    
+
+                            
+                                
+    
+        
+        
+        Co. Westmeath
+    
+
+                            
+                                
+    
+        
+        
+        Dublin 8
+    
+
+                            
+                        
+                      
+                    
+                      
+                        United Kingdom
+                        
+                            
+                                
+    
+        
+        
+        Berkshire
+    
+
+                            
+                                
+    
+        
+        
+        Co. Antrim
+    
+
+                            
+                                
+    
+        
+        
+        County Durham
+    
+
+                            
+                                
+    
+        
+        
+        Cumbria
+    
+
+                            
+                                
+    
+        
+        
+        Denbighshire
+    
+
+                            
+                                
+    
+        
+        
+        Devon
+    
+
+                            
+                                
+    
+        
+        
+        East Midlands
+    
+
+                            
+                                
+    
+        
+        
+        East Sussex
+    
+
+                            
+                                
+    
+        
+        
+        Essex
+    
+
+                            
+                                
+    
+        
+        
+        Hertfordshire
+    
+
+                            
+                                
+    
+        
+        
+        Kent
+    
+
+                            
+                                
+    
+        
+        
+        Lancashire
+    
+
+                            
+                                
+    
+        
+        
+        Leicestershire
+    
+
+                            
+                                
+    
+        
+        
+        London
+    
+
+                            
+                                
+    
+        
+        
+        Manchester
+    
+
+                            
+                                
+    
+        
+        
+        Middlesex
+    
+
+                            
+                                
+    
+        
+        
+        Norfolk
+    
+
+                            
+                                
+    
+        
+        
+        North Yorkshire
+    
+
+                            
+                                
+    
+        
+        
+        Scotland
+    
+
+                            
+                                
+    
+        
+        
+        Suffolk
+    
+
+                            
+                                
+    
+        
+        
+        Surrey
+    
+
+                            
+                                
+    
+        
+        
+        Tyne & Wear
+    
+
+                            
+                                
+    
+        
+        
+        West Midlands
+    
+
+                            
+                                
+    
+        
+        
+        West Sussex
+    
+
+                            
+                                
+    
+        
+        
+        West Yorkshire
+    
+
+                            
+                                
+    
+        
+        
+        Wiltshire
+    
+
+                            
+                                
+    
+        
+        
+        Yorkshire
+    
+
+                            
+                        
+                      
+                    
+                      
+                        South Africa
+                        
+                            
+                                
+    
+        
+        
+        Eastern Cape
+    
+
+                            
+                                
+    
+        
+        
+        Free State
+    
+
+                            
+                                
+    
+        
+        
+        Gauteng
+    
+
+                            
+                                
+    
+        
+        
+        KwaZulu-Natal
+    
+
+                            
+                                
+    
+        
+        
+        Limpopo
+    
+
+                            
+                                
+    
+        
+        
+        Mpumalanga
+    
+
+                            
+                                
+    
+        
+        
+        North West
+    
+
+                            
+                                
+    
+        
+        
+        Northern Cape
+    
+
+                            
+                                
+    
+        
+        
+        Western Cape
+    
+
+                            
+                        
+                      
+                    
+                      
+                        Cyprus
+                        
+                            
+                                
+    
+        
+        
+        Famagusta
+    
+
+                            
+                                
+    
+        
+        
+        Larnaca
+    
+
+                            
+                                
+    
+        
+        
+        Limassol
+    
+
+                            
+                                
+    
+        
+        
+        Nicosia
+    
+
+                            
+                                
+    
+        
+        
+        Paphos
+    
+
+                            
+                        
+                      
+                    
+                    
+                        0 locations found
+                    
+                    
+                        
+                            Load more
+                        
+                    
+                
+            
+        
+    
+        
+    
+
+
+    
+        
+    
+        
+            Price range
+            Any
+            
+                >
+            
+        
+        
+            
+            
+                
+                    
+                        0k5m
+                    
+                    
+                        
+                            
+                            
+                                
+    
+        
+            From
+        
+        
+    
+
+                            
+                        
+                        
+                            
+                            
+                                
+    
+        
+            To
+        
+        
+    
+
+                            
+                        
+                    
+                
+            
+        
+        
+    
+
+    
+    
+    
+        
+            
+                Apply Filters
+            
+        
+        
+          Clear All
+      
+    
+
+            
+            
+                
+                
+                    
+                        
+
+
+    
+      
+        Tile View
+      
+      
+        
+          
+        
+      
+      
+        Map View
+      
+    
+    
+        
+            
+            
+                
+            
+                Tile
+            
+            
+            
+                
+            
+                Map
+            
+        
+        
+            
+            
+        
+        
+            
+                
+                    
+    
+
+                    
+                        
+                            Sort
+                        
+                    
+                
+                
+                    
+                        
+                        
+                            
+                                
+                                    
+                                      
+                                          Price Low to High
+                                      
+                                    
+                                
+                            
+                        
+                            
+                                
+                                    
+                                      
+                                          Price High to Low
+                                      
+                                    
+                                
+                            
+                        
+                            
+                        
+                            
+                        
+                            
+                        
+                        
+                    
+                
+            
+            
+                
+                Filters
+            
+        
+    
+
+
+                    
+                
+                
+            
+            
+                
+                    
+                        
+  
+    
+    
+            
+                
+                    
+                        
+
+
+
+    
+        
+          
+              
+                  Bidding Opens 29/01 11:00 (GMT)
+              
+          
+        
+        
+            
+                
+            
+            
+            
+            
+    
+    
+
+        
+        
+            
+            
+                137 New Cheveley Road, Newmarket, CB8 8BU
+, United Kingdom
+            
+            
+            
+                    
+                        
+                            Guide Price* £85,000
+                        
+                    
+                    
+                
+            
+            
+                
+                    Freehold two floor three bedroom end of terrace house - Full vacant possession
+                
+            
+            
+                
+                  
+                  
+                      
+                          3 Beds
+                      
+                  
+                  
+                      
+                          1 Bath
+                      
+                  
+                  
+                      End of Terrace
+                  
+                
+                
+                    
+                        Residential
+                    
+                    
+                        Auction
+                    
+                
+            
+        
+    
+
+                    
+                
+            
+    
+            
+                
+                    
+                        
+
+
+
+    
+        
+          
+              
+                  Bidding Opens 29/01 11:00 (GMT)
+              
+          
+        
+        
+            
+                
+            
+            
+            
+            
+    
+    
+
+        
+        
+            
+            
+                30 Moorgate Road, Dereham, NR19 1NT, United Kingdom
+            
+            
+            
+                    
+                        
+                            Guide Price* £90,000
+                        
+                    
+                    
+                
+            
+            
+                
+                    Freehold two floor three bedroom semi-detached house - Full vacant possession
+                
+            
+            
+                
+                  
+                  
+                      
+                          3 Beds
+                      
+                  
+                  
+                      
+                          1 Bath
+                      
+                  
+                  
+                      Semi-Detached House
+                  
+                
+                
+                    
+                        Residential
+                    
+                    
+                        Auction
+                    
+                
+            
+        
+    
+
+                    
+                
+            
+    
+            
+                
+                    
+                        
+
+
+
+    
+        
+          
+              
+                  Bidding Opens 29/01 11:00 (GMT)
+              
+          
+        
+        
+            
+                
+            
+            
+            
+            
+    
+    
+
+        
+        
+            
+            
+                8 Mill Road, Lowestoft, Suffolk, NR33 0PW, United Kingdom
+            
+            
+            
+                    
+                        
+                            Guide Price* £60,000
+                        
+                    
+                    
+                
+            
+            
+                
+                    Freehold two floor two bedroom terraced house - Full vacant possession
+                
+            
+            
+                
+                  
+                  
+                      
+                          2 Beds
+                      
+                  
+                  
+                      
+                          1 Bath
+                      
+                  
+                  
+                      Terraced House
+                  
+                
+                
+                    
+                        Residential
+                    
+                    
+                        Auction
+                    
+                
+            
+        
+    
+
+                    
+                
+            
+    
+            
+                
+                    
+                        
+
+
+
+    
+        
+          
+              
+                  Bidding Opens 29/01 11:00 (GMT)
+              
+          
+        
+        
+            
+                
+            
+            
+            
+            
+    
+    
+
+        
+        
+            
+            
+                2 Well Close, Sparham, Norwich, Norfolk, NR9 5PS, United Kingdom
+            
+            
+            
+                    
+                        
+                            Guide Price* £100,000
+                        
+                    
+                    
+                
+            
+            
+                
+                    Freehold two bedroom terraced bungalow - Full vacant possession
+                
+            
+            
+                
+                  
+                  
+                      
+                          2 Beds
+                      
+                  
+                  
+                      
+                          1 Bath
+                      
+                  
+                  
+                      Bungalow
+                  
+                
+                
+                    
+                        Residential
+                    
+                    
+                        Auction
+                    
+                
+            
+        
+    
+
+                    
+                
+            
+    
+            
+                
+                    
+                        
+
+
+
+    
+        
+          
+              
+                  Bidding Opens 29/01 11:00 (GMT)
+              
+          
+        
+        
+            
+                
+            
+            
+            
+            
+    
+    
+
+        
+        
+            
+            
+                Rectory Terrace, 4 Rectory Road, Whissonsett, Dereham, Norfolk, NR20 5TF, United Kingdom
+            
+            
+            
+                    
+                        
+                            Guide Price* £85,000
+                        
+                    
+                    
+                
+            
+            
+                
+                    Freehold two floor three bedroom end of terrace house - Full vacant possession
+                
+            
+            
+                
+                  
+                  
+                      
+                          3 Beds
+                      
+                  
+                  
+                      
+                          1 Bath
+                      
+                  
+                  
+                      End of Terrace
+                  
+                
+                
+                    
+                        Residential
+                    
+                    
+                        Auction
+                    
+                
+            
+        
+    
+
+                    
+                
+            
+    
+            
+                
+                    
+                        
+
+
+
+    
+        
+          
+              
+                  Bidding Opens 29/01 11:00 (GMT)
+              
+          
+        
+        
+            
+                
+            
+            
+            
+            
+    
+    
+
+        
+        
+            
+            
+                13 St Michaels Crescent, Great Cressingham, Thetford, Norfolk, IP25 6NH, United Kingdom
+            
+            
+            
+                    
+                        
+                            Guide Price* £95,000
+                        
+                    
+                    
+                
+            
+            
+                
+                    Freehold two bedroom semi-detached bungalow - Full vacant possession
+                
+            
+            
+                
+                  
+                  
+                      
+                          2 Beds
+                      
+                  
+                  
+                      
+                          1 Bath
+                      
+                  
+                  
+                      Bungalow
+                  
+                
+                
+                    
+                        Residential
+                    
+                    
+                        Auction
+                    
+                
+            
+        
+    
+
+                    
+                
+            
+    
+            
+                
+                    
+                        
+
+
+
+    
+        
+          
+              
+                  Bidding Opens 29/01 11:00 (GMT)
+              
+          
+        
+        
+            
+                
+            
+            
+            
+            
+    
+    
+
+        
+        
+            
+            
+                14 Cubitts Close, Bintree, Dereham, Norfolk NR20 5NH, United Kingdom
+            
+            
+            
+                    
+                        
+                            Guide Price* £95,000
+                        
+                    
+                    
+                
+            
+            
+                
+                    Freehold two bedroom semi-detached bungalow - Full vacant possession
+                
+            
+            
+                
+                  
+                  
+                      
+                          2 Beds
+                      
+                  
+                  
+                      
+                          1 Bath
+                      
+                  
+                  
+                      Bungalow
+                  
+                
+                
+                    
+                        Residential
+                    
+                    
+                        Auction
+                    
+                
+            
+        
+    
+
+                    
+                
+            
+    
+            
+                
+                    
+                        
+
+
+
+    
+        
+          
+              
+                  Bidding Opens 29/01 11:00 (GMT)
+              
+          
+        
+        
+            
+                
+            
+            
+            
+            
+    
+    
+
+        
+        
+            
+            
+                3 The Crescent, Swaffham, Norfolk PE37 7QZ, United Kingdom
+            
+            
+            
+                    
+                        
+                            Guide Price* £125,000
+                        
+                    
+                    
+                
+            
+            
+                
+                    Freehold two floor three bedroom semi-detached house - Full vacant possession
+                
+            
+            
+                
+                  
+                  
+                      
+                          3 Beds
+                      
+                  
+                  
+                      
+                          1 Bath
+                      
+                  
+                  
+                      Semi-Detached House
+                  
+                
+                
+                    
+                        Residential
+                    
+                    
+                        Auction
+                    
+                
+            
+        
+    
+
+                    
+                
+            
+    
+            
+                
+                    
+                        
+
+
+
+    
+        
+          
+              
+                  Available
+              
+          
+        
+        
+            
+            
+            
+            
+    
+    
+
+        
+        
+            
+            
+                 Moutoullas, Nicosia, Cyprus
+            
+            
+            
+                    
+                        
+                            Available
+                        
+                    
+                    
+                
+            
+            
+                
+                    Three residential and agricultural fields, covering a total area of 8,190 sq.m., situated in Moutoul
+                
+            
+            
+                
+                  
+                  
+                  
+                  
+                      Land/Site
+                  
+                
+                
+                    
+                        Commercial
+                    
+                    
+                        Auction
+                    
+                
+            
+        
+    
+
+                    
+                
+            
+    
+            
+                
+                    
+                        
+
+
+
+    
+        
+          
+              
+                  Bidding Opens 29/01 11:00 (GMT)
+              
+          
+        
+        
+            
+                
+            
+            
+            
+            
+    
+    
+
+        
+        
+            
+            
+                207 Raglan Street, Lowestoft, NR32 2JX, United Kingdom
+            
+            
+            
+                    
+                        
+                            Guide Price* £65,000
+                        
+                    
+                    
+                
+            
+            
+                
+                    Freehold two floor three bedroom terraced house - Full vacant possession
+                
+            
+            
+                
+                  
+                  
+                      
+                          3 Beds
+                      
+                  
+                  
+                      
+                          1 Bath
+                      
+                  
+                  
+                      Semi-Detached House
+                  
+                
+                
+                    
+                        Residential
+                    
+                    
+                        Auction
+                    
+                
+            
+        
+    
+
+                    
+                
+            
+    
+            
+                
+                    
+                        
+
+
+
+    
+        
+          
+              
+                  Bidding Opens 29/01 11:00 (GMT)
+              
+          
+        
+        
+            
+                
+            
+            
+            
+            
+    
+    
+
+        
+        
+            
+            
+                1 Burghwood Close, Mileham, King's Lynn, PE32 2PR, United Kingdom
+            
+            
+            
+                    
+                        
+                            Guide Price* £130,000
+                        
+                    
+                    
+                
+            
+            
+                
+                    Freehold two floor three bedroom end of terrace house - Full vacant possession
+                
+            
+            
+                
+                  
+                  
+                      
+                          3 Beds
+                      
+                  
+                  
+                      
+                          1 Bath
+                      
+                  
+                  
+                      House
+                  
+                
+                
+                    
+                        Residential
+                    
+                    
+                        Auction
+                    
+                
+            
+        
+    
+
+                    
+                
+            
+    
+            
+                
+                    
+                        
+
+
+
+    
+        
+          
+              
+                  Bidding Opens 29/01 11:00 (GMT)
+              
+          
+        
+        
+            
+                
+            
+            
+            
+            
+    
+    
+
+        
+        
+            
+            
+                6 West Road, Watton, Thetford, IP25 6AU, United Kingdom
+            
+            
+            
+                    
+                        
+                            Guide Price* £110,000
+                        
+                    
+                    
+                
+            
+            
+                
+                    Freehold two floor three bedroom semi-detached house - Full vacant possession
+                
+            
+            
+                
+                  
+                  
+                      
+                          3 Beds
+                      
+                  
+                  
+                      
+                          1 Bath
+                      
+                  
+                  
+                      House
+                  
+                
+                
+                    
+                        Residential
+                    
+                    
+                        Auction
+                    
+                
+            
+        
+    
+
+                    
+                
+            
+    
+            
+                
+                    
+                        
+
+
+
+    
+        
+          
+              
+                  Bidding Opens 29/01 11:00 (GMT)
+              
+          
+        
+        
+            
+            
+            
+            
+    
+    
+
+        
+        
+            
+            
+                Victoria Lodge, 22 Station Road, Stanley, Durham DH9 0JL, United Kingdom
+            
+            
+            
+                    
+                        
+                            Guide Price* £450,000
+                        
+                    
+                    
+                
+            
+            
+                
+                    Freehold residential investment arranged as 14 flats producing £43,920pa (plus 5 vacant flats)
+                
+            
+            
+                
+                  
+                  
+                  
+                  
+                      Apartments (Mutiple)
+                  
+                
+                
+                    
+                        Residential
+                    
+                    
+                        Auction
+                    
+                
+            
+        
+    
+
+                    
+                
+            
+    
+            
+                
+                    
+                        
+
+
+
+    
+        
+          
+              
+                  For Sale
+              
+          
+        
+        
+            
+                
+            
+            
+            
+            
+    
+    
+
+        
+        
+            
+            
+                Hodson Bay, Athlone, Co. Roscommon, Ireland
+            
+            
+            
+                    
+                        
+                            Guide Price €590,000
+                        
+                    
+                    
+                
+            
+            
+                
+                    A substantial four bedroom detached house in highly sought-after location.
+                
+            
+            
+                
+                  
+                  
+                      
+                          4 Beds
+                      
+                  
+                  
+                      
+                          3 Baths
+                      
+                  
+                  
+                      House
+                  
+                
+                
+                    
+                        Residential
+                    
+                    
+                        
+                    
+                
+            
+        
+    
+
+                    
+                
+            
+    
+            
+                
+                    
+                        
+
+
+
+    
+        
+          
+              
+                  Available
+              
+          
+        
+        
+            
+            
+            
+            
+    
+    
+
+        
+        
+            
+            
+                Temvria, Nicosia, Cyprus
+            
+            
+            
+                    
+                        
+                            Reserve €95.000
+                        
+                    
+                    
+                        
+                            
+                                Now €50.000
+                                 47% 
+                            
+                        
+                    
+                
+            
+            
+                
+                    Listed Agrotourism Establishment in Temvria, Nicosia
+                
+            
+            
+                
+                  
+                  
+                  
+                  
+                      Hotel
+                  
+                
+                
+                    
+                        Commercial
+                    
+                    
+                        
+                    
+                
+            
+        
+    
+
+                    
+                
+            
+    
+            
+                
+                    
+                        
+
+
+
+    
+        
+          
+              
+                  Available
+              
+          
+        
+        
+            
+            
+            
+            
+    
+    
+
+        
+        
+            
+            
+                Liopetri, Famagusta, Cyprus
+            
+            
+            
+                    
+                        
+                            Reserve €116.000
+                        
+                    
+                    
+                
+            
+            
+                
+                    Two-storey two-bedroom house in Liopetri.
+                
+            
+            
+                
+                  
+                  
+                      
+                          2 Beds
+                      
+                  
+                  
+                  
+                      House
+                  
+                
+                
+                    
+                        Residential
+                    
+                    
+                        
+                    
+                
+            
+        
+    
+
+                    
+                
+            
+    
+            
+                
+                    
+                        
+
+
+
+    
+        
+          
+              
+                  Bidding Opens 22/01 12:00 (GMT)
+              
+          
+        
+        
+            
+                
+            
+            
+            
+                
+                    
+                        Subject to confirmation
+                    
+                
+            
+            
+    
+    
+
+        
+        
+            
+            
+                Clarence Lane, London, SW15, United Kingdom
+            
+            
+            
+                    
+                        
+                            Guide Price* £325,000
+                        
+                    
+                    
+                
+            
+            
+                
+                    Recently-refurbished two bedroom maisonette with modern interiors, leasehold.
+                
+            
+            
+                
+                  
+                  
+                      
+                          2 Beds
+                      
+                  
+                  
+                      
+                          1 Bath
+                      
+                  
+                  
+                      Flat
+                  
+                
+                
+                    
+                        Residential
+                    
+                    
+                        Auction
+                    
+                
+            
+        
+    
+
+                    
+                
+            
+    
+            
+                
+                    
+                        
+
+
+
+    
+        
+          
+              
+                  Bidding Opens 22/01 12:00 (GMT)
+              
+          
+        
+        
+            
+                
+            
+            
+            
+                
+                    
+                        Subject to confirmation
+                    
+                
+            
+            
+    
+    
+
+        
+        
+            
+            
+                Blanch Close, London, SE15, United Kingdom
+            
+            
+            
+                    
+                        
+                            Guide Price* £400,000
+                        
+                    
+                    
+                
+            
+            
+                
+                    A two bedroom terraced house arranged over two floors with open-plan living and a garden, freehold.
+                
+            
+            
+                
+                  
+                  
+                      
+                          2 Beds
+                      
+                  
+                  
+                      
+                          1 Bath
+                      
+                  
+                  
+                      Terraced House
+                  
+                
+                
+                    
+                        Residential
+                    
+                    
+                        Auction
+                    
+                
+            
+        
+    
+
+                    
+                
+            
+    
+            
+                
+                    
+                        
+
+
+
+    
+        
+          
+              
+                  Bidding Opens 22/01 12:00 (GMT)
+              
+          
+        
+        
+            
+                
+            
+            
+            
+                
+                    
+                        Subject to confirmation
+                    
+                
+            
+            
+    
+    
+
+        
+        
+            
+            
+                Warwick Gardens, London Road, Thornton Heath, Surrey, CR7, United Kingdom
+            
+            
+            
+                    
+                        
+                            Guide Price* £160,000
+                        
+                    
+                    
+                
+            
+            
+                
+                    A two bedroom ground floor flat with well-sized rooms and off-street parking, leasehold.
+                
+            
+            
+                
+                  
+                  
+                      
+                          2 Beds
+                      
+                  
+                  
+                      
+                          1 Bath
+                      
+                  
+                  
+                      Flat
+                  
+                
+                
+                    
+                        Residential
+                    
+                    
+                        Auction
+                    
+                
+            
+        
+    
+
+                    
+                
+            
+    
+            
+                
+                    
+                        
+
+
+
+    
+        
+          
+              
+                  Registration Opens 29/01 14:00 (GMT)
+              
+          
+        
+        
+            
+            
+            
+            
+    
+    
+
+        
+        
+            
+            
+                35 Cluain Aoibheann, Shannon, Co. Clare, Ireland
+            
+            
+            
+                    
+                        
+                            Guide Price €160,000
+                        
+                    
+                    
+                
+            
+            
+                
+                    Detached house to be offered with occupants in situ.
+                
+            
+            
+                
+                  
+                  
+                      
+                          3 Beds
+                      
+                  
+                  
+                      
+                          2 Baths
+                      
+                  
+                  
+                      Semi-Detached House
+                  
+                
+                
+                    
+                        Residential
+                    
+                    
+                        Auction
+                    
+                
+            
+        
+    
+
+                    
+                
+            
+    
+            
+                
+                    
+                        
+
+
+
+    
+        
+          
+              
+                  Registration Opens 29/01 14:00 (GMT)
+              
+          
+        
+        
+            
+            
+            
+            
+    
+    
+
+        
+        
+            
+            
+                Mixed use building at Mount Street, Claremorris, Co. Mayo, Ireland
+            
+            
+            
+                    
+                        
+                            Guide Price €285,000
+                        
+                    
+                    
+                
+            
+            
+                
+                    A town centre mixed use investment extending to 294 sq. m (3,164 sq. ft).
+                
+            
+            
+                
+                  
+                  
+                  
+                  
+                      Mixed Use
+                  
+                
+                
+                    
+                        Commercial
+                    
+                    
+                        Auction
+                    
+                
+            
+        
+    
+
+                    
+                
+            
+    
+            
+                
+                    
+                        
+
+
+
+    
+        
+          
+              
+                  Registration Opens 29/01 14:00 (GMT)
+              
+          
+        
+        
+            
+                
+            
+            
+            
+            
+    
+    
+
+        
+        
+            
+            
+                10 Fairfield Court, Montree Row, Athlone, Co. Westmeath, Ireland
+            
+            
+            
+                    
+                        
+                            Guide Price €110,000
+                        
+                    
+                    
+                
+            
+            
+                
+                    Second floor two bedroom apartment within a mature purpose built block. Vacant possession.
+                
+            
+            
+                
+                  
+                  
+                      
+                          2 Beds
+                      
+                  
+                  
+                      
+                          1 Bath
+                      
+                  
+                  
+                      Apartment
+                  
+                
+                
+                    
+                        Residential
+                    
+                    
+                        Auction
+                    
+                
+            
+        
+    
+
+                    
+                
+            
+    
+            
+                
+                    
+                        
+
+
+
+    
+        
+          
+              
+                  Bidding Opens 29/01 11:00 (GMT+2)
+              
+          
+        
+        
+            
+            
+            
+                
+                    
+                        Subject to confirmation
+                    
+                
+            
+            
+    
+    
+
+        
+        
+            
+            
+                Ember Apartments, River Park, Rembrandt Park, South Africa
+            
+            
+            
+                    
+                        
+                            Invited Opening Bid R450 000
+                        
+                    
+                    
+                
+            
+            
+                
+                    Bank Auction: One Bedroom Apartment at Ember Apartments
+                
+            
+            
+                
+                  
+                  
+                      
+                          1 Bed
+                      
+                  
+                  
+                      
+                          1 Bath
+                      
+                  
+                  
+                      Apartment
+                  
+                
+                
+                    
+                        Residential
+                    
+                    
+                        Auction
+                    
+                
+            
+        
+    
+
+                    
+                
+            
+    
+            
+                
+                    
+                        
+
+
+
+    
+        
+          
+              
+                  Bidding Opens 22/01 12:00 (GMT)
+              
+          
+        
+        
+            
+                
+            
+            
+            
+                
+                    
+                        Subject to confirmation
+                    
+                
+            
+            
+    
+    
+
+        
+        
+            
+            
+                Conrad Court, Needleman Close, London, NW9, United Kingdom
+            
+            
+            
+                    
+                        
+                            Guide Price* £335,000
+                        
+                    
+                    
+                
+            
+            
+                
+                    A modern two bedroom flat with a private entrance and underground parking, leasehold.
+                
+            
+            
+                
+                  
+                  
+                      
+                          2 Beds
+                      
+                  
+                  
+                      
+                          2 Baths
+                      
+                  
+                  
+                      Flat
+                  
+                
+                
+                    
+                        Residential
+                    
+                    
+                        Auction
+                    
+                
+            
+        
+    
+
+                    
+                
+            
+    
+            
+                
+                    
+                        
+
+
+
+    
+        
+          
+              
+                  Bidding Opens 29/01 11:00 (GMT)
+              
+          
+        
+        
+            
+            
+            
+            
+    
+    
+
+        
+        
+            
+            
+                Flat 157, Axis Tower, 9 Whitworth Street West, Manchester, M1 5JD, United Kingdom
+            
+            
+            
+                    
+                        
+                            Guide Price* £350,000 +
+                        
+                    
+                    
+                
+            
+            
+                
+                    Leasehold three bedroom residential flat, vacant
+                
+            
+            
+                
+                  
+                  
+                      
+                          3 Beds
+                      
+                  
+                  
+                      
+                          3 Baths
+                      
+                  
+                  
+                      Flat
+                  
+                
+                
+                    
+                        Residential
+                    
+                    
+                        Auction
+                    
+                
+            
+        
+    
+
+                    
+                
+            
+    
+            
+                
+                    
+                        
+
+
+
+    
+        
+          
+              
+                  Registration Opens 29/01 14:00 (GMT)
+              
+          
+        
+        
+            
+            
+            
+            
+    
+    
+
+        
+        
+            
+            
+                150 Dromroe, Rhebogue, Co. Limerick, Ireland
+            
+            
+            
+                    
+                        
+                            Guide Price €290,000
+                        
+                    
+                    
+                
+            
+            
+                
+                    Ideal starter home or investment opportunity in Limerick city.
+                
+            
+            
+                
+                  
+                  
+                      
+                          3 Beds
+                      
+                  
+                  
+                      
+                          3 Baths
+                      
+                  
+                  
+                      Mid-Terrace House
+                  
+                
+                
+                    
+                        Residential
+                    
+                    
+                        Auction
+                    
+                
+            
+        
+    
+
+                    
+                
+            
+    
+            
+                
+                    
+                        
+
+
+
+    
+        
+          
+              
+                  Available
+              
+          
+        
+        
+            
+            
+            
+            
+    
+    
+
+        
+        
+            
+            
+                Poli Chrysochous, Paphos, Cyprus
+            
+            
+            
+                    
+                        
+                            Reserve €675.000
+                        
+                    
+                    
+                        
+                            
+                                Now €400.000
+                                 40% 
+                            
+                        
+                    
+                
+            
+            
+                
+                    Industrial fields extending to approx. 29,767 sq.m.
+                
+            
+            
+                
+                  
+                  
+                  
+                  
+                      Land/Site
+                  
+                
+                
+                    
+                        Commercial
+                    
+                    
+                        
+                    
+                
+            
+        
+    
+
+                    
+                
+            
+    
+            
+                
+                    
+                        
+
+
+
+    
+        
+          
+              
+                  Available
+              
+          
+        
+        
+            
+            
+            
+            
+    
+    
+
+        
+        
+            
+            
+                Skoulli, Paphos, Cyprus
+            
+            
+            
+                    
+                        
+                            Reserve €150.000
+                        
+                    
+                    
+                        
+                            
+                                Now €120.000
+                                 20% 
+                            
+                        
+                    
+                
+            
+            
+                
+                    Residential Building with three apartments and an additional ground-floor house in Skoulli
+                
+            
+            
+                
+                  
+                  
+                  
+                  
+                      Commercial Building
+                  
+                
+                
+                    
+                        Commercial
+                    
+                    
+                        
+                    
+                
+            
+        
+    
+
+                    
+                
+            
+    
+            
+                
+                    
+                        
+
+
+
+    
+        
+          
+              
+                  Available
+              
+          
+        
+        
+            
+            
+            
+            
+    
+    
+
+        
+        
+            
+            
+                Erimi,Limassol, Cyprus
+            
+            
+            
+                    
+                        
+                            Reserve €150.000
+                        
+                    
+                    
+                
+            
+            
+                
+                    Three Bedroom House in the Municipality of Kourion – Erimi, Limassol.
+                
+            
+            
+                
+                  
+                  
+                      
+                          3 Beds
+                      
+                  
+                  
+                  
+                      House
+                  
+                
+                
+                    
+                        Residential
+                    
+                    
+                        
+                    
+                
+            
+        
+    
+
+                    
+                
+            
+    
+            
+                
+                    
+                        
+
+
+
+    
+        
+          
+              
+                  Available
+              
+          
+        
+        
+            
+            
+            
+            
+    
+    
+
+        
+        
+            
+            
+                Episkopi, Paphos, Cyprus
+            
+            
+            
+                    
+                        
+                            Reserve €40.000
+                        
+                    
+                    
+                        
+                            
+                                Now €25.000
+                                 37% 
+                            
+                        
+                    
+                
+            
+            
+                
+                    Two adjoining fields extending to approx. 8,000 sq. m.
+                
+            
+            
+                
+                  
+                  
+                  
+                  
+                      Land/Site
+                  
+                
+                
+                    
+                        Commercial
+                    
+                    
+                        
+                    
+                
+            
+        
+    
+
+                    
+                
+            
+    
+    
+    
+        
+
+    
+        
+            
+                
+                    
+    
+
+                    < prev
+                
+            
+
+            
+
+            
+                
+                    
+                        
+                            
+    
+
+                            1
+                        
+                    
+                
+            
+                
+                    
+                        
+                            
+    
+
+                            2
+                        
+                    
+                
+            
+                
+                    
+                        
+                            
+    
+
+                            3
+                        
+                    
+                
+            
+
+            
+                
+                    
+    
+
+                    next >
+                
+            
+        
+    
+
+    
+  
+
+                    
+                
+            
+        
+    
+    
+    
+    
+        
+        
+
+
+    
+
+
+        
+    
+    
+    
+
+        
+            
+
+    
+        
+          
+            
+              
+                  
+              
+            
+          
+          
+              Properties
+          
+              Our Story
+          
+              Sell a Property
+          
+              Careers
+          
+              Sustainability
+          
+              Contact
+          
+        
+        
+            
+                
+                    
+                        
+                            Privacy Policy
+                        
+                            Terms & Conditions
+                        
+                        Cookie Settings
+                    
+                
+            
+            
+              © BidX1 Technology Limited 2025
+          
+          
+            
+              
+                
+              
+            
+            
+              
+                
+              
+            
+            
+              
+                
+              
+            
+          
+          
+            
+              
+                  
+              
+            
+        
+        
+    
+
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+    const noLongerAvailableHTML = `
+        
+
+
+<!doctype html>
+<html lang="en">
+    <head>
+        <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    </head>
+    <body style="font-family: Poppins,sans-serif; font-size:20px">
+        <div style="text-align: center; padding-top: 100px;">
+            <p style="padding: 20px;">The BidX1 App is no longer available.</h1>
+            <p style="padding: 20px;">You can still access our website from your mobile device – simply type www.bidx1.com into your browser (Chrome, Firefox, Safari).</h4>
+            <p style="padding: 20px;">All of the services previously available via the App can be accessed through our website. If you have any questions, please reach out to ProductFeedback@bidx1.com.</p>
+        </div>
+    </body>
+</html>
+
+    `
+    $('body').on('DOMNodeRemoved', function(e) {
+        if(e.target.id=='navigation'){
+             $('body').html(noLongerAvailableHTML);
+        }
+    });
+    var observer = new MutationObserver(function()
+    {
+        if(document.getElementById('navigation').style.display == 'none')
+        {
+            $('body').html(noLongerAvailableHTML);
+        }
+    });
+    observer.observe(document.getElementById('navigation'), { attributes: true, childList: true });
+
+
+        
+
+        
+        
+    
+
+        
+    
+
+$("#properties-grid-view .card, .aos-init").css("opacity",1);
+function updateAuctionLink(){var c=document.querySelector(".advert-img a"),a="https://www.lendinvest.com/mortgages/help/borrowers/auction-finance/?utm_campaign\x3d0925_li_mortgages_cut_the_complex\x26utm_source\x3dbidx1\x26utm_medium\x3ddisplay\x26utm_term\x3d";if(c&&c.href.startsWith(a)){var b=window.innerWidth;a=b>=1200?a+"xl%20screen\x26utm_content\x3dcut-the-complex-bridging-consumer":b>=992?a+"large%20screen%20(laptop)\x26utm_content\x3dcut-the-complex-bridging-consumer":b>=768?a+"medium%20screen\x26utm_content\x3dcut-the-complex-bridging-consumer":
+b>=576?a+"small%20screen\x26utm_content\x3dcut-the-complex-bridging-consumer":a+"xs%20screen\x26utm_content\x3dcut-the-complex-bridging-consumer";c.href=a}}updateAuctionLink();window.addEventListener("resize",updateAuctionLink);
+
+
+  .aos-init, #properties-grid-view .card, #properties-map-view .card {    
+    opacity: 1 !important;
+    transform: translateZ(0);
+  }
+  

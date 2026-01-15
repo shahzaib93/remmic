@@ -1,20 +1,41 @@
 import React from 'react';
-import { Manrope } from 'next/font/google';
+import { useRouter } from 'next/router';
+import { Manrope, Playfair_Display } from 'next/font/google';
 import { FirebaseProvider } from '../contexts/FirebaseContext';
+import { AdminProvider } from '../contexts/AdminContext';
 import ErrorBoundary from '../components/ErrorBoundary';
 import '../styles/globals.css';
 
 const manrope = Manrope({
   subsets: ['latin'],
   weight: ['300', '400', '500', '600', '700', '800'],
+  variable: '--font-manrope',
+});
+
+const playfair = Playfair_Display({
+  subsets: ['latin'],
+  weight: ['400', '500', '600', '700'],
+  variable: '--font-playfair',
 });
 
 export default function App({ Component, pageProps }) {
+  const router = useRouter();
+  const isAdminRoute = router.pathname.startsWith('/admin-dashboard');
+
+  // Wrap admin routes with AdminProvider
+  const content = isAdminRoute ? (
+    <AdminProvider>
+      <Component {...pageProps} />
+    </AdminProvider>
+  ) : (
+    <Component {...pageProps} />
+  );
+
   return (
     <ErrorBoundary>
       <FirebaseProvider>
-        <div className={manrope.className}>
-          <Component {...pageProps} />
+        <div className={`${manrope.variable} ${playfair.variable} ${manrope.className}`}>
+          {content}
         </div>
         <style jsx global>{`
           .remmic-tag {

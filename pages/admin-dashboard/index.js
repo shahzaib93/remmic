@@ -1,1838 +1,1063 @@
-import { useMemo, useState, useEffect, useCallback } from 'react'
-import Link from 'next/link'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/router'
-import AdminLayout from '../../components/admin/AdminLayout'
-import { useAdminDashboardData } from '../../hooks/useAdminDashboardData'
-import layoutStyles from '../../styles/adminLayout.module.css'
-import overviewStyles from '../../styles/adminOverview.module.css'
+import Link from 'next/link'
+import AdminLayout from '../../components/AdminLayout'
+import { useAdmin } from '../../contexts/AdminContext'
 import { useFirebase } from '../../contexts/FirebaseContext'
-import { generateEvaluationPdf } from '../../utils/pdf'
 
-const formatNumber = (value) => new Intl.NumberFormat('en-IN').format(Number(value || 0))
-
-const formatCurrency = (value) =>
-  `PKR ${new Intl.NumberFormat('en-US', {
-    maximumFractionDigits: 0,
-  }).format(Number(value || 0))}`
-
-const formatDate = (input) => {
-  if (!input) return '—'
-  const date = new Date(input)
-  if (Number.isNaN(date.getTime())) return '—'
-  return date.toLocaleDateString('en-IN', {
-    day: 'numeric',
-    month: 'short',
-    year: 'numeric',
-  })
+// Format currency
+const formatCurrency = (value) => {
+  const num = Number(value || 0)
+  if (num >= 10000000) return `PKR ${(num / 10000000).toFixed(1)}Cr`
+  if (num >= 100000) return `PKR ${(num / 100000).toFixed(1)}L`
+  return `PKR ${num.toLocaleString()}`
 }
 
-const resolvePropertyId = (property) => {
-  if (!property) return ''
-  const identifier =
-    property.id
-    || property.propertyId
-    || property.slug
-    || property._id
-    || property.uid
-    || property.referenceId
-    || property.listingId
-    || property.documentId
-  return identifier ? String(identifier) : ''
+// Format time ago
+const formatTimeAgo = (date) => {
+  const now = new Date()
+  const past = new Date(date)
+  const diff = now - past
+  const minutes = Math.floor(diff / 60000)
+  const hours = Math.floor(diff / 3600000)
+  const days = Math.floor(diff / 86400000)
+
+  if (minutes < 60) return `${minutes}m ago`
+  if (hours < 24) return `${hours}h ago`
+  if (days < 7) return `${days}d ago`
+  return past.toLocaleDateString('en-PK', { day: 'numeric', month: 'short' })
 }
 
-const resolveInvestmentId = (investment) => {
-  if (!investment) return ''
-  const identifier =
-    investment.id
-    || investment.investmentId
-    || investment.referenceId
-    || investment.transactionId
-    || investment.orderId
-    || investment.slug
-    || investment._id
-  return identifier ? String(identifier) : ''
-}
-
-const resolveEvaluationId = (evaluation) => {
-  if (!evaluation) return ''
-  const identifier =
-    evaluation.id
-    || evaluation.evaluationId
-    || evaluation.referenceId
-    || evaluation.propertyId
-    || evaluation.slug
-    || evaluation._id
-  return identifier ? String(identifier) : ''
-}
-
-const getStatusBadgeClass = (status) => {
-  if (!status) return overviewStyles.badgePending
-  const statusLower = status.toLowerCase()
-  
-  switch (statusLower) {
-    case 'completed':
-    case 'approved':
-    case 'verified':
-      return overviewStyles.badgeSuccess
-    case 'pending':
-    case 'review':
-    case 'waiting':
-      return overviewStyles.badgePending
-    case 'active':
-    case 'live':
-    case 'processing':
-      return overviewStyles.badgeActive
-    case 'rejected':
-    case 'failed':
-    case 'cancelled':
-      return overviewStyles.badgeWarning
-    default:
-      return overviewStyles.badge
-  }
-}
-
-const startOfMonth = (offset = 0) => {
-  const base = new Date()
-  base.setDate(1)
-  base.setHours(0, 0, 0, 0)
-  base.setMonth(base.getMonth() + offset)
-  return base
-}
-
-const isWithinMonth = (dateString, offset = 0) => {
-  if (!dateString) return false
-  const date = new Date(dateString)
-  if (Number.isNaN(date.getTime())) return false
-  const start = startOfMonth(offset)
-  const end = startOfMonth(offset + 1)
-  return date >= start && date < end
-}
-
-const generatePeriodBuckets = (period) => {
-  const today = new Date()
-  today.setHours(0, 0, 0, 0)
-
-  if (period === 'weekly') {
-    const days = []
-    for (let i = 6; i >= 0; i -= 1) {
-      const day = new Date(today)
-      day.setDate(today.getDate() - i)
-      const start = new Date(day)
-      const end = new Date(day)
-      end.setDate(end.getDate() + 1)
-      days.push({
-        label: day.toLocaleDateString('en-IN', { weekday: 'short' }),
-        start,
-        end,
-      })
-    }
-    return days
-  }
-
-  if (period === 'monthly') {
-    const buckets = []
-    const start = startOfMonth(0)
-    const end = startOfMonth(1)
-    let cursor = new Date(start)
-
-    while (cursor < end) {
-      const rangeStart = new Date(cursor)
-      const rangeEnd = new Date(cursor)
-      rangeEnd.setDate(rangeEnd.getDate() + 7)
-      buckets.push({
-        label: rangeStart.toLocaleDateString('en-IN', { day: 'numeric' }),
-        start: rangeStart,
-        end: rangeEnd < end ? rangeEnd : end,
-      })
-      cursor = rangeEnd
-    }
-    return buckets
-  }
-
-  // yearly
-  const buckets = []
-  for (let i = 11; i >= 0; i -= 1) {
-    const start = startOfMonth(-i)
-    const end = startOfMonth(-i + 1)
-    buckets.push({
-      label: start.toLocaleDateString('en-IN', { month: 'short' }),
-      start,
-      end,
-    })
-  }
-  return buckets
-}
-
-export default function AdminDashboardOverview() {
+export default function AdminDashboard() {
   const router = useRouter()
-  const {
-    loading,
-    stats,
-    contactMessages,
-    pendingProperties,
-    pendingInvestments,
-    pendingEvaluations,
-    pendingBids,
-    pendingRentals,
-    allProperties,
-    allInvestments,
-    allEvaluations,
-    refresh,
-    error,
-  } = useAdminDashboardData()
+  const { adminUser, isSuper, logAuditAction } = useAdmin()
+  const { getAllProperties, getEvaluations, getAllInvestments } = useFirebase()
 
-  const {
-    updatePropertyStatus,
-    deleteProperty: removeProperty,
-    updateProperty,
-    updateInvestmentStatus,
-    deleteInvestment: removeInvestment,
-    markMessageAsRead,
-    deleteContactMessage,
-    replyToContactMessage,
-    updateEvaluationStatus,
-    deleteEvaluation,
-    addProperty: createProperty,
-  } = useFirebase()
-  const [approvingPropertyId, setApprovingPropertyId] = useState(null)
-  const [deletingPropertyId, setDeletingPropertyId] = useState(null)
-  const [propertyActionNotice, setPropertyActionNotice] = useState(null)
-  const [approvingInvestmentId, setApprovingInvestmentId] = useState(null)
-  const [deletingInvestmentId, setDeletingInvestmentId] = useState(null)
-  const [investmentActionNotice, setInvestmentActionNotice] = useState(null)
-  const [processingMessageId, setProcessingMessageId] = useState(null)
-  const [deletingMessageId, setDeletingMessageId] = useState(null)
-  const [messageActionNotice, setMessageActionNotice] = useState(null)
-  const [replyingMessageId, setReplyingMessageId] = useState(null)
-  const [replyBody, setReplyBody] = useState('')
-  const [sendingReplyId, setSendingReplyId] = useState(null)
-  const [commentDrafts, setCommentDrafts] = useState({})
-  const [valueDrafts, setValueDrafts] = useState({})
-  const [evaluationActionNotice, setEvaluationActionNotice] = useState(null)
-  const [processingEvaluationId, setProcessingEvaluationId] = useState(null)
-  const [deletingEvaluationId, setDeletingEvaluationId] = useState(null)
+  const [loading, setLoading] = useState(true)
+  const [stats, setStats] = useState({
+    pendingEvaluations: 0,
+    pendingListings: 0,
+    liveAuctions: 0,
+    maintenanceOpen: 0,
+    projectsDevelopment: 0,
+    documentsUploaded: 0,
+  })
+  const [recentActivity, setRecentActivity] = useState([])
+  const [quickStats, setQuickStats] = useState({
+    totalProperties: 0,
+    totalInvestors: 0,
+    totalValue: 0,
+    monthlyGrowth: 0,
+  })
 
-  const totalProperties = allProperties.length || 0
-  const occupancyPercent = totalProperties
-    ? Math.round((stats.activeProperties / totalProperties) * 100)
-    : null
+  useEffect(() => {
+    loadDashboardData()
+  }, [])
 
-  const currentMonthSales = allInvestments
-    .filter((investment) => isWithinMonth(investment.investmentDate || investment.createdAt, 0))
-    .reduce((sum, investment) => sum + Number(investment.amount || investment.currentValue || 0), 0)
+  const loadDashboardData = async () => {
+    setLoading(true)
+    try {
+      // Load properties
+      let properties = []
+      if (getAllProperties) {
+        const result = await getAllProperties()
+        if (result?.success) {
+          properties = result.properties || []
+        }
+      }
 
-  const previousMonthSales = allInvestments
-    .filter((investment) => isWithinMonth(investment.investmentDate || investment.createdAt, -1))
-    .reduce((sum, investment) => sum + Number(investment.amount || investment.currentValue || 0), 0)
+      // Load from localStorage
+      const localProperties = JSON.parse(localStorage.getItem('userProperties') || '[]')
+      const allProperties = [...properties, ...localProperties]
 
-  const currentMonthCount = allInvestments.filter((investment) => isWithinMonth(investment.investmentDate || investment.createdAt, 0)).length
-  const previousMonthCount = allInvestments.filter((investment) => isWithinMonth(investment.investmentDate || investment.createdAt, -1)).length
+      // Load evaluations
+      let evaluations = []
+      if (getEvaluations) {
+        const evalResult = await getEvaluations()
+        if (evalResult?.success) {
+          evaluations = evalResult.evaluations || []
+        }
+      }
+      const localEvaluations = JSON.parse(localStorage.getItem('evaluationProperties') || '[]')
+      const allEvaluations = [...evaluations, ...localEvaluations]
 
-  const currentMonthProperties = allProperties.filter((property) => isWithinMonth(property.createdAt || property.submittedAt, 0)).length
-  const previousMonthProperties = allProperties.filter((property) => isWithinMonth(property.createdAt || property.submittedAt, -1)).length
+      // Load investments
+      const investments = JSON.parse(localStorage.getItem('userInvestments') || '[]')
 
-  const percentDelta = (current, previous) => {
-    if (!previous) return current ? 100 : 0
-    return Math.round(((current - previous) / previous) * 100)
+      // Load maintenance requests
+      const maintenance = JSON.parse(localStorage.getItem('maintenanceRequests') || '[]')
+
+      // Load development projects
+      const projects = JSON.parse(localStorage.getItem('developmentProjects') || '[]')
+
+      // Calculate stats
+      const pendingEvaluations = allEvaluations.filter(e =>
+        e.status === 'Under Evaluation' || e.status === 'submitted' || !e.status
+      ).length
+
+      const pendingListings = allProperties.filter(p =>
+        p.status === 'pending' || !p.status
+      ).length
+
+      const liveAuctions = allProperties.filter(p => {
+        if (p.type !== 'bidding' && p.listingType !== 'bidding') return false
+        if (p.status !== 'approved') return false
+        const now = new Date()
+        const start = p.bidding?.startDateTime ? new Date(p.bidding.startDateTime) : null
+        const end = p.bidding?.endDateTime ? new Date(p.bidding.endDateTime) : null
+        return start && end && now >= start && now <= end
+      }).length
+
+      const maintenanceOpen = maintenance.filter(m =>
+        m.status === 'open' || m.status === 'pending' || !m.status
+      ).length
+
+      const projectsDevelopment = projects.filter(p =>
+        p.status === 'UNDER_DEVELOPMENT' || p.status === 'FUNDING_OPEN'
+      ).length
+
+      // Documents uploaded in last 7 days
+      const weekAgo = new Date()
+      weekAgo.setDate(weekAgo.getDate() - 7)
+      let documentsCount = 0
+      allProperties.forEach(p => {
+        if (p.documents?.length && new Date(p.createdAt) >= weekAgo) {
+          documentsCount += p.documents.length
+        }
+        if (p.supportingDocuments?.length && new Date(p.createdAt) >= weekAgo) {
+          documentsCount += p.supportingDocuments.length
+        }
+      })
+
+      setStats({
+        pendingEvaluations,
+        pendingListings,
+        liveAuctions,
+        maintenanceOpen,
+        projectsDevelopment,
+        documentsUploaded: documentsCount,
+      })
+
+      // Quick stats
+      const totalValue = allProperties.reduce((sum, p) => {
+        return sum + Number(p.price || p.startingBid || p.bidding?.minBidAmount || 0)
+      }, 0)
+
+      setQuickStats({
+        totalProperties: allProperties.length,
+        totalInvestors: investments.length,
+        totalValue,
+        monthlyGrowth: 12.5,
+      })
+
+      // Generate recent activity
+      const activity = []
+
+      // Recent evaluations
+      allEvaluations.slice(0, 3).forEach(e => {
+        activity.push({
+          id: `eval-${e.id}`,
+          type: 'evaluation',
+          title: 'Evaluation Submitted',
+          description: e.propertyTitle || e.title || 'Property evaluation request',
+          time: e.submittedAt || e.createdAt,
+          status: e.status,
+          icon: 'evaluation',
+        })
+      })
+
+      // Recent property updates
+      allProperties.filter(p => p.updatedAt || p.createdAt).slice(0, 3).forEach(p => {
+        activity.push({
+          id: `prop-${p.id}`,
+          type: 'property',
+          title: p.status === 'approved' ? 'Property Approved' : 'Property Added',
+          description: p.title || p.name || 'Untitled property',
+          time: p.updatedAt || p.createdAt,
+          status: p.status,
+          icon: 'property',
+        })
+      })
+
+      // Recent investments
+      investments.slice(0, 2).forEach(i => {
+        activity.push({
+          id: `inv-${i.id}`,
+          type: 'investment',
+          title: 'Investment Received',
+          description: `${formatCurrency(i.amount)} in ${i.propertyTitle || 'property'}`,
+          time: i.investmentDate || i.createdAt,
+          status: i.status,
+          icon: 'investment',
+        })
+      })
+
+      // Sort by time
+      activity.sort((a, b) => new Date(b.time) - new Date(a.time))
+      setRecentActivity(activity.slice(0, 8))
+
+    } catch (error) {
+      console.error('Failed to load dashboard data:', error)
+    } finally {
+      setLoading(false)
+    }
   }
 
-  const [salesPeriod, setSalesPeriod] = useState('weekly')
-
-  const salesBuckets = useMemo(() => generatePeriodBuckets(salesPeriod), [salesPeriod])
-
-  const summaryCards = [
+  const statCards = [
     {
-      id: 'total-sales',
-      label: 'Total Sales',
-      value: formatCurrency(currentMonthSales || stats.totalInvestmentValue),
-      trend: percentDelta(currentMonthSales, previousMonthSales),
-      trendLabel: `Last month ${formatCurrency(previousMonthSales)}`,
-      positive: percentDelta(currentMonthSales, previousMonthSales) >= 0,
+      id: 'evaluations',
+      label: 'Pending Evaluations',
+      value: stats.pendingEvaluations,
+      href: '/admin-dashboard/evaluations',
+      color: 'gold',
+      icon: (
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/>
+        </svg>
+      ),
     },
     {
-      id: 'number-sales',
-      label: 'Number of Sales',
-      value: formatNumber(currentMonthCount || stats.totalInvestments),
-      trend: percentDelta(currentMonthCount, previousMonthCount),
-      trendLabel: `Last month total ${formatNumber(previousMonthCount)}`,
-      positive: percentDelta(currentMonthCount, previousMonthCount) >= 0,
+      id: 'listings',
+      label: 'Pending Listings',
+      value: stats.pendingListings,
+      href: '/admin-dashboard/listings',
+      color: 'blue',
+      icon: (
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/>
+        </svg>
+      ),
     },
     {
-      id: 'total-property',
-      label: 'Total Property',
-      value: formatNumber(totalProperties),
-      trend: percentDelta(currentMonthProperties, previousMonthProperties),
-      trendLabel: `Last month total ${formatNumber(previousMonthProperties || 0)}`,
-      positive: percentDelta(currentMonthProperties, previousMonthProperties) >= 0,
+      id: 'auctions',
+      label: 'Live Auctions',
+      value: stats.liveAuctions,
+      href: '/admin-dashboard/auctions',
+      color: 'green',
+      icon: (
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M17.66 8L12 2.35 6.34 8a8.02 8.02 0 000 11.31c1.56 1.56 3.61 2.34 5.66 2.34s4.1-.78 5.66-2.34c3.12-3.12 3.12-8.19 0-11.31z"/>
+        </svg>
+      ),
+    },
+    {
+      id: 'maintenance',
+      label: 'Maintenance Open',
+      value: stats.maintenanceOpen,
+      href: '/admin-dashboard/management',
+      color: 'orange',
+      icon: (
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M22.7 19l-9.1-9.1c.9-2.3.4-5-1.5-6.9-2-2-5-2.4-7.4-1.3L9 6 6 9 1.6 4.7C.4 7.1.9 10.1 2.9 12.1c1.9 1.9 4.6 2.4 6.9 1.5l9.1 9.1c.4.4 1 .4 1.4 0l2.3-2.3c.5-.4.5-1.1.1-1.4z"/>
+        </svg>
+      ),
+    },
+    {
+      id: 'development',
+      label: 'Projects in Development',
+      value: stats.projectsDevelopment,
+      href: '/admin-dashboard/development',
+      color: 'purple',
+      icon: (
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V5h14v14zM7 10h2v7H7zm4-3h2v10h-2zm4 6h2v4h-2z"/>
+        </svg>
+      ),
+    },
+    {
+      id: 'documents',
+      label: 'Documents (7 days)',
+      value: stats.documentsUploaded,
+      href: '/admin-dashboard/reports',
+      color: 'brown',
+      icon: (
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm4 18H6V4h7v5h5v11z"/>
+        </svg>
+      ),
     },
   ]
 
-  const getNumericValue = useCallback((value) => {
-    if (value == null) return 0
-    const numeric = Number(value)
-    return Number.isFinite(numeric) ? numeric : 0
-  }, [])
-
-  const salesByPeriod = useMemo(() => salesBuckets.map((bucket) => {
-    const total = allInvestments
-      .filter((investment) => {
-        const date = new Date(investment.investmentDate || investment.createdAt)
-        if (Number.isNaN(date.getTime())) return false
-        return date >= bucket.start && date < bucket.end
-      })
-      .reduce((sum, investment) => sum + getNumericValue(investment.amount || investment.currentValue || investment.committedAmount), 0)
-
-    return {
-      label: bucket.label,
-      total,
-    }
-  }), [allInvestments, salesBuckets, getNumericValue])
-
-  const maxSales = salesByPeriod.reduce((max, entry) => Math.max(max, entry.total), 0)
-
-  const lastTransactions = useMemo(() => {
-    return [...allInvestments]
-      .map((investment) => {
-        const timestamp = new Date(investment.investmentDate || investment.createdAt || Date.now())
-        return {
-          id: investment.id,
-          property: investment.propertyTitle || investment.propertyName || 'Unknown property',
-          date: formatDate(timestamp.toISOString()),
-          amount: formatCurrency(investment.amount || investment.currentValue || 0),
-          timestamp,
-        }
-      })
-      .sort((a, b) => b.timestamp - a.timestamp)
-      .slice(0, 4)
-  }, [allInvestments])
-
-  const maintenanceRequests = useMemo(() => {
-    const maintenanceQueue = pendingEvaluations.filter((evaluation) => {
-      const source = (evaluation.source || '').toLowerCase()
-      const issueType = (evaluation.issueType || evaluation.type || '').toLowerCase()
-      return source.includes('maintenance') || ['maintenance', 'repair'].includes(issueType)
-    })
-
-    return maintenanceQueue.slice(0, 4).map((evaluation, index) => ({
-      id: evaluation.id || `maintenance-${index}`,
-      title: evaluation.title || evaluation.property || 'Maintenance request',
-      issue: evaluation.issue || evaluation.issueType || evaluation.type || 'General',
-      requester: evaluation.userName || evaluation.userEmail || evaluation.contactName || 'User',
-      createdAt: formatDate(evaluation.createdAt || evaluation.submittedAt),
-    }))
-  }, [pendingEvaluations])
-
-  const approvedProperties = useMemo(() => (
-    allProperties
-      .filter((property) => ['approved', 'active'].includes((property.status || '').toLowerCase()))
-      .sort((a, b) => new Date(b.updatedAt || b.createdAt || 0) - new Date(a.updatedAt || a.createdAt || 0))
-  ), [allProperties])
-
-  const confirmedInvestments = useMemo(() => (
-    allInvestments
-      .filter((investment) => ['approved', 'confirmed', 'active', 'completed'].includes((investment.status || '').toLowerCase()))
-      .sort((a, b) => new Date(b.updatedAt || b.investmentDate || b.createdAt || 0) - new Date(a.updatedAt || a.investmentDate || a.createdAt || 0))
-  ), [allInvestments])
-
-  const approvedEvaluations = useMemo(() => (
-    (allEvaluations || [])
-      .filter((evaluation) => (evaluation.status || '').toLowerCase() === 'approved')
-      .sort((a, b) => new Date(b.updatedAt || b.approvedAt || b.submittedAt || 0) - new Date(a.updatedAt || a.approvedAt || a.submittedAt || 0))
-  ), [allEvaluations])
-
-  const costBreakdown = useMemo(() => {
-    const segments = [
-      { label: 'Maintenance', value: (pendingEvaluations.length || 0) * 75000, color: '#6366F1' },
-      { label: 'Repair', value: (pendingProperties.length || 0) * 60000, color: '#F97316' },
-      { label: 'Insurance', value: (pendingInvestments.length || 0) * 55000, color: '#EC4899' },
-      { label: 'Utilities', value: (stats.totalMessages || 0) * 20000, color: '#22D3EE' },
-    ]
-    const total = segments.reduce((sum, segment) => sum + segment.value, 0)
-    return { segments, total }
-  }, [pendingEvaluations, pendingProperties, pendingInvestments, stats.totalMessages])
-
-  const donutGradient = useMemo(() => {
-    const { segments, total } = costBreakdown
-    if (!total) {
-      return 'conic-gradient(#e2e8f0 0 360deg)'
-    }
-    let cumulative = 0
-    const stops = segments
-      .filter((segment) => segment.value > 0)
-      .map((segment) => {
-        const start = (cumulative / total) * 360
-        cumulative += segment.value
-        const end = (cumulative / total) * 360
-        return `${segment.color} ${start}deg ${end}deg`
-      })
-    return `conic-gradient(${stops.join(', ')})`
-  }, [costBreakdown])
-
-  const propertyReviewItems = useMemo(() => {
-    const seen = new Set()
-    const combined = []
-
-    pendingProperties.forEach((property) => {
-      const id = resolvePropertyId(property)
-      if (id) {
-        seen.add(id)
-      }
-      combined.push(property)
-    })
-
-    approvedProperties.forEach((property) => {
-      const id = resolvePropertyId(property)
-      if (id && seen.has(id)) {
-        return
-      }
-      seen.add(id)
-      combined.push(property)
-    })
-
-    return combined.sort((a, b) => new Date(b.updatedAt || b.createdAt || 0) - new Date(a.updatedAt || a.createdAt || 0))
-  }, [pendingProperties, approvedProperties])
-
-  const investmentReviewItems = useMemo(() => {
-    const seen = new Set()
-    const combined = []
-
-    // Create a more comprehensive deduplication key
-    const createDeduplicationKey = (investment) => {
-      const id = resolveInvestmentId(investment)
-      const property = investment.propertyTitle || investment.propertyName || 'unknown'
-      const investor = investment.userEmail || investment.userName || 'unknown'
-      const amount = investment.amount || investment.currentValue || 0
-      const date = investment.investmentDate || investment.createdAt || ''
-      
-      // If we have a proper ID, use it, otherwise create a composite key
-      if (id && id !== '' && !id.startsWith('fallback-')) {
-        return id
-      }
-      
-      return `${property}-${investor}-${amount}-${date}`.toLowerCase().replace(/\s+/g, '-')
-    }
-
-    // Add pending investments first
-    pendingInvestments.forEach((investment) => {
-      const key = createDeduplicationKey(investment)
-      if (!seen.has(key)) {
-        seen.add(key)
-        combined.push(investment)
-      }
-    })
-
-    // Add confirmed investments that aren't already included
-    confirmedInvestments.forEach((investment) => {
-      const key = createDeduplicationKey(investment)
-      if (!seen.has(key)) {
-        seen.add(key)
-        combined.push(investment)
-      }
-    })
-
-    // Sort by date and status priority (pending first, then by date)
-    return combined.sort((a, b) => {
-      const aStatus = (a.status || '').toLowerCase()
-      const bStatus = (b.status || '').toLowerCase()
-      
-      // Pending investments first
-      if (aStatus === 'pending' && bStatus !== 'pending') return -1
-      if (bStatus === 'pending' && aStatus !== 'pending') return 1
-      
-      // Then sort by date
-      const aDate = new Date(a.updatedAt || a.investmentDate || a.createdAt || 0)
-      const bDate = new Date(b.updatedAt || b.investmentDate || b.createdAt || 0)
-      return bDate - aDate
-    })
-  }, [pendingInvestments, confirmedInvestments])
-
-  const evaluationReviewItems = useMemo(() => {
-    const seen = new Set()
-    const combined = []
-
-    const isMaintenanceSource = (evaluation) => {
-      const source = (evaluation?.source || '').toLowerCase()
-      const issueType = (evaluation?.issueType || evaluation?.type || '').toLowerCase()
-      return source.includes('maintenance') || ['maintenance', 'repair'].includes(issueType)
-    }
-
-    pendingEvaluations.forEach((evaluation) => {
-      if (isMaintenanceSource(evaluation)) {
-        return
-      }
-      const id = resolveEvaluationId(evaluation)
-      if (id) {
-        seen.add(id)
-      }
-      combined.push(evaluation)
-    })
-
-    approvedEvaluations.forEach((evaluation) => {
-      if (isMaintenanceSource(evaluation)) {
-        return
-      }
-      const id = resolveEvaluationId(evaluation)
-      if (id && seen.has(id)) {
-        return
-      }
-      seen.add(id)
-      combined.push(evaluation)
-    })
-
-    return combined.sort((a, b) => new Date(b.updatedAt || b.submittedAt || 0) - new Date(a.updatedAt || a.submittedAt || 0))
-  }, [pendingEvaluations, approvedEvaluations])
-
-  useEffect(() => {
-    if (!propertyActionNotice || typeof window === 'undefined') return undefined
-    const timeout = window.setTimeout(() => {
-      setPropertyActionNotice(null)
-    }, 4000)
-    return () => window.clearTimeout(timeout)
-  }, [propertyActionNotice])
-
-  useEffect(() => {
-    if (!investmentActionNotice || typeof window === 'undefined') return undefined
-    const timeout = window.setTimeout(() => {
-      setInvestmentActionNotice(null)
-    }, 4000)
-    return () => window.clearTimeout(timeout)
-  }, [investmentActionNotice])
-
-  useEffect(() => {
-    if (!messageActionNotice || typeof window === 'undefined') return undefined
-    const timeout = window.setTimeout(() => {
-      setMessageActionNotice(null)
-    }, 4000)
-    return () => window.clearTimeout(timeout)
-  }, [messageActionNotice])
-
-  useEffect(() => {
-    if (!evaluationActionNotice || typeof window === 'undefined') return undefined
-    const timeout = window.setTimeout(() => {
-      setEvaluationActionNotice(null)
-    }, 4000)
-    return () => window.clearTimeout(timeout)
-  }, [evaluationActionNotice])
-
-  const handleApproveProperty = useCallback(async (property) => {
-    const propertyId = resolvePropertyId(property)
-    if (!propertyId) {
-      setPropertyActionNotice({ type: 'error', message: 'Unable to approve property: missing identifier.' })
-      return
-    }
-
-    if (typeof updatePropertyStatus !== 'function' && typeof updateProperty !== 'function') {
-      setPropertyActionNotice({ type: 'error', message: 'Property approval is not available in the current environment.' })
-      return
-    }
-
-    setApprovingPropertyId(propertyId)
-    try {
-      let result = typeof updatePropertyStatus === 'function'
-        ? await updatePropertyStatus(propertyId, 'approved')
-        : { success: false }
-
-      if (!result?.success && typeof updateProperty === 'function') {
-        result = await updateProperty(propertyId, { status: 'approved' })
-      }
-
-      if (!result?.success) {
-        throw new Error(result?.error || 'Failed to approve property')
-      }
-
-      setPropertyActionNotice({ type: 'success', message: 'Property approved and published successfully.' })
-      if (typeof refresh === 'function') {
-        await refresh()
-      }
-    } catch (error) {
-      setPropertyActionNotice({
-        type: 'error',
-        message: error instanceof Error ? error.message : 'Failed to approve property.',
-      })
-    } finally {
-      setApprovingPropertyId(null)
-    }
-  }, [refresh, updateProperty, updatePropertyStatus])
-
-  const handleDeleteProperty = useCallback(async (property) => {
-    const propertyId = resolvePropertyId(property)
-    if (!propertyId) {
-      setPropertyActionNotice({ type: 'error', message: 'Unable to delete property: missing identifier.' })
-      return
-    }
-
-    if (typeof removeProperty !== 'function') {
-      setPropertyActionNotice({ type: 'error', message: 'Property deletion is not available in the current environment.' })
-      return
-    }
-
-    if (typeof window !== 'undefined') {
-      const confirmDelete = window.confirm('Delete this property from REMMIC? This action cannot be undone.')
-      if (!confirmDelete) {
-        return
-      }
-    }
-
-    setDeletingPropertyId(propertyId)
-    try {
-      const result = await removeProperty(propertyId)
-      if (!result?.success) {
-        throw new Error(result?.error || 'Failed to delete property')
-      }
-
-      setPropertyActionNotice({ type: 'success', message: 'Property deleted successfully.' })
-      if (typeof refresh === 'function') {
-        await refresh()
-      }
-    } catch (error) {
-      setPropertyActionNotice({
-        type: 'error',
-        message: error instanceof Error ? error.message : 'Failed to delete property.',
-      })
-    } finally {
-      setDeletingPropertyId(null)
-    }
-  }, [refresh, removeProperty])
-
-  const handleApproveInvestment = useCallback(async (investment) => {
-    const investmentId = resolveInvestmentId(investment)
-    if (!investmentId) {
-      setInvestmentActionNotice({ type: 'error', message: 'Unable to approve investment: missing identifier.' })
-      return
-    }
-
-    if (typeof updateInvestmentStatus !== 'function') {
-      setInvestmentActionNotice({ type: 'error', message: 'Investment approval is not available in the current environment.' })
-      return
-    }
-
-    setApprovingInvestmentId(investmentId)
-    try {
-      const result = await updateInvestmentStatus(investmentId, 'confirmed', {
-        paymentReceived: true,
-        paymentConfirmedAt: new Date().toISOString(),
-        statusNote: 'Payment confirmed by admin',
-      })
-
-      if (!result?.success) {
-        throw new Error(result?.error || 'Failed to approve investment')
-      }
-
-      setInvestmentActionNotice({ type: 'success', message: 'Investment payment confirmed and investor notified.' })
-      if (typeof refresh === 'function') {
-        await refresh()
-      }
-    } catch (error) {
-      setInvestmentActionNotice({
-        type: 'error',
-        message: error instanceof Error ? error.message : 'Failed to approve investment.',
-      })
-    } finally {
-      setApprovingInvestmentId(null)
-    }
-  }, [refresh, updateInvestmentStatus])
-
-  const handleDeleteInvestment = useCallback(async (investment) => {
-    const investmentId = resolveInvestmentId(investment)
-    if (!investmentId) {
-      setInvestmentActionNotice({ type: 'error', message: 'Unable to delete investment: missing identifier.' })
-      return
-    }
-
-    if (typeof removeInvestment !== 'function') {
-      setInvestmentActionNotice({ type: 'error', message: 'Investment deletion is not available in the current environment.' })
-      return
-    }
-
-    if (typeof window !== 'undefined') {
-      const confirmDelete = window.confirm('Reject and delete this investment record? This action cannot be undone.')
-      if (!confirmDelete) {
-        return
-      }
-    }
-
-    setDeletingInvestmentId(investmentId)
-    try {
-      const result = await removeInvestment(investmentId)
-      if (!result?.success) {
-        throw new Error(result?.error || 'Failed to delete investment')
-      }
-
-      setInvestmentActionNotice({ type: 'success', message: 'Investment request removed successfully.' })
-      if (typeof refresh === 'function') {
-        await refresh()
-      }
-    } catch (error) {
-      setInvestmentActionNotice({
-        type: 'error',
-        message: error instanceof Error ? error.message : 'Failed to delete investment.',
-      })
-    } finally {
-      setDeletingInvestmentId(null)
-    }
-  }, [refresh, removeInvestment])
-
-  const handleMarkMessageRead = useCallback(async (message) => {
-    if (!message?.id) {
-      setMessageActionNotice({ type: 'error', message: 'Unable to update message: missing identifier.' })
-      return
-    }
-
-    if (typeof markMessageAsRead !== 'function') {
-      setMessageActionNotice({ type: 'error', message: 'Message actions are not available in the current environment.' })
-      return
-    }
-
-    setProcessingMessageId(message.id)
-    try {
-      const result = await markMessageAsRead(message.id)
-      if (!result?.success) {
-        throw new Error(result?.error || 'Failed to mark message as read')
-      }
-
-      setMessageActionNotice({ type: 'success', message: 'Message marked as read.' })
-      if (typeof refresh === 'function') {
-        await refresh()
-      }
-    } catch (error) {
-      setMessageActionNotice({
-        type: 'error',
-        message: error instanceof Error ? error.message : 'Failed to update message.',
-      })
-    } finally {
-      setProcessingMessageId(null)
-    }
-  }, [markMessageAsRead, refresh])
-
-  const handleDeleteMessage = useCallback(async (message) => {
-    if (!message?.id) {
-      setMessageActionNotice({ type: 'error', message: 'Unable to delete message: missing identifier.' })
-      return
-    }
-
-    if (typeof deleteContactMessage !== 'function') {
-      setMessageActionNotice({ type: 'error', message: 'Message deletion is not available in the current environment.' })
-      return
-    }
-
-    if (typeof window !== 'undefined') {
-      const confirmDelete = window.confirm('Delete this contact message? This action cannot be undone.')
-      if (!confirmDelete) {
-        return
-      }
-    }
-
-    setDeletingMessageId(message.id)
-    try {
-      const result = await deleteContactMessage(message.id)
-      if (!result?.success) {
-        throw new Error(result?.error || 'Failed to delete message')
-      }
-
-      setMessageActionNotice({ type: 'success', message: 'Message deleted.' })
-      if (replyingMessageId === message.id) {
-        setReplyingMessageId(null)
-        setReplyBody('')
-      }
-      if (typeof refresh === 'function') {
-        await refresh()
-      }
-    } catch (error) {
-      setMessageActionNotice({
-        type: 'error',
-        message: error instanceof Error ? error.message : 'Failed to delete message.',
-      })
-    } finally {
-      setDeletingMessageId(null)
-    }
-  }, [deleteContactMessage, refresh])
-
-  const handleOpenReply = useCallback((message) => {
-    if (!message?.id) return
-    setReplyingMessageId(message.id)
-    setReplyBody('')
-    setMessageActionNotice(null)
-  }, [])
-
-  const handleSendReply = useCallback(async (message) => {
-    if (!message?.id) {
-      setMessageActionNotice({ type: 'error', message: 'Unable to send reply: missing identifier.' })
-      return
-    }
-
-    if (!replyBody.trim()) {
-      setMessageActionNotice({ type: 'error', message: 'Reply message cannot be empty.' })
-      return
-    }
-
-    if (typeof replyToContactMessage !== 'function') {
-      setMessageActionNotice({ type: 'error', message: 'Reply action is not available in the current environment.' })
-      return
-    }
-
-    setSendingReplyId(message.id)
-    try {
-      const result = await replyToContactMessage(message.id, replyBody.trim(), {
-        name: 'Admin',
-        email: 'admin@remmic.com',
-      })
-      if (!result?.success) {
-        throw new Error(result?.error || 'Failed to send reply')
-      }
-
-      setMessageActionNotice({ type: 'success', message: 'Reply recorded and marked as sent.' })
-      setReplyingMessageId(null)
-      setReplyBody('')
-      if (typeof refresh === 'function') {
-        await refresh()
-      }
-    } catch (error) {
-      setMessageActionNotice({
-        type: 'error',
-        message: error instanceof Error ? error.message : 'Failed to send reply.',
-      })
-    } finally {
-      setSendingReplyId(null)
-    }
-  }, [refresh, replyBody, replyToContactMessage])
-
-  const promoteEvaluationToProperty = useCallback(async (evaluation, evaluationValue) => {
-    if (!evaluation) return null
-
-    const propertyId = evaluation.propertyId || `evaluation_${evaluation.id}`
-
-    const normalizedImages = Array.isArray(evaluation.propertyMedia)
-      ? evaluation.propertyMedia
-          .map((asset) => asset?.url || asset?.dataUrl)
-          .filter(Boolean)
-      : null
-
-    const propertyPayload = {
-      id: propertyId,
-      title: evaluation.property || evaluation.propertyName || evaluation.propertyAddress || 'Evaluated Property',
-      propertyName: evaluation.property || evaluation.propertyName,
-      propertyAddress: evaluation.propertyAddress || evaluation.address,
-      city: evaluation.city,
-      location: evaluation.propertyAddress || evaluation.address || evaluation.city || 'Location pending',
-      status: 'Approved',
-      statusCode: 'evaluated',
-      evaluationValue: evaluationValue || evaluation.propertyValue || evaluation.valuationAmount || 'Pending',
-      propertyValue: evaluationValue || evaluation.propertyValue,
-      createdAt: evaluation.submittedAt || new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-      type: evaluation.propertyType || 'general',
-      source: 'evaluation',
-      areaSize: evaluation.areaSize,
-      floors: evaluation.floors,
-      description: evaluation.description || evaluation.issue || 'Evaluation approved property',
-      ownerName: evaluation.fullName || evaluation.contactName || '',
-      ownerEmail: evaluation.email || evaluation.userEmail || '',
-      ownerPhone: evaluation.contact || evaluation.userPhone || evaluation.contactPhone || '',
-      images: normalizedImages?.length
-        ? normalizedImages.map((url) => ({ url }))
-        : evaluation.propertyImage
-          ? [{ url: evaluation.propertyImage }]
-          : evaluation.images,
-    }
-
-    try {
-      const result = await createProperty(propertyPayload)
-      if (!result?.success) {
-        throw new Error(result?.error || 'Failed to save property to Firestore')
-      }
-      return result.property || { ...propertyPayload, id: result.id }
-    } catch (error) {
-      console.warn('Failed to promote evaluation to property:', error)
-      throw error
-    }
-  }, [createProperty])
-
-  const handleApproveEvaluation = useCallback(async (evaluation) => {
-    const evaluationId = resolveEvaluationId(evaluation)
-    if (!evaluationId) {
-      setEvaluationActionNotice({ type: 'error', message: 'Unable to approve evaluation: missing identifier.' })
-      return
-    }
-
-    if (typeof updateEvaluationStatus !== 'function') {
-      setEvaluationActionNotice({ type: 'error', message: 'Evaluation approval is not available in the current environment.' })
-      return
-    }
-
-    const evaluationValue = (valueDrafts[evaluationId] ?? evaluation?.evaluationValue ?? evaluation?.propertyValue ?? '')
-      .toString()
-      .trim()
-
-    if (!evaluationValue) {
-      setEvaluationActionNotice({ type: 'error', message: 'Add an evaluated value before approving.' })
-      return
-    }
-
-    const adminComment = (commentDrafts[evaluationId] ?? evaluation?.adminComment ?? '')
-      .toString()
-      .trim()
-
-    setProcessingEvaluationId(evaluationId)
-    try {
-      const promotedProperty = await promoteEvaluationToProperty(evaluation, evaluationValue)
-      let pdfPayload = null
-
-      try {
-        pdfPayload = generateEvaluationPdf(
-          { ...evaluation, evaluationValue, propertyId: promotedProperty?.id || evaluation.propertyId },
-          adminComment,
+  const quickActions = [
+    {
+      label: 'Review Evaluations',
+      href: '/admin-dashboard/evaluations',
+      icon: (
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/>
+        </svg>
+      ),
+    },
+    {
+      label: 'Approve Listings',
+      href: '/admin-dashboard/listings',
+      icon: (
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/>
+        </svg>
+      ),
+    },
+    {
+      label: 'Assign Managers',
+      href: '/admin-dashboard/management',
+      icon: (
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+        </svg>
+      ),
+    },
+    {
+      label: 'Generate Statements',
+      href: '/admin-dashboard/reports',
+      icon: (
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM9 17H7v-7h2v7zm4 0h-2V7h2v10zm4 0h-2v-4h2v4z"/>
+        </svg>
+      ),
+      superOnly: true,
+    },
+    {
+      label: 'View Audit Logs',
+      href: '/admin-dashboard/audit-logs',
+      icon: (
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 14h-2v-4H8l4-4 4 4h-2v4zm2-8H10V7h4v2z"/>
+        </svg>
+      ),
+      superOnly: true,
+    },
+  ]
+
+  const getActivityIcon = (type) => {
+    switch (type) {
+      case 'evaluation':
+        return (
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/>
+          </svg>
         )
-      } catch (pdfError) {
-        console.warn('Failed to generate evaluation PDF:', pdfError)
-      }
-
-      const updatePayload = {
-        status: 'approved',
-        evaluationValue,
-        approvedAt: new Date().toISOString(),
-        propertyId: promotedProperty?.id || evaluation.propertyId,
-        adminComment,
-      }
-
-      // Add PDF data to the update payload if generated successfully
-      if (pdfPayload?.pdfDataUri) {
-        updatePayload.pdfReport = pdfPayload.pdfDataUri
-        updatePayload.reportGeneratedAt = pdfPayload.createdAt
-      }
-
-      const result = await updateEvaluationStatus(evaluationId, updatePayload)
-      if (!result?.success) {
-        throw new Error(result?.error || 'Failed to approve evaluation')
-      }
-
-      // Notify user that evaluation is approved and PDF is ready
-      setEvaluationActionNotice({ type: 'success', message: 'Evaluation approved and PDF generated successfully!' })
-      setCommentDrafts((prev) => ({ ...prev, [evaluationId]: '' }))
-      setValueDrafts((prev) => ({ ...prev, [evaluationId]: '' }))
-
-      // Dispatch event to notify other parts of the app about the approval
-      if (typeof window !== 'undefined') {
-        window.dispatchEvent(new CustomEvent('evaluationApproved', { detail: { evaluationId, propertyId: promotedProperty?.id } }))
-      }
-
-      if (typeof refresh === 'function') {
-        await refresh()
-      }
-    } catch (error) {
-      setEvaluationActionNotice({
-        type: 'error',
-        message: error instanceof Error ? error.message : 'Failed to approve evaluation.',
-      })
-    } finally {
-      setProcessingEvaluationId(null)
+      case 'property':
+        return (
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/>
+          </svg>
+        )
+      case 'investment':
+        return (
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M11.8 10.9c-2.27-.59-3-1.2-3-2.15 0-1.09 1.01-1.85 2.7-1.85 1.78 0 2.44.85 2.5 2.1h2.21c-.07-1.72-1.12-3.3-3.21-3.81V3h-3v2.16c-1.94.42-3.5 1.68-3.5 3.61 0 2.31 1.91 3.46 4.7 4.13 2.5.6 3 1.48 3 2.41 0 .69-.49 1.79-2.7 1.79-2.06 0-2.87-.92-2.98-2.1h-2.2c.12 2.19 1.76 3.42 3.68 3.83V21h3v-2.15c1.95-.37 3.5-1.5 3.5-3.55 0-2.84-2.43-3.81-4.7-4.4z"/>
+          </svg>
+        )
+      default:
+        return (
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+          </svg>
+        )
     }
-  }, [commentDrafts, promoteEvaluationToProperty, refresh, updateEvaluationStatus, valueDrafts])
+  }
 
-  const handleDeleteEvaluation = useCallback(async (evaluation) => {
-    const evaluationId = resolveEvaluationId(evaluation)
-    if (!evaluationId) {
-      setEvaluationActionNotice({ type: 'error', message: 'Unable to delete evaluation: missing identifier.' })
-      return
+  const getStatusBadge = (status) => {
+    const statusMap = {
+      'approved': { label: 'Approved', color: 'green' },
+      'pending': { label: 'Pending', color: 'gold' },
+      'rejected': { label: 'Rejected', color: 'red' },
+      'Under Evaluation': { label: 'Under Review', color: 'gold' },
+      'submitted': { label: 'Submitted', color: 'blue' },
+      'active': { label: 'Active', color: 'green' },
+      'confirmed': { label: 'Confirmed', color: 'green' },
     }
 
-    if (typeof deleteEvaluation !== 'function') {
-      setEvaluationActionNotice({ type: 'error', message: 'Evaluation deletion is not available in the current environment.' })
-      return
-    }
-
-    if (typeof window !== 'undefined') {
-      const confirmDelete = window.confirm('Delete this evaluation request? This action cannot be undone.')
-      if (!confirmDelete) {
-        return
-      }
-    }
-
-    setDeletingEvaluationId(evaluationId)
-    try {
-      const result = await deleteEvaluation(evaluationId)
-      if (!result?.success) {
-        throw new Error(result?.error || 'Failed to delete evaluation')
-      }
-
-      setEvaluationActionNotice({ type: 'success', message: 'Evaluation request removed.' })
-      if (typeof refresh === 'function') {
-        await refresh()
-      }
-    } catch (error) {
-      setEvaluationActionNotice({
-        type: 'error',
-        message: error instanceof Error ? error.message : 'Failed to delete evaluation.',
-      })
-    } finally {
-      setDeletingEvaluationId(null)
-    }
-  }, [deleteEvaluation, refresh])
-
-  const reviewQueues = useMemo(() => [
-    {
-      type: 'properties',
-      title: 'Property Approvals',
-      total: propertyReviewItems.length,
-      pendingCount: pendingProperties.length,
-      items: propertyReviewItems,
-      empty: 'No property submissions waiting right now.',
-      getPrimary: (entry) => entry.title || entry.name || 'Untitled property',
-      getSecondary: (entry) => entry.location || entry.address || 'No address supplied',
-      getStatus: (entry) => `Status · ${(entry.status || 'pending').toUpperCase()}`,
-      badge: (entry) => entry.listingType || entry.type || 'Property',
-      getId: resolvePropertyId,
-      enableActions: true,
-      subtitle:
-        pendingProperties.length
-          ? `${pendingProperties.length} pending / ${propertyReviewItems.length} submissions`
-          : propertyReviewItems.length
-            ? `${propertyReviewItems.length} submissions`
-            : 'All caught up',
-    },
-    {
-      type: 'investments',
-      title: 'Investment Reviews',
-      total: investmentReviewItems.length,
-      pendingCount: pendingInvestments.length,
-      items: investmentReviewItems,
-      empty: 'No investments awaiting confirmation.',
-      getPrimary: (entry) => {
-        const propertyName = entry.propertyTitle || entry.propertyName || entry.investmentName || 'Property Investment'
-        const area = entry.area || entry.size || ''
-        
-        // Clean up redundant property type prefixes
-        let displayName = propertyName
-        if (displayName.startsWith('investment - ') || displayName.startsWith('secondary_market - ') || displayName.startsWith('Real Estate - ')) {
-          displayName = displayName.split(' - ').slice(1).join(' - ')
-        }
-        
-        if (area && !displayName.includes(area)) {
-          displayName = `${displayName} - ${area}`
-        }
-        
-        return displayName || 'Property Investment'
-      },
-      getSecondary: (entry) => {
-        const investor = entry.userEmail || entry.userName || 'Unknown investor'
-        const shares = entry.shares || entry.shareCount || 0
-        const investmentType = entry.investmentType || entry.shareType || entry.type || ''
-        
-        // Show shares information prominently in secondary line
-        if (shares > 0) {
-          const typePrefix = investmentType ? `${investmentType} • ` : ''
-          return `${typePrefix}${shares} shares • ${investor}`
-        } else {
-          const typePrefix = investmentType ? `${investmentType} • ` : ''
-          return `${typePrefix}Direct Investment • ${investor}`
-        }
-      },
-      getStatus: (entry) => {
-        const amount = formatCurrency(entry.amount || entry.currentValue || 0)
-        const status = (entry.status || 'pending').toUpperCase()
-        const investmentDate = entry.investmentDate || entry.createdAt
-        
-        // Keep status line simple - just amount and status
-        if (amount && parseInt(amount.replace(/[^0-9]/g, '')) > 0) {
-          return `${amount} • ${status}`
-        } else {
-          return `No Payment • ${status}`
-        }
-      },
-      badge: (entry) => {
-        const shares = entry.shares || entry.shareCount || 0
-        const investmentType = entry.investmentType || entry.shareType || ''
-        
-        // Show shares count as badge for clarity, with responsive text
-        if (shares > 0) {
-          if (shares === 1) {
-            return '1 share'
-          } else if (shares < 10) {
-            return `${shares} shares`
-          } else {
-            return `${shares}×`
-          }
-        } else if (investmentType) {
-          // Truncate long investment types
-          if (investmentType.length > 8) {
-            return investmentType.substring(0, 6) + '...'
-          }
-          return investmentType
-        } else {
-          return 'Direct'
-        }
-      },
-      getId: resolveInvestmentId,
-      enableActions: true,
-      subtitle:
-        pendingInvestments.length
-          ? `${pendingInvestments.length} pending`
-          : investmentReviewItems.length
-            ? `${investmentReviewItems.length} total`
-            : '',
-    },
-  ], [pendingProperties, propertyReviewItems, pendingInvestments, investmentReviewItems])
-
-  const insightCards = [
-    {
-      title: 'Evaluation Requests',
-      description: 'Outstanding valuation or appraisal tickets',
-      count: pendingEvaluations.length,
-      badgeClass: overviewStyles.badgeWarning,
-    },
-    {
-      title: 'Rental Verifications',
-      description: 'Rental listings that require admin review',
-      count: pendingRentals.length,
-      badgeClass: overviewStyles.badge,
-    },
-    {
-      title: 'Bidding Activity',
-      description: 'Bids submitted without a final decision',
-      count: pendingBids.length,
-      badgeClass: overviewStyles.badgeSuccess,
-    },
-  ]
-
-  const topProperties = allProperties.slice(0, 4)
-  const topInvestments = allInvestments.slice(0, 4)
-  const latestMessages = contactMessages.slice(0, 3)
+    const mapped = statusMap[status] || { label: status || 'Unknown', color: 'gray' }
+    return (
+      <span className={`status-badge status-badge--${mapped.color}`}>
+        {mapped.label}
+      </span>
+    )
+  }
 
   return (
-    <AdminLayout
-      title="Admin Overview"
-      description="Monitor submissions, investments, and platform health at a glance."
-      metaTitle="Admin Dashboard"
-      onRefresh={refresh}
-    >
-      <div className={overviewStyles.section}>
-        {error ? (
-          <div className={overviewStyles.emptyState}>
-            <strong>We could not load fresh data.</strong>
-            <div className={overviewStyles.smallMeta}>Try refreshing or check your connection.</div>
+    <AdminLayout title="Dashboard">
+      <div className="dashboard-page">
+        {/* Page Header */}
+        <header className="page-header">
+          <div className="header-content">
+            <h1>Welcome back, {adminUser?.name?.split(' ')[0] || 'Admin'}</h1>
+            <p>Here's what's happening with your platform today.</p>
           </div>
-        ) : null}
+          <div className="header-meta">
+            <span className="current-date">
+              {new Date().toLocaleDateString('en-PK', {
+                weekday: 'long',
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+              })}
+            </span>
+          </div>
+        </header>
 
-        {/* Quick Actions Bar */}
-        <section style={{ marginBottom: '1.5rem', display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
-          <button
-            type="button"
-            onClick={() => router.push('/add-property')}
-            style={{
-              background: 'linear-gradient(135deg, #c9a227 0%, #d4b13d 100%)',
-              color: '#0a0a0a',
-              border: 'none',
-              padding: '12px 24px',
-              borderRadius: '10px',
-              fontWeight: '600',
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '8px',
-              fontSize: '0.9rem',
-              boxShadow: '0 4px 12px rgba(201, 162, 39, 0.25)',
-              transition: 'all 0.2s ease',
-            }}
-          >
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
-              <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/>
-            </svg>
-            Add New Property
-          </button>
-          <button
-            type="button"
-            onClick={() => router.push('/admin-dashboard/properties')}
-            style={{
-              background: '#fff',
-              color: '#0a0a0a',
-              border: '1px solid #e5e7eb',
-              padding: '12px 24px',
-              borderRadius: '10px',
-              fontWeight: '500',
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '8px',
-              fontSize: '0.9rem',
-              transition: 'all 0.2s ease',
-            }}
-          >
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
-              <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/>
-            </svg>
-            Manage Properties
-          </button>
+        {/* Quick Stats Bar */}
+        <section className="quick-stats-bar">
+          <div className="quick-stat">
+            <span className="quick-stat__value">{quickStats.totalProperties}</span>
+            <span className="quick-stat__label">Total Properties</span>
+          </div>
+          <div className="quick-stat-divider" />
+          <div className="quick-stat">
+            <span className="quick-stat__value">{quickStats.totalInvestors}</span>
+            <span className="quick-stat__label">Total Investors</span>
+          </div>
+          <div className="quick-stat-divider" />
+          <div className="quick-stat">
+            <span className="quick-stat__value">{formatCurrency(quickStats.totalValue)}</span>
+            <span className="quick-stat__label">Portfolio Value</span>
+          </div>
+          <div className="quick-stat-divider" />
+          <div className="quick-stat quick-stat--highlight">
+            <span className="quick-stat__value">+{quickStats.monthlyGrowth}%</span>
+            <span className="quick-stat__label">Monthly Growth</span>
+          </div>
         </section>
 
-        <section className={overviewStyles.overviewHero}>
-          <div className={overviewStyles.metricGrid}>
-            {summaryCards.map((card) => (
-              <article key={card.id} className={overviewStyles.metricCard}>
-                <h3>{card.label}</h3>
-                <div className={overviewStyles.metricValue}>{loading ? '…' : card.value}</div>
-                <div className={overviewStyles.metricMeta}>
-                  <span>{card.trendLabel}</span>
-                  <span className={card.positive ? overviewStyles.metricTrendUp : overviewStyles.metricTrendDown}>
-                    {card.positive ? '▲' : '▼'} {Math.abs(card.trend)}%
-                  </span>
+        {/* Stats Grid */}
+        <section className="stats-section">
+          <h2 className="section-title">Overview</h2>
+          <div className="stats-grid">
+            {statCards.map((stat) => (
+              <Link key={stat.id} href={stat.href} className={`stat-card stat-card--${stat.color}`}>
+                <div className="stat-card__icon">
+                  {stat.icon}
                 </div>
-              </article>
+                <div className="stat-card__content">
+                  <span className="stat-card__value">{loading ? '...' : stat.value}</span>
+                  <span className="stat-card__label">{stat.label}</span>
+                </div>
+                <div className="stat-card__arrow">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"/>
+                  </svg>
+                </div>
+              </Link>
             ))}
           </div>
         </section>
 
-        <section className={overviewStyles.chartRow}>
-          <article className={overviewStyles.chartCard}>
-            <div className={overviewStyles.chartHeader}>
-              <span>Report Sales</span>
-              <div style={{ display: 'flex', gap: '0.5rem' }}>
-                {[
-                  { id: 'weekly', label: 'Weekly' },
-                  { id: 'monthly', label: 'Monthly' },
-                  { id: 'yearly', label: 'Yearly' },
-                ].map((option) => (
-                  <button
-                    key={option.id}
-                    type="button"
-                    onClick={() => setSalesPeriod(option.id)}
-                    style={{
-                      border: 'none',
-                      borderRadius: '999px',
-                      padding: '0.15rem 0.75rem',
-                      fontSize: '0.75rem',
-                      cursor: 'pointer',
-                      background: salesPeriod === option.id ? '#f97316' : 'transparent',
-                      color: salesPeriod === option.id ? '#fff' : '#94a3b8',
-                      transition: 'background 0.2s ease',
-                    }}
-                  >
-                    {option.label}
-                  </button>
-                ))}
-              </div>
-            </div>
-            <div className={overviewStyles.barChart}>
-              {salesByPeriod.map((entry) => (
-                <div key={entry.label} className={overviewStyles.chartBar}>
-                  <div className={overviewStyles.barTrack}>
-                    <div
-                      className={overviewStyles.barFill}
-                      style={{
-                        height: maxSales > 0 ? `${Math.max((entry.total / maxSales) * 100, 6)}%` : '2px',
-                        opacity: maxSales > 0 ? 1 : 0.4,
-                      }}
-                    />
-                  </div>
-                  <span className={overviewStyles.barLabel}>{entry.label}</span>
-                </div>
-              ))}
-              {maxSales === 0 && (
-                <div style={{ gridColumn: '1 / -1', textAlign: 'center', color: '#94a3b8', fontSize: '0.85rem' }}>
-                  No sales recorded for the selected period yet.
-                </div>
-              )}
-            </div>
-          </article>
-
-          <article className={overviewStyles.chartCard}>
-            <div className={overviewStyles.chartHeader}>
-              <span>Cost Breakdown</span>
-              <span className={overviewStyles.chartSubtext}>See details</span>
-            </div>
-            <div className={overviewStyles.donutWrapper}>
-              <div className={overviewStyles.donut} style={{ background: donutGradient }}>
-                <div className={overviewStyles.donutCenter}>
-                  <div>{formatCurrency(costBreakdown.total)}</div>
-                  <small style={{ color: '#94a3b8', fontSize: '0.75rem' }}>Total</small>
-                </div>
-              </div>
-              <ul className={overviewStyles.legend}>
-                {costBreakdown.segments.map((segment) => (
-                  <li key={segment.label} className={overviewStyles.legendItem}>
-                    <span
-                      className={overviewStyles.legendDot}
-                      style={{ background: segment.color }}
-                    />
-                    <span>{segment.label}</span>
-                    <strong style={{ marginLeft: 'auto' }}>{formatCurrency(segment.value)}</strong>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          </article>
-        </section>
-
-        <section className={overviewStyles.colTwo}>
-          {reviewQueues.map((queue) => {
-            const itemsAvailable = queue.items?.length || 0
-            const itemsToRender = queue.enableActions
-              ? queue.items.slice(0, 15)
-              : queue.items.slice(0, 10)
-            const isPropertyQueue = queue.type === 'properties'
-            const notice = isPropertyQueue ? propertyActionNotice : investmentActionNotice
-            const approvingId = isPropertyQueue ? approvingPropertyId : approvingInvestmentId
-            const deletingId = isPropertyQueue ? deletingPropertyId : deletingInvestmentId
-            const onApprove = isPropertyQueue ? handleApproveProperty : handleApproveInvestment
-            const onDelete = isPropertyQueue ? handleDeleteProperty : handleDeleteInvestment
-
-            return (
-              <article key={queue.title} className={overviewStyles.compactPanel}>
-                <header className={overviewStyles.compactHeader}>
-                  <div>
-                    <h2>{queue.title}</h2>
-                    {itemsAvailable > 0 && <span>{itemsAvailable} pending</span>}
-                  </div>
-                </header>
-
-                {queue.enableActions && notice && (
-                  <div
-                    className={`${overviewStyles.actionNotice} ${
-                      notice.type === 'error'
-                        ? overviewStyles.actionNoticeError
-                        : overviewStyles.actionNoticeSuccess
-                    }`}
-                  >
-                    {notice.message}
-                  </div>
-                )}
-
-                {loading ? (
-                  <div className={overviewStyles.emptyState}>Loading {queue.title.toLowerCase()}…</div>
-                ) : itemsAvailable ? (
-                  <div className={overviewStyles.list}>
-                    {itemsToRender.map((item, index) => {
-                      const itemId = queue.getId ? queue.getId(item) : item.id
-                      const key = itemId || `${queue.title.replace(/\s+/g, '-').toLowerCase()}-${index}`
-                      const statusValue = (item.status || '').toLowerCase()
-                      const isPending = !statusValue || ['pending', 'submitted', 'in_review'].includes(statusValue)
-                      const showActions = queue.enableActions && itemId
-                      const isApproving = showActions && approvingId === itemId
-                      const isDeleting = showActions && deletingId === itemId
-                      const actionButtons = []
-
-                      if (showActions && isPending && onApprove) {
-                        actionButtons.push(
-                          <button
-                            key="approve"
-                            type="button"
-                            className={`${overviewStyles.actionButton} ${overviewStyles.actionButtonPrimary}`}
-                            onClick={() => onApprove(item)}
-                            disabled={isApproving || isDeleting}
-                          >
-                            {isApproving ? 'Approving…' : 'Approve'}
-                          </button>
-                        )
-                      }
-
-                      if (showActions && onDelete) {
-                        actionButtons.push(
-                          <button
-                            key="delete"
-                            type="button"
-                            className={`${overviewStyles.actionButton} ${overviewStyles.actionButtonDanger}`}
-                            onClick={() => onDelete(item)}
-                            disabled={isApproving || isDeleting}
-                          >
-                            {isDeleting ? 'Removing…' : 'Delete'}
-                          </button>
-                        )
-                      }
-
-                      return (
-                        <div key={key} className={overviewStyles.listItem}>
-                          <span className={overviewStyles.badge}>{queue.badge(item)}</span>
-                          <div>
-                            <strong>{queue.getPrimary(item)}</strong>
-                            <div className={overviewStyles.smallMeta}>{queue.getSecondary(item)}</div>
-                            {queue.getStatus && (
-                              <div className={overviewStyles.smallMeta}>{queue.getStatus(item)}</div>
-                            )}
-                          </div>
-                          <div className={overviewStyles.listItemMeta}>
-                            <span className={overviewStyles.smallMeta}>
-                              {formatDate(item.createdAt || item.submittedAt || item.updatedAt)}
-                            </span>
-                            {actionButtons.length > 0 && (
-                              <div className={overviewStyles.listActions}>{actionButtons}</div>
-                            )}
-                          </div>
-                        </div>
-                      )
-                    })}
-                  </div>
-                ) : (
-                  <div className={overviewStyles.emptyState}>{queue.empty}</div>
-                )}
-              </article>
-            )
-          })}
-        </section>
-
-        <section className={overviewStyles.panel}>
-          <header className={overviewStyles.panelHeader}>
-            <div>
-              <h2>Evaluation Requests</h2>
-              <span>
-                {evaluationReviewItems.length
-                  ? `${evaluationReviewItems.length} requests (${pendingEvaluations.length} pending)`
-                  : 'No evaluation requests pending'}
-              </span>
-            </div>
-          </header>
-
-          {evaluationActionNotice && (
-            <div
-              className={`${overviewStyles.actionNotice} ${
-                evaluationActionNotice.type === 'error'
-                  ? overviewStyles.actionNoticeError
-                  : overviewStyles.actionNoticeSuccess
-              }`}
-            >
-              {evaluationActionNotice.message}
-            </div>
-          )}
-
-          {loading ? (
-            <div className={overviewStyles.emptyState}>Loading evaluation requests…</div>
-          ) : evaluationReviewItems.length ? (
-            <div className={overviewStyles.list}>
-              {evaluationReviewItems.slice(0, 6).map((evaluation, index) => {
-                const evaluationId = resolveEvaluationId(evaluation) || `evaluation-${index}`
-                const statusValue = (evaluation.status || '').toLowerCase()
-                const isPendingEvaluation = !statusValue || ['pending', 'under evaluation', 'under_evaluation', 'submitted'].includes(statusValue)
-                const mediaPreview = Array.isArray(evaluation.propertyMedia) ? evaluation.propertyMedia.slice(0, 3) : []
-                const documentPreview = Array.isArray(evaluation.supportingDocuments) ? evaluation.supportingDocuments.slice(0, 3) : []
-                const currentValue = valueDrafts[evaluationId] ?? evaluation.evaluationValue ?? evaluation.propertyValue ?? ''
-                const currentComment = commentDrafts[evaluationId] ?? evaluation.adminComment ?? ''
-
+        {/* Main Content Grid */}
+        <div className="content-grid">
+          {/* Quick Actions */}
+          <section className="quick-actions-section">
+            <h2 className="section-title">Quick Actions</h2>
+            <div className="quick-actions">
+              {quickActions.map((action, index) => {
+                if (action.superOnly && !isSuper) return null
                 return (
-                  <div key={evaluationId} className={overviewStyles.listItem}>
-                    <span className={overviewStyles.badge}>{evaluation.propertyType || evaluation.type || 'evaluation'}</span>
-                    <div>
-                      <strong>{evaluation.property || evaluation.propertyName || evaluation.propertyAddress || 'Property evaluation'}</strong>
-                      <div className={overviewStyles.smallMeta}>{evaluation.address || evaluation.propertyAddress || evaluation.city || 'No address provided'}</div>
-                      <div className={overviewStyles.smallMeta}>Status · {(evaluation.status || 'pending').toUpperCase()}</div>
-                      {evaluation.evaluationValue && (evaluation.status || '').toLowerCase() === 'approved' && (
-                        <div className={overviewStyles.smallMeta}>
-                          Evaluated Value · {evaluation.evaluationValue}
-                        </div>
-                      )}
-                      {mediaPreview.length > 0 && (
-                        <div className={overviewStyles.mediaStrip}>
-                          {mediaPreview.map((media, mediaIndex) => {
-                            const previewUrl = media?.dataUrl || media?.url
-                            if (!previewUrl) {
-                              return (
-                                <div key={`${evaluationId}-media-${mediaIndex}`} className={overviewStyles.mediaThumbPlaceholder}>
-                                  {(media?.name || 'media').slice(0, 2).toUpperCase()}
-                                </div>
-                              )
-                            }
-                            return (
-                              <img
-                                key={`${evaluationId}-media-${mediaIndex}`}
-                                src={previewUrl}
-                                alt={media.name || `media-${mediaIndex + 1}`}
-                                className={overviewStyles.mediaThumb}
-                              />
-                            )
-                          })}
-                        </div>
-                      )}
-                      {documentPreview.length > 0 && (
-                        <div className={overviewStyles.documentRow}>
-                          {documentPreview.map((docItem, docIndex) => (
-                            <a
-                              key={`${evaluationId}-doc-${docIndex}`}
-                              href={docItem?.dataUrl || docItem?.url || '#'}
-                              download={docItem?.name || `document-${docIndex + 1}`}
-                              target="_blank"
-                              rel="noreferrer"
-                              className={overviewStyles.docLink}
-                            >
-                              {docItem?.name || `Document ${docIndex + 1}`}
-                            </a>
-                          ))}
-                        </div>
-                      )}
-                      <div className={overviewStyles.inlineMetaRow}>
-                        <Link href={`/evaluation-detail?id=${evaluationId}`} className={overviewStyles.inlineLink}>
-                          View submission
-                        </Link>
-                        {evaluation.pdfReport && (
-                          <a href={evaluation.pdfReport} target="_blank" rel="noreferrer" className={overviewStyles.inlineLink}>
-                            Download PDF
-                          </a>
-                        )}
-                      </div>
-                      {isPendingEvaluation ? (
-                        <>
-                          <div className={overviewStyles.inlineForm}>
-                            <span className={overviewStyles.inlineLabel}>Evaluated Value</span>
-                            <input
-                              className={overviewStyles.inlineInput}
-                              value={currentValue}
-                              onChange={(event) =>
-                                setValueDrafts((prev) => ({ ...prev, [evaluationId]: event.target.value }))
-                              }
-                              placeholder="PKR 25,000,000"
-                            />
-                          </div>
-                          <div className={overviewStyles.inlineForm}>
-                            <span className={overviewStyles.inlineLabel}>Admin Comment</span>
-                            <textarea
-                              className={overviewStyles.inlineTextarea}
-                              value={currentComment}
-                              onChange={(event) =>
-                                setCommentDrafts((prev) => ({ ...prev, [evaluationId]: event.target.value }))
-                              }
-                              placeholder="Share inspection notes for the downloadable report."
-                            />
-                          </div>
-                        </>
-                      ) : (
-                        <div className={overviewStyles.inlineForm}>
-                          <span className={overviewStyles.inlineLabel}>Admin Comment</span>
-                          <p className={overviewStyles.inlineCopy}>{evaluation.adminComment || 'No remarks recorded yet.'}</p>
-                        </div>
-                      )}
-                    </div>
-                    <div className={overviewStyles.listItemMeta}>
-                      <span className={overviewStyles.smallMeta}>{formatDate(evaluation.submittedAt || evaluation.createdAt)}</span>
-                      <div className={overviewStyles.listActions}>
-                        {isPendingEvaluation && (
-                          <button
-                            type="button"
-                            className={`${overviewStyles.actionButton} ${overviewStyles.actionButtonPrimary}`}
-                            onClick={() => handleApproveEvaluation(evaluation)}
-                            disabled={processingEvaluationId === evaluationId || deletingEvaluationId === evaluationId}
-                          >
-                            {processingEvaluationId === evaluationId ? 'Approving…' : 'Approve'}
-                          </button>
-                        )}
-                        <button
-                          type="button"
-                          className={`${overviewStyles.actionButton} ${overviewStyles.actionButtonDanger}`}
-                          onClick={() => handleDeleteEvaluation(evaluation)}
-                          disabled={deletingEvaluationId === evaluationId || processingEvaluationId === evaluationId}
-                        >
-                          {deletingEvaluationId === evaluationId ? 'Removing…' : 'Delete'}
-                        </button>
-                      </div>
-                    </div>
-                  </div>
+                  <Link key={index} href={action.href} className="quick-action">
+                    <span className="quick-action__icon">{action.icon}</span>
+                    <span className="quick-action__label">{action.label}</span>
+                    <svg className="quick-action__arrow" width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                      <path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"/>
+                    </svg>
+                  </Link>
                 )
               })}
             </div>
-          ) : (
-            <div className={overviewStyles.emptyState}>There are no evaluation requests at the moment.</div>
-          )}
-        </section>
+          </section>
 
-        <section className={overviewStyles.quickGrid}>
-          {insightCards.map((card) => (
-            <article key={card.title} className={overviewStyles.quickCard}>
-              <div className={overviewStyles.badge}>{card.count}</div>
-              <h3>{card.title}</h3>
-              <p>{card.description}</p>
-              <span className={overviewStyles.smallMeta}>
-                {card.count ? 'Action required' : 'No pending items'}
-              </span>
-            </article>
-          ))}
-        </section>
-
-        <section className={overviewStyles.colTwo}>
-          <article className={overviewStyles.panel}>
-            <header className={overviewStyles.panelHeader}>
-              <div>
-                <h2>Recently Submitted Properties</h2>
-                <span>{topProperties.length ? `${topProperties.length} of ${allProperties.length} total` : 'No property submissions yet'}</span>
-              </div>
-            </header>
-
-            {loading ? (
-              <div className={overviewStyles.emptyState}>Loading properties…</div>
-            ) : topProperties.length ? (
-              <div className={overviewStyles.list}>
-                {topProperties.map((property) => (
-                  <div key={property.id} className={overviewStyles.listItem}>
-                    <span className={`${overviewStyles.badge} ${getStatusBadgeClass(property.status)}`}>
-                      {property.status || 'pending'}
-                    </span>
-                    <div>
-                      <strong>{property.title || property.name || 'Untitled property'}</strong>
-                      <div className={overviewStyles.smallMeta}>
-                        {property.location || property.address || 'Location unavailable'}
-                      </div>
-                    </div>
-                    <span className={overviewStyles.smallMeta}>{formatDate(property.createdAt)}</span>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className={overviewStyles.emptyState}>No properties have been submitted yet.</div>
-            )}
-          </article>
-
-          <article className={overviewStyles.panel}>
-            <header className={overviewStyles.panelHeader}>
-              <div>
-                <h2>Recent Investments</h2>
-                <span>{topInvestments.length ? `${topInvestments.length} of ${allInvestments.length} total` : 'No investor activity yet'}</span>
-              </div>
-            </header>
-
-            {loading ? (
-              <div className={overviewStyles.emptyState}>Loading investments…</div>
-            ) : topInvestments.length ? (
-              <div className={overviewStyles.list}>
-                {topInvestments.map((investment) => (
-                  <div key={investment.id} className={overviewStyles.listItem}>
-                    <span className={`${overviewStyles.badge} ${getStatusBadgeClass(investment.status)}`}>
-                      {investment.status || 'active'}
-                    </span>
-                    <div>
-                      <strong>{investment.propertyTitle || investment.propertyName || 'Investment'}</strong>
-                      <div className={overviewStyles.smallMeta}>
-                        {formatCurrency(investment.amount || investment.currentValue)}
-                      </div>
-                    </div>
-                    <span className={overviewStyles.smallMeta}>{formatDate(investment.investmentDate || investment.createdAt)}</span>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className={overviewStyles.emptyState}>No investments captured yet.</div>
-            )}
-          </article>
-        </section>
-
-        <section className={overviewStyles.listRow}>
-          <article className={overviewStyles.listCard}>
-            <div className={overviewStyles.listHeader}>
-              <h2 style={{ margin: 0, fontSize: '1.05rem' }}>Last Transactions</h2>
-              <button 
-                type="button"
-                onClick={() => router.push('/admin-dashboard/reports')}
-                style={{
-                  background: 'none',
-                  border: 'none',
-                  color: '#6b7280',
-                  fontSize: '0.85rem',
-                  cursor: 'pointer',
-                  padding: '0',
-                  textDecoration: 'underline'
-                }}
-              >
-                See all
+          {/* Recent Activity */}
+          <section className="activity-section">
+            <div className="section-header">
+              <h2 className="section-title">Recent Activity</h2>
+              <button className="refresh-btn" onClick={loadDashboardData}>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M17.65 6.35A7.958 7.958 0 0012 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08A5.99 5.99 0 0112 18c-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/>
+                </svg>
               </button>
             </div>
-            <div className={overviewStyles.listItems}>
-              {lastTransactions.length ? (
-                lastTransactions.map((transaction) => (
-                  <div key={transaction.id} className={overviewStyles.transactionItem}>
-                    <div className={overviewStyles.thumb}>
-                      {transaction.property.charAt(0).toUpperCase()}
-                    </div>
-                    <div>
-                      <div className={overviewStyles.listPrimary}>{transaction.property}</div>
-                      <div className={overviewStyles.listMeta}>{transaction.date}</div>
-                    </div>
-                    <div className={overviewStyles.amountPositive}>{transaction.amount}</div>
-                  </div>
-                ))
+            <div className="activity-feed">
+              {loading ? (
+                <div className="loading-state">
+                  <div className="spinner" />
+                  <span>Loading activity...</span>
+                </div>
+              ) : recentActivity.length === 0 ? (
+                <div className="empty-state">
+                  <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                    <path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                  </svg>
+                  <p>No recent activity</p>
+                </div>
               ) : (
-                <div className={overviewStyles.listMeta}>No recent transactions recorded.</div>
-              )}
-            </div>
-          </article>
-
-          <article className={overviewStyles.listCard}>
-            <div className={overviewStyles.listHeader}>
-              <h2 style={{ margin: 0, fontSize: '1.05rem' }}>Maintenance Requests</h2>
-              <div style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
-                <button 
-                  type="button"
-                  onClick={() => router.push('/property-maintenance')}
-                  style={{
-                    background: '#f97316',
-                    border: 'none',
-                    color: 'white',
-                    fontSize: '0.85rem',
-                    cursor: 'pointer',
-                    padding: '6px 12px',
-                    borderRadius: '6px',
-                    fontWeight: '500'
-                  }}
-                >
-                  Hire Contractor
-                </button>
-                <button 
-                  type="button"
-                  onClick={() => router.push('/admin-dashboard/maintenance')}
-                  style={{
-                    background: 'none',
-                    border: 'none',
-                    color: '#6b7280',
-                    fontSize: '0.85rem',
-                    cursor: 'pointer',
-                    padding: '0',
-                    textDecoration: 'underline'
-                  }}
-                >
-                  See all
-                </button>
-              </div>
-            </div>
-            <div className={overviewStyles.listItems}>
-              {maintenanceRequests.length ? (
-                maintenanceRequests.map((request) => (
-                  <div key={request.id} className={overviewStyles.maintenanceItem}>
-                    <span className={overviewStyles.statusPill}>{request.issue}</span>
-                    <div>
-                      <div className={overviewStyles.listPrimary}>{request.title}</div>
-                      <div className={overviewStyles.listMeta}>{request.createdAt}</div>
+                recentActivity.map((item) => (
+                  <div key={item.id} className="activity-item">
+                    <div className={`activity-icon activity-icon--${item.type}`}>
+                      {getActivityIcon(item.type)}
                     </div>
-                    <div className={overviewStyles.listMeta}>{request.requester}</div>
-                  </div>
-                ))
-              ) : (
-                <div className={overviewStyles.listMeta}>No maintenance requests pending.</div>
-              )}
-            </div>
-          </article>
-        </section>
-
-        <section className={overviewStyles.panel}>
-          <header className={overviewStyles.panelHeader}>
-            <div>
-              <h2>Latest Contact Messages</h2>
-              <span>{latestMessages.length 
-                ? `${latestMessages.length} unread of ${contactMessages.length}` 
-                : contactMessages.length 
-                  ? `${contactMessages.length} total messages`
-                  : 'No messages yet'}</span>
-            </div>
-          </header>
-
-          {messageActionNotice && (
-            <div
-              className={`${overviewStyles.actionNotice} ${
-                messageActionNotice.type === 'error'
-                  ? overviewStyles.actionNoticeError
-                  : overviewStyles.actionNoticeSuccess
-              }`}
-            >
-              {messageActionNotice.message}
-            </div>
-          )}
-
-          {loading ? (
-            <div className={overviewStyles.emptyState}>Loading messages…</div>
-          ) : latestMessages.length ? (
-            <div className={overviewStyles.messageList}>
-              {latestMessages.map((message) => (
-                <article key={message.id} className={overviewStyles.messageCard}>
-                  <div className={overviewStyles.messageHeader}>
-                    <strong>{message.name || message.email || 'Anonymous contact'}</strong>
-                    <span className={overviewStyles.badge}>{message.status || 'new'}</span>
-                  </div>
-                  <div className={overviewStyles.messageBody}>{message.message || message.content || 'No message body provided.'}</div>
-                  <div className={overviewStyles.messageFooter}>
-                    <span>{message.email || 'No email provided'}</span>
-                    <div className={overviewStyles.messageActions}>
-                      {message.email && (
-                        <a
-                          className={`${overviewStyles.actionButton} ${overviewStyles.actionButtonSecondary}`}
-                          href={`mailto:${message.email}?subject=${encodeURIComponent('REMMIC Support Response')}`}
-                        >
-                          Email
-                        </a>
-                      )}
-                      {(message.status || '').toLowerCase() !== 'read' && (
-                        <button
-                          type="button"
-                          className={`${overviewStyles.actionButton} ${overviewStyles.actionButtonPrimary}`}
-                          onClick={() => handleMarkMessageRead(message)}
-                          disabled={processingMessageId === message.id || deletingMessageId === message.id}
-                        >
-                          {processingMessageId === message.id ? 'Marking…' : 'Mark as read'}
-                        </button>
-                      )}
-                      <button
-                        type="button"
-                        className={`${overviewStyles.actionButton} ${overviewStyles.actionButtonDanger}`}
-                        onClick={() => handleDeleteMessage(message)}
-                        disabled={deletingMessageId === message.id || processingMessageId === message.id}
-                      >
-                        {deletingMessageId === message.id ? 'Removing…' : 'Delete'}
-                      </button>
-                      <button
-                        type="button"
-                        className={`${overviewStyles.actionButton} ${overviewStyles.actionButtonSecondary}`}
-                        onClick={() => handleOpenReply(message)}
-                        disabled={processingMessageId === message.id || deletingMessageId === message.id}
-                      >
-                        Reply
-                      </button>
-                    </div>
-                  </div>
-                  <div className={overviewStyles.smallMeta}>{formatDate(message.createdAt)}</div>
-                  {message.phone && (
-                    <div className={overviewStyles.smallMeta}>Phone: {message.phone}</div>
-                  )}
-                  {Array.isArray(message.replies) && message.replies.length > 0 && (
-                    <div className={overviewStyles.messageReplies}>
-                      {message.replies.map((reply) => (
-                        <div key={reply.id} className={overviewStyles.messageReply}>
-                          <strong>{reply.responderName || 'Admin response'}</strong>
-                          <div>{reply.body}</div>
-                          <span className={overviewStyles.smallMeta}>{formatDate(reply.sentAt)}</span>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                  {replyingMessageId === message.id && (
-                    <div style={{ marginTop: '16px', display: 'grid', gap: '12px' }}>
-                      <textarea
-                        value={replyBody}
-                        onChange={(event) => setReplyBody(event.target.value)}
-                        rows={3}
-                        placeholder="Write your reply..."
-                        className="contact-text-area w-input"
-                        style={{ width: '100%' }}
-                      />
-                      <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
-                        <button
-                          type="button"
-                          className={`${overviewStyles.actionButton} ${overviewStyles.actionButtonDanger}`}
-                          onClick={() => {
-                            setReplyingMessageId(null)
-                            setReplyBody('')
-                          }}
-                          disabled={sendingReplyId === message.id}
-                        >
-                          Cancel
-                        </button>
-                        <button
-                          type="button"
-                          className={`${overviewStyles.actionButton} ${overviewStyles.actionButtonPrimary}`}
-                          onClick={() => handleSendReply(message)}
-                          disabled={sendingReplyId === message.id}
-                        >
-                          {sendingReplyId === message.id ? 'Sending…' : 'Send Reply'}
-                        </button>
+                    <div className="activity-content">
+                      <p className="activity-title">{item.title}</p>
+                      <p className="activity-description">{item.description}</p>
+                      <div className="activity-meta">
+                        <span className="activity-time">{formatTimeAgo(item.time)}</span>
+                        {item.status && getStatusBadge(item.status)}
                       </div>
                     </div>
-                  )}
-                </article>
-              ))}
+                  </div>
+                ))
+              )}
             </div>
-          ) : (
-            <div className={overviewStyles.emptyState}>There are no new contact messages.</div>
-          )}
-        </section>
+          </section>
+        </div>
+
+        {/* Phase-1 Notice */}
+        <div className="phase-notice">
+          <div className="phase-notice__icon">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/>
+            </svg>
+          </div>
+          <div className="phase-notice__content">
+            <strong>Phase-1 Admin System</strong>
+            <p>Manual entries only. No online payments, escrow automation, or smart contracts. All transactions require manual verification.</p>
+          </div>
+        </div>
       </div>
+
+      <style jsx>{`
+        .dashboard-page {
+          display: flex;
+          flex-direction: column;
+          gap: 28px;
+        }
+
+        /* Page Header */
+        .page-header {
+          display: flex;
+          justify-content: space-between;
+          align-items: flex-start;
+          gap: 20px;
+          flex-wrap: wrap;
+        }
+
+        .header-content h1 {
+          margin: 0;
+          font-family: var(--font-playfair), 'Playfair Display', serif;
+          font-size: 1.75rem;
+          font-weight: 600;
+          color: #fff;
+        }
+
+        .header-content p {
+          margin: 8px 0 0;
+          color: #9ca3af;
+          font-size: 0.95rem;
+        }
+
+        .current-date {
+          font-size: 0.85rem;
+          color: #6b7280;
+        }
+
+        /* Quick Stats Bar */
+        .quick-stats-bar {
+          display: flex;
+          align-items: center;
+          gap: 24px;
+          padding: 20px 24px;
+          background: linear-gradient(135deg, rgba(201, 162, 39, 0.08) 0%, rgba(201, 162, 39, 0.03) 100%);
+          border: 1px solid rgba(201, 162, 39, 0.15);
+          border-radius: 16px;
+          overflow-x: auto;
+        }
+
+        .quick-stat {
+          display: flex;
+          flex-direction: column;
+          gap: 4px;
+          min-width: fit-content;
+        }
+
+        .quick-stat__value {
+          font-size: 1.35rem;
+          font-weight: 700;
+          color: #fff;
+        }
+
+        .quick-stat__label {
+          font-size: 0.75rem;
+          color: #9ca3af;
+          text-transform: uppercase;
+          letter-spacing: 0.05em;
+        }
+
+        .quick-stat--highlight .quick-stat__value {
+          color: #22c55e;
+        }
+
+        .quick-stat-divider {
+          width: 1px;
+          height: 40px;
+          background: rgba(201, 162, 39, 0.2);
+          flex-shrink: 0;
+        }
+
+        /* Section Title */
+        .section-title {
+          margin: 0 0 16px;
+          font-size: 1rem;
+          font-weight: 600;
+          color: #fff;
+          text-transform: uppercase;
+          letter-spacing: 0.05em;
+        }
+
+        .section-header {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          margin-bottom: 16px;
+        }
+
+        .section-header .section-title {
+          margin: 0;
+        }
+
+        .refresh-btn {
+          padding: 8px;
+          background: rgba(201, 162, 39, 0.1);
+          border: 1px solid rgba(201, 162, 39, 0.2);
+          border-radius: 8px;
+          color: #c9a227;
+          cursor: pointer;
+          transition: all 0.2s ease;
+        }
+
+        .refresh-btn:hover {
+          background: rgba(201, 162, 39, 0.15);
+        }
+
+        /* Stats Grid */
+        .stats-grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+          gap: 16px;
+        }
+
+        .stat-card {
+          display: flex;
+          align-items: center;
+          gap: 16px;
+          padding: 20px;
+          background: rgba(255, 255, 255, 0.02);
+          border: 1px solid rgba(255, 255, 255, 0.06);
+          border-radius: 14px;
+          text-decoration: none;
+          transition: all 0.3s ease;
+        }
+
+        .stat-card:hover {
+          background: rgba(255, 255, 255, 0.04);
+          transform: translateY(-2px);
+        }
+
+        .stat-card__icon {
+          width: 48px;
+          height: 48px;
+          border-radius: 12px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          flex-shrink: 0;
+        }
+
+        .stat-card--gold .stat-card__icon {
+          background: rgba(201, 162, 39, 0.15);
+          color: #c9a227;
+        }
+        .stat-card--gold:hover {
+          border-color: rgba(201, 162, 39, 0.3);
+        }
+
+        .stat-card--blue .stat-card__icon {
+          background: rgba(59, 130, 246, 0.15);
+          color: #3b82f6;
+        }
+        .stat-card--blue:hover {
+          border-color: rgba(59, 130, 246, 0.3);
+        }
+
+        .stat-card--green .stat-card__icon {
+          background: rgba(34, 197, 94, 0.15);
+          color: #22c55e;
+        }
+        .stat-card--green:hover {
+          border-color: rgba(34, 197, 94, 0.3);
+        }
+
+        .stat-card--orange .stat-card__icon {
+          background: rgba(249, 115, 22, 0.15);
+          color: #f97316;
+        }
+        .stat-card--orange:hover {
+          border-color: rgba(249, 115, 22, 0.3);
+        }
+
+        .stat-card--purple .stat-card__icon {
+          background: rgba(168, 85, 247, 0.15);
+          color: #a855f7;
+        }
+        .stat-card--purple:hover {
+          border-color: rgba(168, 85, 247, 0.3);
+        }
+
+        .stat-card--brown .stat-card__icon {
+          background: rgba(74, 55, 40, 0.25);
+          color: #a18072;
+        }
+        .stat-card--brown:hover {
+          border-color: rgba(74, 55, 40, 0.4);
+        }
+
+        .stat-card__content {
+          flex: 1;
+          min-width: 0;
+        }
+
+        .stat-card__value {
+          display: block;
+          font-size: 1.75rem;
+          font-weight: 700;
+          color: #fff;
+          line-height: 1;
+        }
+
+        .stat-card__label {
+          display: block;
+          margin-top: 6px;
+          font-size: 0.8rem;
+          color: #9ca3af;
+        }
+
+        .stat-card__arrow {
+          color: #6b7280;
+          transition: all 0.2s ease;
+        }
+
+        .stat-card:hover .stat-card__arrow {
+          color: #c9a227;
+          transform: translateX(4px);
+        }
+
+        /* Content Grid */
+        .content-grid {
+          display: grid;
+          grid-template-columns: 1fr 1.5fr;
+          gap: 24px;
+        }
+
+        /* Quick Actions */
+        .quick-actions-section {
+          background: rgba(255, 255, 255, 0.02);
+          border: 1px solid rgba(255, 255, 255, 0.06);
+          border-radius: 16px;
+          padding: 24px;
+        }
+
+        .quick-actions {
+          display: flex;
+          flex-direction: column;
+          gap: 8px;
+        }
+
+        .quick-action {
+          display: flex;
+          align-items: center;
+          gap: 14px;
+          padding: 14px 16px;
+          background: rgba(201, 162, 39, 0.05);
+          border: 1px solid rgba(201, 162, 39, 0.1);
+          border-radius: 10px;
+          text-decoration: none;
+          transition: all 0.2s ease;
+        }
+
+        .quick-action:hover {
+          background: rgba(201, 162, 39, 0.1);
+          border-color: rgba(201, 162, 39, 0.25);
+        }
+
+        .quick-action__icon {
+          width: 36px;
+          height: 36px;
+          border-radius: 8px;
+          background: rgba(201, 162, 39, 0.15);
+          color: #c9a227;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          flex-shrink: 0;
+        }
+
+        .quick-action__label {
+          flex: 1;
+          font-size: 0.9rem;
+          font-weight: 500;
+          color: #fff;
+        }
+
+        .quick-action__arrow {
+          color: #6b7280;
+          transition: all 0.2s ease;
+        }
+
+        .quick-action:hover .quick-action__arrow {
+          color: #c9a227;
+          transform: translateX(4px);
+        }
+
+        /* Activity Section */
+        .activity-section {
+          background: rgba(255, 255, 255, 0.02);
+          border: 1px solid rgba(255, 255, 255, 0.06);
+          border-radius: 16px;
+          padding: 24px;
+        }
+
+        .activity-feed {
+          display: flex;
+          flex-direction: column;
+          gap: 12px;
+          max-height: 400px;
+          overflow-y: auto;
+        }
+
+        .activity-item {
+          display: flex;
+          gap: 14px;
+          padding: 14px;
+          background: rgba(255, 255, 255, 0.02);
+          border-radius: 10px;
+          transition: background 0.2s ease;
+        }
+
+        .activity-item:hover {
+          background: rgba(255, 255, 255, 0.04);
+        }
+
+        .activity-icon {
+          width: 40px;
+          height: 40px;
+          border-radius: 10px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          flex-shrink: 0;
+        }
+
+        .activity-icon--evaluation {
+          background: rgba(201, 162, 39, 0.15);
+          color: #c9a227;
+        }
+
+        .activity-icon--property {
+          background: rgba(59, 130, 246, 0.15);
+          color: #3b82f6;
+        }
+
+        .activity-icon--investment {
+          background: rgba(34, 197, 94, 0.15);
+          color: #22c55e;
+        }
+
+        .activity-content {
+          flex: 1;
+          min-width: 0;
+        }
+
+        .activity-title {
+          margin: 0;
+          font-size: 0.9rem;
+          font-weight: 600;
+          color: #fff;
+        }
+
+        .activity-description {
+          margin: 4px 0 0;
+          font-size: 0.8rem;
+          color: #9ca3af;
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+        }
+
+        .activity-meta {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          margin-top: 8px;
+        }
+
+        .activity-time {
+          font-size: 0.7rem;
+          color: #6b7280;
+        }
+
+        /* Status Badges */
+        .status-badge {
+          padding: 3px 8px;
+          border-radius: 4px;
+          font-size: 0.65rem;
+          font-weight: 600;
+          text-transform: uppercase;
+          letter-spacing: 0.03em;
+        }
+
+        .status-badge--green {
+          background: rgba(34, 197, 94, 0.15);
+          color: #22c55e;
+        }
+
+        .status-badge--gold {
+          background: rgba(201, 162, 39, 0.15);
+          color: #c9a227;
+        }
+
+        .status-badge--red {
+          background: rgba(239, 68, 68, 0.15);
+          color: #ef4444;
+        }
+
+        .status-badge--blue {
+          background: rgba(59, 130, 246, 0.15);
+          color: #3b82f6;
+        }
+
+        .status-badge--gray {
+          background: rgba(107, 114, 128, 0.15);
+          color: #9ca3af;
+        }
+
+        /* Loading & Empty States */
+        .loading-state,
+        .empty-state {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          padding: 48px 24px;
+          color: #6b7280;
+          text-align: center;
+        }
+
+        .spinner {
+          width: 32px;
+          height: 32px;
+          border: 3px solid rgba(201, 162, 39, 0.2);
+          border-top-color: #c9a227;
+          border-radius: 50%;
+          animation: spin 1s linear infinite;
+          margin-bottom: 12px;
+        }
+
+        @keyframes spin {
+          to { transform: rotate(360deg); }
+        }
+
+        .empty-state svg {
+          color: #4b5563;
+          margin-bottom: 12px;
+        }
+
+        .empty-state p {
+          margin: 0;
+          font-size: 0.9rem;
+        }
+
+        /* Phase Notice */
+        .phase-notice {
+          display: flex;
+          align-items: flex-start;
+          gap: 14px;
+          padding: 16px 20px;
+          background: rgba(74, 55, 40, 0.15);
+          border: 1px solid rgba(74, 55, 40, 0.3);
+          border-radius: 12px;
+        }
+
+        .phase-notice__icon {
+          width: 36px;
+          height: 36px;
+          background: rgba(74, 55, 40, 0.25);
+          border-radius: 8px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          color: #a18072;
+          flex-shrink: 0;
+        }
+
+        .phase-notice__content {
+          flex: 1;
+        }
+
+        .phase-notice__content strong {
+          display: block;
+          font-size: 0.9rem;
+          color: #d4c4bc;
+          margin-bottom: 4px;
+        }
+
+        .phase-notice__content p {
+          margin: 0;
+          font-size: 0.8rem;
+          color: #a18072;
+          line-height: 1.5;
+        }
+
+        /* Responsive */
+        @media (max-width: 1024px) {
+          .content-grid {
+            grid-template-columns: 1fr;
+          }
+
+          .quick-stats-bar {
+            gap: 16px;
+            padding: 16px 20px;
+          }
+
+          .quick-stat__value {
+            font-size: 1.15rem;
+          }
+        }
+
+        @media (max-width: 640px) {
+          .page-header {
+            flex-direction: column;
+          }
+
+          .stats-grid {
+            grid-template-columns: repeat(2, 1fr);
+          }
+
+          .stat-card {
+            flex-direction: column;
+            text-align: center;
+            padding: 16px;
+          }
+
+          .stat-card__arrow {
+            display: none;
+          }
+
+          .quick-stats-bar {
+            flex-wrap: wrap;
+            justify-content: center;
+          }
+
+          .quick-stat-divider {
+            display: none;
+          }
+        }
+      `}</style>
     </AdminLayout>
   )
 }
