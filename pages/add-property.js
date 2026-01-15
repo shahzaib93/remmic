@@ -4,13 +4,16 @@ import { useRouter } from 'next/router'
 import Navbar from '../components/Navbar'
 import Footer from '../components/Footer'
 import { useFirebase } from '../contexts/FirebaseContext'
+import { useS3Upload } from '../hooks/useS3Upload'
 
 export default function AddProperty() {
   const router = useRouter()
   const { user, addProperty } = useFirebase()
+  const { uploadFile, uploading, progress, error: uploadError } = useS3Upload()
   const [isSubmitting, setIsSubmitting] = useState(false)
-  const [selectedImages, setSelectedImages] = useState([]) // Store array of files
-  const [imagePreviews, setImagePreviews] = useState([]) // Store array of previews with file data
+  const [uploadedImages, setUploadedImages] = useState([]) // Store S3 uploaded images
+  const [imagePreviews, setImagePreviews] = useState([]) // Store local previews
+  const [uploadProgress, setUploadProgress] = useState({ current: 0, total: 0 })
   const [submitMessage, setSubmitMessage] = useState('')
 
   const [propertyData, setPropertyData] = useState({
@@ -34,48 +37,86 @@ export default function AddProperty() {
     }
   })
 
-  const handleImageUpload = (e) => {
+  const handleImageUpload = async (e) => {
     const files = Array.from(e.target.files);
-    if (files.length > 0) {
-      // Create previews for all files
-      const newPreviews = [];
-      const newFiles = [];
-      
-      files.forEach((file, index) => {
-        const reader = new FileReader();
-        reader.onload = (e) => {
-          newPreviews.push({ url: e.target.result, file });
-          newFiles.push(file);
-          
-          // Update state when all previews are ready
-          if (newPreviews.length === files.length) {
-            setSelectedImages(prev => [...prev, ...newFiles]);
-            setImagePreviews(prev => [...prev, ...newPreviews]);
-          }
-        };
-        reader.readAsDataURL(file);
-      });
+    if (files.length === 0) return;
+
+    // Filter only images
+    const imageFiles = files.filter(file => file.type.startsWith('image/'));
+    if (imageFiles.length === 0) {
+      setSubmitMessage('Please select image files only');
+      return;
     }
+
+    setUploadProgress({ current: 0, total: imageFiles.length });
+    setSubmitMessage('');
+
+    // Upload each file to S3
+    for (let i = 0; i < imageFiles.length; i++) {
+      const file = imageFiles[i];
+      setUploadProgress({ current: i + 1, total: imageFiles.length });
+
+      try {
+        // Create local preview first
+        const localPreview = URL.createObjectURL(file);
+
+        // Upload to S3
+        const result = await uploadFile(file, {
+          propertyId: 'new-property',
+          type: 'gallery',
+          category: 'property'
+        });
+
+        // Add to uploaded images list
+        setUploadedImages(prev => [...prev, {
+          url: result.fileUrl,
+          key: result.key,
+          name: file.name
+        }]);
+
+        // Add preview
+        setImagePreviews(prev => [...prev, {
+          url: localPreview,
+          s3Url: result.fileUrl,
+          key: result.key,
+          name: file.name
+        }]);
+
+      } catch (error) {
+        console.error('Upload error:', error);
+        setSubmitMessage(`Failed to upload ${file.name}: ${error.message}`);
+      }
+    }
+
+    setUploadProgress({ current: 0, total: 0 });
+    setSubmitMessage('Images uploaded to S3 successfully!');
+    setTimeout(() => setSubmitMessage(''), 3000);
   };
 
   // Remove a specific image
-  const removeImage = (index) => {
-    setSelectedImages(prev => {
-      const newFiles = [...prev];
-      newFiles.splice(index, 1);
-      return newFiles;
-    });
-    
-    setImagePreviews(prev => {
-      const newPreviews = [...prev];
-      newPreviews.splice(index, 1);
-      return newPreviews;
-    });
+  const removeImage = async (index) => {
+    const imageToRemove = imagePreviews[index];
+
+    // Remove from state
+    setUploadedImages(prev => prev.filter((_, i) => i !== index));
+    setImagePreviews(prev => prev.filter((_, i) => i !== index));
+
+    // Revoke local preview URL
+    if (imageToRemove?.url) {
+      URL.revokeObjectURL(imageToRemove.url);
+    }
   };
 
   // Remove all images
   const removeAllImages = () => {
-    setSelectedImages([]);
+    // Revoke all local preview URLs
+    imagePreviews.forEach(preview => {
+      if (preview?.url) {
+        URL.revokeObjectURL(preview.url);
+      }
+    });
+
+    setUploadedImages([]);
     setImagePreviews([]);
   };
 
@@ -95,14 +136,17 @@ export default function AddProperty() {
         throw new Error('Please fill in all required fields')
       }
 
-      // Create new property data for Firebase
+      // Create new property data for Firebase with S3 image URLs
       const newProperty = {
         ...propertyData,
         // Format the area size with selected units
         area: `${propertyData.area} ${propertyData.areaUnit} (${propertyData.areaMeasurement})`,
-        images: imagePreviews.map((preview, index) => ({
-          url: preview.url || preview,
-          name: selectedImages[index] ? selectedImages[index].name : `image-${index + 1}`
+        // Use S3 URLs for images
+        images: uploadedImages.map(img => img.url),
+        imageDetails: uploadedImages.map(img => ({
+          url: img.url,
+          key: img.key,
+          name: img.name
         })),
         // Important fields for approval workflow
         status: 'pending', // Admin will approve
@@ -592,7 +636,7 @@ export default function AddProperty() {
                           fontWeight: '600',
                           color: '#374151'
                         }}>
-                          Property Images
+                          Property Images (Uploaded to S3)
                         </label>
                         <div style={{
                           border: '2px dashed #d1d5db',
@@ -600,21 +644,65 @@ export default function AddProperty() {
                           padding: '20px',
                           backgroundColor: '#f9fafb'
                         }}>
+                          {/* Upload Progress */}
+                          {uploadProgress.total > 0 && (
+                            <div style={{marginBottom: '20px'}}>
+                              <div style={{
+                                display: 'flex',
+                                justifyContent: 'space-between',
+                                marginBottom: '8px',
+                                fontSize: '14px',
+                                color: '#374151'
+                              }}>
+                                <span>Uploading to S3...</span>
+                                <span>{uploadProgress.current} / {uploadProgress.total}</span>
+                              </div>
+                              <div style={{
+                                width: '100%',
+                                height: '8px',
+                                background: '#e5e7eb',
+                                borderRadius: '4px',
+                                overflow: 'hidden'
+                              }}>
+                                <div style={{
+                                  width: `${(uploadProgress.current / uploadProgress.total) * 100}%`,
+                                  height: '100%',
+                                  background: 'linear-gradient(90deg, #c9a227, #d4b13d)',
+                                  transition: 'width 0.3s ease'
+                                }} />
+                              </div>
+                            </div>
+                          )}
+
                           {imagePreviews.length > 0 ? (
                             <div>
                               <div style={{display: 'flex', flexWrap: 'wrap', gap: '15px', marginBottom: '15px'}}>
                                 {imagePreviews.map((preview, index) => (
                                   <div key={index} style={{position: 'relative', width: '150px'}}>
-                                    <img 
-                                      src={preview.url} 
-                                      alt={`Property ${index + 1}`} 
+                                    <img
+                                      src={preview.url}
+                                      alt={`Property ${index + 1}`}
                                       style={{
                                         width: '100%',
                                         height: '100px',
                                         objectFit: 'cover',
-                                        borderRadius: '8px'
+                                        borderRadius: '8px',
+                                        border: '2px solid #10b981'
                                       }}
                                     />
+                                    <div style={{
+                                      position: 'absolute',
+                                      bottom: '4px',
+                                      left: '4px',
+                                      background: '#10b981',
+                                      color: 'white',
+                                      padding: '2px 6px',
+                                      borderRadius: '4px',
+                                      fontSize: '10px',
+                                      fontWeight: '600'
+                                    }}>
+                                      S3 ✓
+                                    </div>
                                     <button
                                       type="button"
                                       onClick={() => removeImage(index)}
@@ -646,13 +734,13 @@ export default function AddProperty() {
                                       textOverflow: 'ellipsis',
                                       whiteSpace: 'nowrap'
                                     }}>
-                                      {preview.file.name}
+                                      {preview.name}
                                     </div>
                                   </div>
                                 ))}
                               </div>
-                              <div style={{fontSize: '14px', color: '#6b7280', marginBottom: '15px'}}>
-                                {imagePreviews.length} image(s) selected
+                              <div style={{fontSize: '14px', color: '#10b981', marginBottom: '15px', fontWeight: '500'}}>
+                                ✓ {imagePreviews.length} image(s) uploaded to S3
                               </div>
                               <button
                                 type="button"
@@ -673,13 +761,13 @@ export default function AddProperty() {
                             </div>
                           ) : (
                             <div style={{textAlign: 'center', padding: '20px'}}>
-                              <div style={{fontSize: '48px', marginBottom: '10px'}}>📷</div>
+                              <div style={{fontSize: '48px', marginBottom: '10px'}}>☁️</div>
                               <p style={{margin: '0 0 15px 0', color: '#6b7280'}}>
-                                No images uploaded yet
+                                Images will be uploaded to Amazon S3
                               </p>
                             </div>
                           )}
-                          
+
                           <div style={{marginTop: '20px'}}>
                             <input
                               type="file"
@@ -688,25 +776,26 @@ export default function AddProperty() {
                               style={{display: 'none'}}
                               onChange={handleImageUpload}
                               multiple
+                              disabled={uploadProgress.total > 0}
                             />
                             <label
                               htmlFor="imageUpload"
                               style={{
-                                background: '#059669',
+                                background: uploadProgress.total > 0 ? '#9ca3af' : '#059669',
                                 color: 'white',
                                 padding: '10px 20px',
                                 borderRadius: '8px',
-                                cursor: 'pointer',
+                                cursor: uploadProgress.total > 0 ? 'not-allowed' : 'pointer',
                                 fontSize: '14px',
                                 fontWeight: '600',
                                 display: 'inline-block',
                                 textAlign: 'center'
                               }}
                             >
-                              + Add Images
+                              {uploadProgress.total > 0 ? 'Uploading...' : '+ Upload Images to S3'}
                             </label>
                             <div style={{fontSize: '12px', color: '#6b7280', marginTop: '5px'}}>
-                              You can select multiple images at once
+                              Images are stored securely on Amazon S3
                             </div>
                           </div>
                         </div>

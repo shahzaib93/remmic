@@ -29,7 +29,8 @@
       "WebFetch(domain:bidx1.com)",
       "WebSearch",
       "Bash(find:*)",
-      "Bash(wc:*)"
+      "Bash(wc:*)",
+      "Bash(npm install:*)"
     ],
     "additionalDirectories": [
       "/home/aicoder/Documents/Remmic"

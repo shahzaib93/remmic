@@ -269,6 +269,27 @@ export default function AdminPropertiesPage() {
               <h2>Submission summary</h2>
               <span>{pendingProperties.length} pending approvals - {allProperties.length} total submissions</span>
             </div>
+            <button
+              type="button"
+              onClick={() => router.push('/add-property')}
+              style={{
+                background: 'linear-gradient(135deg, #c9a227 0%, #d4b13d 100%)',
+                color: '#0a0a0a',
+                border: 'none',
+                padding: '10px 20px',
+                borderRadius: '8px',
+                fontWeight: '600',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+              }}
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/>
+              </svg>
+              Add Property
+            </button>
           </header>
           <div className={overviewStyles.quickGrid}>
             <article className={overviewStyles.quickCard}>

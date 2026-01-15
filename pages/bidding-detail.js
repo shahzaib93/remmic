@@ -5,11 +5,14 @@ import Navbar from '../components/Navbar'
 import Footer from '../components/Footer'
 import PropertyMap from '../components/PropertyMap'
 import { geocodeAddress } from '../utils/geocode'
+import { propertyMatchesIdentifier, resolvePropertyIdentifier } from '../utils/propertyStorage'
 import { addBid, getBidsForProperty, addBiddingPayment, getUserBiddingPayments } from '../lib/firebase'
+import { useFirebase } from '../contexts/FirebaseContext'
 
 export default function BiddingDetail() {
   const router = useRouter()
   const { id } = router.query
+  const { getAllProperties } = useFirebase()
   const [isClient, setIsClient] = useState(false)
   const [property, setProperty] = useState(null)
   const [currentBid, setCurrentBid] = useState('')
@@ -371,7 +374,7 @@ export default function BiddingDetail() {
     if (id) {
       loadPropertyDetails(id)
     }
-  }, [id])
+  }, [id, getAllProperties])
 
   useEffect(() => {
     if (typeof window === 'undefined') {
@@ -490,13 +493,44 @@ export default function BiddingDetail() {
       // Get properties from localStorage (uploaded via dashboard/land registration)
       const userProperties = JSON.parse(localStorage.getItem('userProperties') || '[]')
       const sampleProperties = JSON.parse(localStorage.getItem('sampleBiddingProperties') || '[]')
-      const allProperties = [...userProperties, ...sampleProperties]
-      let foundProperty = allProperties.find(p => p.id?.toString() === propertyId)
+
+      // Also fetch from Firestore to get all bidding properties
+      let firestoreProperties = []
+      try {
+        const result = await getAllProperties()
+        if (result?.success && Array.isArray(result.properties)) {
+          firestoreProperties = result.properties.filter(p =>
+            (p.type === 'bidding' || p.bidding?.startDateTime) &&
+            p.status?.toLowerCase() === 'approved'
+          )
+        }
+      } catch (err) {
+        console.warn('Failed to load from Firestore:', err)
+      }
+
+      // Combine all sources
+      const allProperties = [...firestoreProperties, ...userProperties, ...sampleProperties]
+
+      // Find property by matching the identifier (slug or id)
+      let foundProperty = allProperties.find(p => {
+        // Direct match
+        if (propertyMatchesIdentifier(p, propertyId)) return true
+        // Also check if the resolved identifier (slug) matches
+        const resolvedId = resolvePropertyIdentifier(p)
+        if (resolvedId === propertyId || resolvedId.toLowerCase() === propertyId.toLowerCase()) return true
+        return false
+      })
 
       // Mark which storage the property came from
-      const isFromSample = sampleProperties.some(p => p.id?.toString() === propertyId)
+      const isFromSample = sampleProperties.some(p => propertyMatchesIdentifier(p, propertyId))
 
-      if (foundProperty && (foundProperty.type === 'bidding' || isFromSample)) {
+      const normalizedType = (foundProperty?.type || foundProperty?.listingType || '').toLowerCase()
+      const isBiddingProperty = normalizedType === 'bidding'
+        || normalizedType === 'auction'
+        || foundProperty?.isBidding
+        || !!foundProperty?.bidding
+
+      if (foundProperty && (isBiddingProperty || isFromSample)) {
         let normalizedCoordinates = null
         if (foundProperty.coordinates && typeof foundProperty.coordinates === 'object') {
           const lat = parseFloat(foundProperty.coordinates.lat)
@@ -518,7 +552,7 @@ export default function BiddingDetail() {
             if (freshCoordinates) {
               normalizedCoordinates = freshCoordinates
               const updatedProperties = userProperties.map(propertyItem =>
-                propertyItem.id?.toString() === propertyId
+                propertyMatchesIdentifier(propertyItem, propertyId)
                   ? { ...propertyItem, coordinates: freshCoordinates }
                   : propertyItem
               )

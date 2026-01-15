@@ -1112,6 +1112,57 @@ export default function AdminDashboardOverview() {
           </div>
         ) : null}
 
+        {/* Quick Actions Bar */}
+        <section style={{ marginBottom: '1.5rem', display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
+          <button
+            type="button"
+            onClick={() => router.push('/add-property')}
+            style={{
+              background: 'linear-gradient(135deg, #c9a227 0%, #d4b13d 100%)',
+              color: '#0a0a0a',
+              border: 'none',
+              padding: '12px 24px',
+              borderRadius: '10px',
+              fontWeight: '600',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+              fontSize: '0.9rem',
+              boxShadow: '0 4px 12px rgba(201, 162, 39, 0.25)',
+              transition: 'all 0.2s ease',
+            }}
+          >
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/>
+            </svg>
+            Add New Property
+          </button>
+          <button
+            type="button"
+            onClick={() => router.push('/admin-dashboard/properties')}
+            style={{
+              background: '#fff',
+              color: '#0a0a0a',
+              border: '1px solid #e5e7eb',
+              padding: '12px 24px',
+              borderRadius: '10px',
+              fontWeight: '500',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+              fontSize: '0.9rem',
+              transition: 'all 0.2s ease',
+            }}
+          >
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/>
+            </svg>
+            Manage Properties
+          </button>
+        </section>
+
         <section className={overviewStyles.overviewHero}>
           <div className={overviewStyles.metricGrid}>
             {summaryCards.map((card) => (

@@ -3,7 +3,7 @@ import { useEffect, useMemo, useState } from 'react'
 import Navbar from '../components/Navbar'
 import Footer from '../components/Footer'
 import { useFirebase } from '../contexts/FirebaseContext'
-import { ensurePropertyImage } from '../utils/propertyStorage'
+import { ensurePropertyImage, resolvePropertyIdentifier } from '../utils/propertyStorage'
 
 export default function Bidding() {
   const [isClient, setIsClient] = useState(false)
@@ -70,8 +70,9 @@ export default function Bidding() {
 
         const processed = unique.map((p, idx) => {
           const bidInfo = getBiddingStatus(p)
+          const identifier = resolvePropertyIdentifier(p, `bid-${idx}`)
           return {
-            id: p.id || `bid-${idx}`,
+            id: identifier,
             title: p.title || 'Auction Property',
             description: p.description || 'Details coming soon',
             image: ensurePropertyImage(p),
@@ -236,14 +237,29 @@ export default function Bidding() {
                           </p>
                         </div>
 
-                        <div className="auction-card__info">
-                          <div className="auction-card__info-item">
-                            <span className="auction-card__info-label">Starting Bid</span>
-                            <span className="auction-card__info-value">{property.startingBid}</span>
+                        <div className="auction-card__prices">
+                          <div className="auction-card__price-item auction-card__price-item--current">
+                            <span className="auction-card__price-label">Current Bid</span>
+                            <span className="auction-card__price-value">{property.currentBid}</span>
                           </div>
-                          <div className="auction-card__info-item">
-                            <span className="auction-card__info-label">Area</span>
-                            <span className="auction-card__info-value">{property.area}</span>
+                          <div className="auction-card__price-item">
+                            <span className="auction-card__price-label">Starting</span>
+                            <span className="auction-card__price-value auction-card__price-value--muted">{property.startingBid}</span>
+                          </div>
+                        </div>
+
+                        <div className="auction-card__stats">
+                          <div className="auction-card__stat-item">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                              <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/>
+                            </svg>
+                            <span>{property.totalBids} {property.totalBids === 1 ? 'Bid' : 'Bids'}</span>
+                          </div>
+                          <div className="auction-card__stat-item">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                              <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/>
+                            </svg>
+                            <span>{property.area}</span>
                           </div>
                         </div>
 
@@ -254,7 +270,7 @@ export default function Bidding() {
                           <span>{property.timeLeft}</span>
                         </div>
 
-                        <a href={`/bidding/${property.id}`} className="auction-card__cta">
+                        <a href={`/bidding-detail?id=${property.id}`} className="auction-card__cta">
                           {property.phase === 'live' ? 'Place Bid' :
                            property.phase === 'upcoming' ? 'View Details' : 'View Results'}
                           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -500,16 +516,24 @@ export default function Bidding() {
           border-radius: 20px;
           overflow: hidden;
           border: 1px solid #e5e7eb;
-          transition: transform 0.3s ease, box-shadow 0.3s ease;
+          box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+          transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
         }
 
         .auction-card:hover {
-          transform: translateY(-4px);
-          box-shadow: 0 20px 40px -12px rgba(0, 0, 0, 0.15);
+          transform: translateY(-6px);
+          box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.18);
+          border-color: #d1d5db;
         }
 
         .auction-card--live {
-          border-color: rgba(201, 162, 39, 0.4);
+          border-color: rgba(201, 162, 39, 0.5);
+          box-shadow: 0 4px 6px -1px rgba(201, 162, 39, 0.1), 0 2px 4px -1px rgba(201, 162, 39, 0.06);
+        }
+
+        .auction-card--live:hover {
+          border-color: rgba(201, 162, 39, 0.7);
+          box-shadow: 0 25px 50px -12px rgba(201, 162, 39, 0.25);
         }
 
         .auction-card__image {
@@ -593,7 +617,7 @@ export default function Bidding() {
           padding: 20px;
           display: flex;
           flex-direction: column;
-          gap: 16px;
+          gap: 14px;
         }
 
         .auction-card__header {
@@ -619,42 +643,87 @@ export default function Bidding() {
           color: #6b7280;
         }
 
-        .auction-card__info {
-          display: grid;
-          grid-template-columns: 1fr 1fr;
-          gap: 12px;
-          padding: 14px;
-          background: #f9fafb;
-          border-radius: 12px;
+        .auction-card__prices {
+          display: flex;
+          gap: 16px;
+          padding: 16px;
+          background: linear-gradient(135deg, #f8fafc, #f1f5f9);
+          border-radius: 14px;
+          border: 1px solid #e2e8f0;
         }
 
-        .auction-card__info-item {
+        .auction-card__price-item {
+          flex: 1;
           display: flex;
           flex-direction: column;
-          gap: 2px;
+          gap: 4px;
         }
 
-        .auction-card__info-label {
-          font-size: 0.72rem;
+        .auction-card__price-item--current {
+          border-right: 1px solid #e2e8f0;
+          padding-right: 16px;
+        }
+
+        .auction-card__price-label {
+          font-size: 0.7rem;
           font-weight: 600;
-          color: #9ca3af;
+          color: #64748b;
           text-transform: uppercase;
-          letter-spacing: 0.05em;
+          letter-spacing: 0.08em;
         }
 
-        .auction-card__info-value {
-          font-size: 0.95rem;
+        .auction-card__price-value {
+          font-size: 1.05rem;
+          font-weight: 700;
+          color: #0f172a;
+        }
+
+        .auction-card__price-value--muted {
+          font-size: 0.9rem;
           font-weight: 600;
-          color: #111827;
+          color: #64748b;
+        }
+
+        .auction-card__stats {
+          display: flex;
+          gap: 20px;
+          padding: 12px 0;
+          border-bottom: 1px solid #f1f5f9;
+        }
+
+        .auction-card__stat-item {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          font-size: 0.85rem;
+          font-weight: 500;
+          color: #475569;
+        }
+
+        .auction-card__stat-item svg {
+          color: #94a3b8;
         }
 
         .auction-card__timer {
           display: flex;
           align-items: center;
           gap: 8px;
-          color: #c9a227;
+          padding: 10px 14px;
+          background: rgba(201, 162, 39, 0.1);
+          border-radius: 10px;
+          color: #92710c;
           font-size: 0.9rem;
           font-weight: 600;
+        }
+
+        .auction-card--ended .auction-card__timer {
+          background: rgba(107, 114, 128, 0.1);
+          color: #6b7280;
+        }
+
+        .auction-card--upcoming .auction-card__timer {
+          background: rgba(59, 130, 246, 0.1);
+          color: #2563eb;
         }
 
         .auction-card__cta {

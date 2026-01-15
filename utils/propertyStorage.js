@@ -17,6 +17,99 @@ const parsePrice = (value) => {
   return null
 }
 
+const slugifyValue = (value) => {
+  if (value == null) return ''
+  return value
+    .toString()
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+}
+
+export const resolvePropertyIdentifier = (property, fallbackPrefix = 'property') => {
+  if (!property || typeof property !== 'object') {
+    return `${fallbackPrefix}-${Date.now()}`
+  }
+
+  const slugSource = property.slug
+    || property.propertySlug
+    || property.title
+    || property.name
+    || property.propertyName
+
+  const slug = slugifyValue(slugSource)
+  if (slug) {
+    return slug
+  }
+
+  const candidates = [
+    property.id,
+    property.propertyId,
+    property.referenceId,
+    property.listingId,
+    property.documentId,
+    property.uid,
+    property._id,
+  ]
+
+  for (const candidate of candidates) {
+    if (candidate == null) continue
+    const stringValue = candidate.toString().trim()
+    if (stringValue) {
+      return stringValue
+    }
+  }
+
+  return `${fallbackPrefix}-${Date.now()}`
+}
+
+export const propertyMatchesIdentifier = (property, identifier) => {
+  if (!property || !identifier) {
+    return false
+  }
+
+  const normalized = identifier.toString().trim()
+  if (!normalized) {
+    return false
+  }
+
+  const normalizedLower = normalized.toLowerCase()
+  const normalizedSlug = slugifyValue(identifier)
+
+  const candidateValues = [
+    property.id,
+    property.propertyId,
+    property.referenceId,
+    property.listingId,
+    property.documentId,
+    property.uid,
+    property._id,
+    property.slug,
+    property.propertySlug,
+    property.title,
+    property.name,
+    property.propertyName,
+  ]
+
+  for (const value of candidateValues) {
+    if (value == null) continue
+    const candidateString = value.toString().trim()
+    if (!candidateString) continue
+
+    if (candidateString === normalized || candidateString.toLowerCase() === normalizedLower) {
+      return true
+    }
+
+    const candidateSlug = slugifyValue(value)
+    if (candidateSlug && (candidateSlug === normalizedSlug || candidateSlug === normalizedLower)) {
+      return true
+    }
+  }
+
+  return false
+}
+
 const normalizeProperty = (property) => {
   if (!property || typeof property !== 'object') {
     return null

@@ -4,148 +4,7 @@ import { useRouter } from 'next/router'
 import Navbar from '../components/Navbar'
 import Footer from '../components/Footer'
 import { useFirebase } from '../contexts/FirebaseContext'
-
-// Sample bidding properties to demonstrate the feature
-const SAMPLE_BIDDING_PROPERTIES = [
-  {
-    id: 'bidding-bahria-town',
-    name: 'Bahria Town Luxury Villa - Live Auction',
-    location: 'Bahria Town Phase 8, Rawalpindi',
-    city: 'rawalpindi',
-    assetType: 'residential',
-    roi: 15,
-    risk: 'moderate',
-    insured: true,
-    insurancePartner: 'EFU',
-    image: '/house5.jpg',
-    minInvestment: 15000000,
-    isBidding: true,
-    biddingStatus: 'live',
-    auctionStartDate: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(), // Started 2 days ago
-    auctionEndDate: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000).toISOString(), // Ends in 5 days
-    startingBid: 15000000,
-    currentBid: 18500000,
-    totalBids: 12,
-  },
-  {
-    id: 'bidding-dha-islamabad',
-    name: 'DHA Islamabad Commercial Plot',
-    location: 'DHA Phase 2, Islamabad',
-    city: 'islamabad',
-    assetType: 'commercial',
-    roi: 18,
-    risk: 'aggressive',
-    insured: false,
-    image: '/house6.jpg',
-    minInvestment: 25000000,
-    isBidding: true,
-    biddingStatus: 'live',
-    auctionStartDate: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(),
-    auctionEndDate: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString(),
-    startingBid: 25000000,
-    currentBid: 28000000,
-    totalBids: 8,
-  },
-  {
-    id: 'bidding-gulberg',
-    name: 'Gulberg III Prime Location',
-    location: 'Gulberg III, Lahore',
-    city: 'lahore',
-    assetType: 'commercial',
-    roi: 14,
-    risk: 'moderate',
-    insured: true,
-    insurancePartner: 'Jubilee',
-    image: '/house7.jpg',
-    minInvestment: 35000000,
-    isBidding: true,
-    biddingStatus: 'upcoming',
-    auctionStartDate: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toISOString(), // Starts in 2 days
-    auctionEndDate: new Date(Date.now() + 9 * 24 * 60 * 60 * 1000).toISOString(),
-    startingBid: 35000000,
-    currentBid: 35000000,
-    totalBids: 0,
-  },
-]
-
-const STATIC_ASSETS = [
-  {
-    id: 'dha-smart-villa',
-    name: 'DHA Phase 6 Smart Villa',
-    location: 'DHA Phase 6, Lahore',
-    city: 'lahore',
-    assetType: 'residential',
-    roi: 12.4,
-    risk: 'moderate',
-    insured: true,
-    insurancePartner: 'EFU',
-    image: '/house5.jpg',
-    minInvestment: 2500000,
-  },
-  {
-    id: 'blue-area-office',
-    name: 'Blue Area Corporate Floors',
-    location: 'Blue Area, Islamabad',
-    city: 'islamabad',
-    assetType: 'commercial',
-    roi: 14.1,
-    risk: 'moderate',
-    insured: true,
-    insurancePartner: 'Jubilee',
-    image: '/house6.jpg',
-    minInvestment: 5000000,
-  },
-  {
-    id: 'clifton-harbor',
-    name: 'Clifton Harbor Residences',
-    location: 'Clifton Block 5, Karachi',
-    city: 'karachi',
-    assetType: 'residential',
-    roi: 9.8,
-    risk: 'conservative',
-    insured: false,
-    image: '/house7.jpg',
-    minInvestment: 1800000,
-  },
-  {
-    id: 'tech-park',
-    name: 'Lahore Tech Park',
-    location: 'Main Boulevard, Lahore',
-    city: 'lahore',
-    assetType: 'commercial',
-    roi: 16.3,
-    risk: 'aggressive',
-    insured: true,
-    insurancePartner: 'Adamjee',
-    image: '/house6.jpg',
-    minInvestment: 8000000,
-  },
-  {
-    id: 'karachi-logistics',
-    name: 'Karachi Logistics Hub',
-    location: 'Port Qasim, Karachi',
-    city: 'karachi',
-    assetType: 'industrial',
-    roi: 13.5,
-    risk: 'moderate',
-    insured: false,
-    image: '/house5.jpg',
-    minInvestment: 6000000,
-  },
-  {
-    id: 'skardu-retreat',
-    name: 'Skardu Mountain Retreat',
-    location: 'Shangrila Road, Skardu',
-    city: 'skardu',
-    assetType: 'hospitality',
-    roi: 11.1,
-    risk: 'conservative',
-    insured: true,
-    insurancePartner: 'TPL',
-    image: '/house7.jpg',
-    minInvestment: 1200000,
-  },
-]
+import { ensurePropertyImage, resolvePropertyIdentifier } from '../utils/propertyStorage'
 
 const FILTER_DEFAULTS = {
   location: 'all',
@@ -197,120 +56,106 @@ export default function Marketplace() {
   const [mounted, setMounted] = useState(false)
   const [filters, setFilters] = useState(FILTER_DEFAULTS)
   const [searchTerm, setSearchTerm] = useState('')
-  const [biddingProperties, setBiddingProperties] = useState([])
+  const [properties, setProperties] = useState([])
   const [loading, setLoading] = useState(true)
 
-  // Load bidding properties from Firebase and localStorage
+  // Load all properties from Firebase and localStorage
   useEffect(() => {
-    const loadBiddingProperties = async () => {
+    const loadProperties = async () => {
       try {
-        let allBiddingProperties = []
+        let allProperties = []
 
-        // Load from Firebase (with error handling)
+        // Load from Firebase
         if (getAllProperties) {
           try {
-            const firebaseProperties = await getAllProperties()
-            if (Array.isArray(firebaseProperties)) {
-              const firebaseBidding = firebaseProperties.filter(
-                p => p.type === 'bidding' && p.status === 'approved'
-              )
-              allBiddingProperties = [...firebaseBidding]
+            const result = await getAllProperties()
+            if (result?.success && Array.isArray(result.properties)) {
+              allProperties = result.properties
             }
           } catch (firebaseError) {
-            console.log('Firebase not available, using localStorage only')
+            console.error('Error loading properties from Firebase:', firebaseError)
           }
         }
 
-        // Load from localStorage
-        if (typeof window !== 'undefined') {
+        // Load from localStorage (userProperties from dashboard/land-registration)
+        try {
           const localProperties = JSON.parse(localStorage.getItem('userProperties') || '[]')
-          const localBidding = localProperties.filter(
-            p => p.type === 'bidding' && (p.status === 'approved' || p.status === 'pending')
-          )
-
-          // Merge without duplicates
-          localBidding.forEach(localProp => {
-            if (!allBiddingProperties.find(p => p.id === localProp.id)) {
-              allBiddingProperties.push(localProp)
-            }
-          })
+          if (Array.isArray(localProperties) && localProperties.length > 0) {
+            allProperties = [...allProperties, ...localProperties]
+          }
+        } catch (localError) {
+          console.warn('Error loading local properties:', localError)
         }
 
-        // Convert bidding properties to marketplace format
-        const formattedProperties = allBiddingProperties.map(prop => ({
-          id: prop.id,
-          name: prop.title || prop.name || 'Untitled Property',
-          location: prop.location || prop.address || 'Pakistan',
-          city: (prop.city || prop.location || 'other').toLowerCase().split(',')[0].trim(),
-          assetType: prop.propertyType || prop.type || 'residential',
-          roi: prop.expectedRoi || prop.roi || 10,
-          risk: prop.riskLevel || 'moderate',
-          insured: prop.insured || false,
-          insurancePartner: prop.insurancePartner || null,
-          image: prop.images?.[0] || prop.image || '/house5.jpg',
-          minInvestment: prop.startingBid || prop.price || prop.minInvestment || 1000000,
-          // Bidding specific fields
-          isBidding: true,
-          biddingStatus: getBiddingStatus(prop),
-          auctionStartDate: prop.auctionStartDate,
-          auctionEndDate: prop.auctionEndDate,
-          startingBid: prop.startingBid || prop.price,
-          currentBid: prop.currentBid || prop.startingBid || prop.price,
-          totalBids: prop.bids?.length || prop.totalBids || 0,
-        }))
+        // Remove duplicates by id
+        const uniqueProperties = allProperties.filter((prop, index, self) => {
+          const propId = prop.id || prop.propertyId
+          return index === self.findIndex(p => (p.id || p.propertyId) === propId)
+        })
 
-        setBiddingProperties(formattedProperties)
+        // Convert properties to marketplace format
+        const formattedProperties = uniqueProperties.map((prop, index) => {
+          const propType = (prop.type || prop.listingType || '').toLowerCase()
+          const isBidding = propType === 'bidding' || propType === 'auction' || !!prop.bidding
+          const isInvestment = propType === 'investment' || propType === 'shares'
+          const isRental = propType === 'rental'
+          const image = ensurePropertyImage(prop)
+          const propertyId = resolvePropertyIdentifier(prop, `marketplace-${index}`)
+
+          // Extract price from various fields
+          const price = prop.bidding?.minBidAmount || prop.startingBid || prop.price || prop.minInvestment || prop.shares?.pricePerShare || 1000000
+
+          return {
+            id: propertyId,
+            name: prop.title || prop.name || 'Untitled Property',
+            location: prop.location || prop.address || 'Pakistan',
+            city: (prop.city || prop.location || 'other').toLowerCase().split(',')[0].trim(),
+            assetType: prop.propertyType || prop.assetType || prop.landType || 'residential',
+            propertyType: isBidding ? 'bidding' : isInvestment ? 'investment' : isRental ? 'rental' : 'general',
+            roi: prop.expectedRoi || prop.roi || prop.shares?.expectedYield || 10,
+            risk: prop.riskLevel || prop.risk || 'moderate',
+            insured: prop.insured || false,
+            insurancePartner: prop.insurancePartner || null,
+            image,
+            minInvestment: price,
+            area: prop.areaSize || prop.area || '--',
+            // Bidding specific fields
+            isBidding: isBidding,
+            biddingStatus: isBidding ? getBiddingStatus(prop) : null,
+            auctionStartDate: prop.bidding?.startDateTime || prop.auctionStartDate,
+            auctionEndDate: prop.bidding?.endDateTime || prop.auctionEndDate,
+            startingBid: prop.bidding?.minBidAmount || prop.startingBid || price,
+            currentBid: prop.currentBid || prop.bidding?.minBidAmount || prop.startingBid || price,
+            totalBids: prop.bids?.length || prop.totalBids || 0,
+            // Investment specific fields
+            isInvestment: isInvestment,
+            totalShares: prop.shares?.totalShares || 0,
+            availableShares: prop.shares?.availableShares || 0,
+            pricePerShare: prop.shares?.pricePerShare || 0,
+            // Rental specific fields
+            isRental: isRental,
+            monthlyRent: prop.rental?.monthlyRent || prop.monthlyRent || 0,
+          }
+        })
+
+        setProperties(formattedProperties)
       } catch (error) {
-        console.error('Error loading bidding properties:', error)
+        console.error('Error loading properties:', error)
       } finally {
         setLoading(false)
       }
     }
 
-    loadBiddingProperties()
-
-    // Save sample bidding properties to localStorage for bidding-detail page
-    if (typeof window !== 'undefined') {
-      // Always update sample properties with fresh data
-      const sampleForStorage = SAMPLE_BIDDING_PROPERTIES.map(prop => ({
-          id: prop.id,
-          title: prop.name,
-          name: prop.name,
-          location: prop.location,
-          city: prop.city,
-          propertyType: prop.assetType,
-          type: 'bidding',
-          status: 'approved',
-          price: prop.startingBid,
-          startingBid: prop.startingBid,
-          currentBid: prop.currentBid,
-          auctionStartDate: prop.auctionStartDate,
-          auctionEndDate: prop.auctionEndDate,
-          image: prop.image,
-          images: [prop.image],
-          totalBids: prop.totalBids,
-          bids: [],
-          description: `Premium ${prop.assetType} property in ${prop.location}. Great investment opportunity with expected ROI of ${prop.roi}%.`,
-          // Bidding form data for bidding-detail page
-          bidding: {
-            startDateTime: prop.auctionStartDate,
-            endDateTime: prop.auctionEndDate,
-            minBidAmount: prop.startingBid,
-            maxBidAmount: prop.startingBid * 3,
-            fees: 50000,
-          }
-        }))
-      localStorage.setItem('sampleBiddingProperties', JSON.stringify(sampleForStorage))
-    }
+    loadProperties()
 
     const timer = setTimeout(() => setMounted(true), 120)
     return () => clearTimeout(timer)
   }, [getAllProperties])
 
-  // Combine static assets with bidding properties (sample + user added)
+  // Properties from Firebase/Admin only
   const ASSETS = useMemo(() => {
-    return [...SAMPLE_BIDDING_PROPERTIES, ...biddingProperties, ...STATIC_ASSETS]
-  }, [biddingProperties])
+    return [...properties]
+  }, [properties])
 
   const locations = useMemo(() => ['all', ...new Set(ASSETS.map((asset) => asset.city))], [ASSETS])
 
@@ -343,7 +188,7 @@ export default function Marketplace() {
 
       return matchesSearch && matchesLocation && matchesType && matchesMinInvestment && matchesRoi && matchesRisk
     })
-  }, [filters, searchTerm])
+  }, [ASSETS, filters, searchTerm])
 
   const updateFilter = (field, value) => setFilters((prev) => ({ ...prev, [field]: value }))
 
@@ -381,24 +226,44 @@ export default function Marketplace() {
           </section>
 
           <section className="access">
-            <div className="access__card">
-              <h2>Public View</h2>
-              <ul>
-                <li>Browse assets</li>
-                <li>See ROI, risk, grade</li>
-                <li>No transaction access</li>
-              </ul>
-              <p className="access__note">Transactions available to logged-in, verified investors only.</p>
-            </div>
-            <div className="access__card access__card--private">
-              <h2>Private View</h2>
-              <ul>
-                <li>Buy / Sell shares</li>
-                <li>Join bidding</li>
-                <li>Request management</li>
-              </ul>
-              <a className="access__cta" href="/login">Log in / Create account</a>
-            </div>
+            <a href="/bidding" className="access__btn access__btn--bidding">
+              <div className="access__btn-icon">
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M14.5 10c-.83 0-1.5-.67-1.5-1.5v-5c0-.83.67-1.5 1.5-1.5s1.5.67 1.5 1.5v5c0 .83-.67 1.5-1.5 1.5z"/>
+                  <path d="M20.5 10H19V8.5c0-.83.67-1.5 1.5-1.5s1.5.67 1.5 1.5-.67 1.5-1.5 1.5z"/>
+                  <path d="M9.5 14c.83 0 1.5.67 1.5 1.5v5c0 .83-.67 1.5-1.5 1.5S8 21.33 8 20.5v-5c0-.83.67-1.5 1.5-1.5z"/>
+                  <path d="M3.5 14H5v1.5c0 .83-.67 1.5-1.5 1.5S2 16.33 2 15.5 2.67 14 3.5 14z"/>
+                  <path d="M14 14.5c0-.83.67-1.5 1.5-1.5h5c.83 0 1.5.67 1.5 1.5s-.67 1.5-1.5 1.5h-5c-.83 0-1.5-.67-1.5-1.5z"/>
+                  <path d="M14 20.5c0-.83.67-1.5 1.5-1.5h.5v1.5c0 .83-.67 1.5-1.5 1.5s-1.5-.67-1.5-1.5z"/>
+                  <path d="M10 9.5C10 10.33 9.33 11 8.5 11h-5C2.67 11 2 10.33 2 9.5S2.67 8 3.5 8h5c.83 0 1.5.67 1.5 1.5z"/>
+                </svg>
+              </div>
+              <div className="access__btn-content">
+                <h3>Property Bidding</h3>
+                <p>Bid on premium properties through transparent real-time auctions</p>
+              </div>
+              <div className="access__btn-arrow">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M5 12h14M12 5l7 7-7 7"/>
+                </svg>
+              </div>
+            </a>
+            <a href="/investment-shares" className="access__btn access__btn--investment">
+              <div className="access__btn-icon">
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+                </svg>
+              </div>
+              <div className="access__btn-content">
+                <h3>Investment Shares</h3>
+                <p>Invest in fractional property shares and earn rental income</p>
+              </div>
+              <div className="access__btn-arrow">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M5 12h14M12 5l7 7-7 7"/>
+                </svg>
+              </div>
+            </a>
           </section>
 
           <section className="filters-section">
@@ -484,7 +349,7 @@ export default function Marketplace() {
               {filteredAssets.map((asset, index) => (
                 <article
                   key={asset.id}
-                  className={`asset-card ${asset.isBidding ? 'asset-card--bidding' : ''}`}
+                  className={`asset-card ${asset.isBidding ? 'asset-card--bidding' : ''} ${asset.isInvestment ? 'asset-card--investment' : ''} ${asset.isRental ? 'asset-card--rental' : ''}`}
                   style={{
                     opacity: mounted ? 1 : 0,
                     transform: mounted ? 'translateY(0)' : 'translateY(30px)',
@@ -493,8 +358,9 @@ export default function Marketplace() {
                 >
                   <div className="asset-card__image">
                     <img src={asset.image} alt={asset.name} />
+                    {/* Property Type Badge */}
                     {asset.isBidding && (
-                      <div className={`bidding-badge bidding-badge--${asset.biddingStatus}`}>
+                      <div className={`property-badge property-badge--bidding bidding-badge--${asset.biddingStatus}`}>
                         {asset.biddingStatus === 'live' && (
                           <>
                             <span className="pulse"></span>
@@ -503,16 +369,37 @@ export default function Marketplace() {
                         )}
                         {asset.biddingStatus === 'upcoming' && 'UPCOMING'}
                         {asset.biddingStatus === 'ended' && 'ENDED'}
-                        {asset.biddingStatus === 'pending' && 'PENDING'}
+                        {asset.biddingStatus === 'pending' && 'AUCTION'}
+                      </div>
+                    )}
+                    {asset.isInvestment && (
+                      <div className="property-badge property-badge--investment">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
+                          <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+                        </svg>
+                        INVESTMENT
+                      </div>
+                    )}
+                    {asset.isRental && (
+                      <div className="property-badge property-badge--rental">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
+                          <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+                        </svg>
+                        RENTAL
+                      </div>
+                    )}
+                    {!asset.isBidding && !asset.isInvestment && !asset.isRental && (
+                      <div className="property-badge property-badge--general">
+                        PROPERTY
                       </div>
                     )}
                   </div>
                   <div className="asset-card__body">
                     <div className="asset-card__top">
                       <h3>{asset.name}</h3>
-                      <span className={
-                        `risk-badge risk-badge--${asset.risk}`
-                      }>{RISK_LABELS[asset.risk]}</span>
+                      {asset.area && asset.area !== '--' && (
+                        <span className="area-badge">{asset.area}</span>
+                      )}
                     </div>
                     <p className="asset-card__location">
                       <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
@@ -547,56 +434,89 @@ export default function Marketplace() {
                           </div>
                         )}
                       </div>
-                    ) : (
+                    ) : asset.isInvestment ? (
                       <div className="asset-card__metrics">
+                        <div>
+                          <span>Price/Share</span>
+                          <strong>PKR {(asset.pricePerShare || asset.minInvestment / 100).toLocaleString()}</strong>
+                        </div>
                         <div>
                           <span>Expected ROI</span>
                           <strong>{asset.roi}%</strong>
                         </div>
                         <div>
-                          <span>Risk</span>
-                          <strong>{RISK_LABELS[asset.risk]}</strong>
+                          <span>Available</span>
+                          <strong>{asset.availableShares || 100} shares</strong>
+                        </div>
+                      </div>
+                    ) : asset.isRental ? (
+                      <div className="asset-card__metrics">
+                        <div>
+                          <span>Monthly Rent</span>
+                          <strong>PKR {(asset.monthlyRent || 0).toLocaleString()}</strong>
                         </div>
                         <div>
-                          <span>Min investment</span>
+                          <span>Property Value</span>
                           <strong>PKR {(asset.minInvestment / 1000000).toFixed(1)}M</strong>
+                        </div>
+                        <div>
+                          <span>Yield</span>
+                          <strong>{asset.roi}%</strong>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="asset-card__metrics">
+                        <div>
+                          <span>Price</span>
+                          <strong>PKR {(asset.minInvestment / 1000000).toFixed(1)}M</strong>
+                        </div>
+                        <div>
+                          <span>Type</span>
+                          <strong style={{textTransform: 'capitalize'}}>{asset.assetType}</strong>
+                        </div>
+                        <div>
+                          <span>Area</span>
+                          <strong>{asset.area || '--'}</strong>
                         </div>
                       </div>
                     )}
 
                     <div className="asset-card__footer">
-                      <div className="asset-card__insurance">
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-                          <path d="M12 3l9 4v5c0 5-3.5 9.5-9 11-5.5-1.5-9-6-9-11V7l9-4z" />
-                        </svg>
-                        {asset.insured ? (
-                          <div>
-                            <span>Insurance</span>
-                            <strong>{asset.insurancePartner}</strong>
-                          </div>
-                        ) : (
-                          <div>
-                            <span>Insurance</span>
-                            <strong>Pending</strong>
-                          </div>
-                        )}
+                      <div className="asset-card__type-indicator">
+                        {asset.isBidding && <span className="type-tag type-tag--bidding">Auction</span>}
+                        {asset.isInvestment && <span className="type-tag type-tag--investment">Shares</span>}
+                        {asset.isRental && <span className="type-tag type-tag--rental">Rental</span>}
+                        {!asset.isBidding && !asset.isInvestment && !asset.isRental && <span className="type-tag type-tag--general">Property</span>}
                       </div>
                       {asset.isBidding ? (
                         <button
                           onClick={() => router.push(`/bidding-detail?id=${asset.id}`)}
                           className={`asset-card__btn asset-card__btn--bid ${asset.biddingStatus === 'live' ? 'asset-card__btn--live' : ''}`}
-                          disabled={asset.biddingStatus === 'ended'}
                         >
                           {asset.biddingStatus === 'live' && 'Place Bid'}
                           {asset.biddingStatus === 'upcoming' && 'View Auction'}
                           {asset.biddingStatus === 'ended' && 'View Results'}
-                          {asset.biddingStatus === 'pending' && 'Coming Soon'}
+                          {asset.biddingStatus === 'pending' && 'View Details'}
                           <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
                             <path d="M12 4l-1.41 1.41L16.17 11H4v2h12.17l-5.58 5.59L12 20l8-8z" />
                           </svg>
                         </button>
+                      ) : asset.isInvestment ? (
+                        <a href={`/investment-shares/${asset.id}`} className="asset-card__btn asset-card__btn--investment">
+                          Invest Now
+                          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M12 4l-1.41 1.41L16.17 11H4v2h12.17l-5.58 5.59L12 20l8-8z" />
+                          </svg>
+                        </a>
+                      ) : asset.isRental ? (
+                        <a href={`/rental-detail?id=${asset.id}`} className="asset-card__btn asset-card__btn--rental">
+                          View Rental
+                          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M12 4l-1.41 1.41L16.17 11H4v2h12.17l-5.58 5.59L12 20l8-8z" />
+                          </svg>
+                        </a>
                       ) : (
-                        <a href={`/property/${asset.id}`} className="asset-card__btn">
+                        <a href={`/bidding-detail?id=${asset.id}`} className="asset-card__btn">
                           View Details
                           <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
                             <path d="M12 4l-1.41 1.41L16.17 11H4v2h12.17l-5.58 5.59L12 20l8-8z" />
@@ -609,10 +529,17 @@ export default function Marketplace() {
               ))}
             </div>
 
-            {filteredAssets.length === 0 && (
+            {loading && (
               <div className="assets__empty">
-                <h3>No matching assets</h3>
-                <p>Adjust filters to explore more of the public inventory.</p>
+                <h3>Loading properties...</h3>
+                <p>Fetching approved properties from admin.</p>
+              </div>
+            )}
+
+            {!loading && filteredAssets.length === 0 && (
+              <div className="assets__empty">
+                <h3>No properties available</h3>
+                <p>Properties will appear here once approved by admin.</p>
               </div>
             )}
           </section>
@@ -722,117 +649,148 @@ export default function Marketplace() {
           gap: 24px;
           padding: 60px 5%;
           background: #faf9f7;
-          max-width: 900px;
+          max-width: 1000px;
           margin: 0 auto;
         }
 
-        .access__card {
-          border: 1px solid #e5e7eb;
-          border-radius: 16px;
-          padding: 32px;
-          background: #ffffff;
-          display: flex;
-          flex-direction: column;
-          min-height: 280px;
-          transition: all 0.3s ease;
-        }
-
-        .access__card:hover {
-          box-shadow: 0 12px 32px rgba(0, 0, 0, 0.06);
-          transform: translateY(-2px);
-        }
-
-        .access__card--private {
-          border-color: rgba(201, 162, 39, 0.4);
-          background: linear-gradient(180deg, #fffbf0 0%, #fff8e6 100%);
-        }
-
-        .access__card--private:hover {
-          border-color: rgba(201, 162, 39, 0.6);
-          box-shadow: 0 12px 32px rgba(201, 162, 39, 0.12);
-        }
-
-        .access__card h2 {
-          margin: 0 0 20px;
-          font-size: 1.375rem;
-          font-weight: 700;
-          color: #0a0a0a;
+        .access__btn {
           display: flex;
           align-items: center;
-          gap: 10px;
-        }
-
-        .access__card h2::before {
-          content: '';
-          width: 4px;
-          height: 24px;
-          background: #e5e7eb;
-          border-radius: 2px;
-        }
-
-        .access__card--private h2::before {
-          background: linear-gradient(180deg, #c9a227, #d4b13d);
-        }
-
-        .access__card ul {
-          list-style: none;
-          padding: 0;
-          margin: 0 0 20px;
-          display: flex;
-          flex-direction: column;
-          gap: 12px;
-          flex-grow: 1;
-        }
-
-        .access__card ul li {
-          display: flex;
-          align-items: center;
-          gap: 10px;
-          font-size: 0.9375rem;
-          color: #374151;
-          line-height: 1.5;
-        }
-
-        .access__card ul li::before {
-          content: '';
-          width: 6px;
-          height: 6px;
-          background: #9ca3af;
-          border-radius: 50%;
-          flex-shrink: 0;
-        }
-
-        .access__card--private ul li::before {
-          background: #c9a227;
-        }
-
-        .access__note {
-          font-size: 0.8125rem;
-          color: #6b7280;
-          margin: 0;
-          padding-top: 16px;
-          border-top: 1px solid #f3f4f6;
-          line-height: 1.5;
-        }
-
-        .access__cta {
-          display: inline-flex;
-          align-items: center;
-          gap: 6px;
-          margin-top: auto;
-          padding: 12px 20px;
-          background: linear-gradient(135deg, #c9a227 0%, #d4b13d 100%);
-          color: #0a0a0a;
-          font-weight: 600;
-          font-size: 0.875rem;
-          border-radius: 10px;
+          gap: 20px;
+          padding: 28px 32px;
+          border-radius: 20px;
           text-decoration: none;
-          transition: all 0.25s ease;
+          transition: all 0.3s ease;
+          position: relative;
+          overflow: hidden;
         }
 
-        .access__cta:hover {
-          transform: translateY(-2px);
-          box-shadow: 0 6px 20px rgba(201, 162, 39, 0.35);
+        .access__btn::before {
+          content: '';
+          position: absolute;
+          top: 0;
+          left: 0;
+          right: 0;
+          bottom: 0;
+          opacity: 0;
+          transition: opacity 0.3s ease;
+        }
+
+        .access__btn--bidding {
+          background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+          border: 2px solid rgba(201, 162, 39, 0.3);
+        }
+
+        .access__btn--bidding::before {
+          background: linear-gradient(135deg, #fde68a 0%, #fbbf24 100%);
+        }
+
+        .access__btn--bidding:hover {
+          border-color: rgba(201, 162, 39, 0.6);
+          transform: translateY(-4px);
+          box-shadow: 0 20px 40px -10px rgba(201, 162, 39, 0.35);
+        }
+
+        .access__btn--bidding:hover::before {
+          opacity: 1;
+        }
+
+        .access__btn--investment {
+          background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+          border: 2px solid rgba(59, 130, 246, 0.3);
+        }
+
+        .access__btn--investment::before {
+          background: linear-gradient(135deg, #bfdbfe 0%, #93c5fd 100%);
+        }
+
+        .access__btn--investment:hover {
+          border-color: rgba(59, 130, 246, 0.6);
+          transform: translateY(-4px);
+          box-shadow: 0 20px 40px -10px rgba(59, 130, 246, 0.35);
+        }
+
+        .access__btn--investment:hover::before {
+          opacity: 1;
+        }
+
+        .access__btn-icon {
+          width: 64px;
+          height: 64px;
+          border-radius: 16px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          flex-shrink: 0;
+          position: relative;
+          z-index: 1;
+        }
+
+        .access__btn--bidding .access__btn-icon {
+          background: linear-gradient(135deg, #c9a227 0%, #d4b13d 100%);
+          color: #ffffff;
+          box-shadow: 0 8px 20px -4px rgba(201, 162, 39, 0.4);
+        }
+
+        .access__btn--investment .access__btn-icon {
+          background: linear-gradient(135deg, #2563eb 0%, #3b82f6 100%);
+          color: #ffffff;
+          box-shadow: 0 8px 20px -4px rgba(59, 130, 246, 0.4);
+        }
+
+        .access__btn-content {
+          flex: 1;
+          position: relative;
+          z-index: 1;
+        }
+
+        .access__btn-content h3 {
+          margin: 0 0 6px;
+          font-size: 1.25rem;
+          font-weight: 700;
+          color: #0f172a;
+        }
+
+        .access__btn-content p {
+          margin: 0;
+          font-size: 0.9rem;
+          color: #475569;
+          line-height: 1.5;
+        }
+
+        .access__btn-arrow {
+          width: 48px;
+          height: 48px;
+          border-radius: 50%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          flex-shrink: 0;
+          transition: all 0.3s ease;
+          position: relative;
+          z-index: 1;
+        }
+
+        .access__btn--bidding .access__btn-arrow {
+          background: rgba(201, 162, 39, 0.15);
+          color: #92710c;
+        }
+
+        .access__btn--investment .access__btn-arrow {
+          background: rgba(59, 130, 246, 0.15);
+          color: #1d4ed8;
+        }
+
+        .access__btn:hover .access__btn-arrow {
+          transform: translateX(4px);
+        }
+
+        .access__btn--bidding:hover .access__btn-arrow {
+          background: rgba(201, 162, 39, 0.25);
+        }
+
+        .access__btn--investment:hover .access__btn-arrow {
+          background: rgba(59, 130, 246, 0.25);
         }
 
         .filters-section {
@@ -1253,6 +1211,151 @@ export default function Marketplace() {
           50% { box-shadow: 0 0 20px rgba(239, 68, 68, 0.8); }
         }
 
+        /* Property Type Badges */
+        .property-badge {
+          position: absolute;
+          top: 12px;
+          left: 12px;
+          padding: 6px 12px;
+          border-radius: 6px;
+          font-size: 0.6875rem;
+          font-weight: 700;
+          text-transform: uppercase;
+          letter-spacing: 0.05em;
+          display: flex;
+          align-items: center;
+          gap: 6px;
+          z-index: 2;
+        }
+
+        .property-badge--bidding {
+          background: linear-gradient(135deg, #c9a227, #d4b13d);
+          color: #0a0a0a;
+        }
+
+        .property-badge--bidding.bidding-badge--live {
+          background: linear-gradient(135deg, #dc2626, #ef4444);
+          color: #fff;
+          animation: glow 2s infinite;
+        }
+
+        .property-badge--bidding.bidding-badge--upcoming {
+          background: linear-gradient(135deg, #3b82f6, #60a5fa);
+          color: #fff;
+        }
+
+        .property-badge--bidding.bidding-badge--ended {
+          background: #6b7280;
+          color: #fff;
+        }
+
+        .property-badge--investment {
+          background: linear-gradient(135deg, #2563eb, #3b82f6);
+          color: #fff;
+        }
+
+        .property-badge--rental {
+          background: linear-gradient(135deg, #059669, #10b981);
+          color: #fff;
+        }
+
+        .property-badge--general {
+          background: linear-gradient(135deg, #6b7280, #9ca3af);
+          color: #fff;
+        }
+
+        .property-badge .pulse {
+          width: 8px;
+          height: 8px;
+          background: #fff;
+          border-radius: 50%;
+          animation: pulse 1.5s infinite;
+        }
+
+        /* Area Badge */
+        .area-badge {
+          padding: 4px 10px;
+          border-radius: 6px;
+          font-size: 0.75rem;
+          font-weight: 600;
+          background: #f3f4f6;
+          color: #374151;
+          flex-shrink: 0;
+        }
+
+        /* Type Tags in Footer */
+        .asset-card__type-indicator {
+          display: flex;
+          align-items: center;
+        }
+
+        .type-tag {
+          padding: 4px 10px;
+          border-radius: 6px;
+          font-size: 0.6875rem;
+          font-weight: 600;
+          text-transform: uppercase;
+          letter-spacing: 0.03em;
+        }
+
+        .type-tag--bidding {
+          background: rgba(201, 162, 39, 0.15);
+          color: #92710c;
+        }
+
+        .type-tag--investment {
+          background: rgba(37, 99, 235, 0.12);
+          color: #1d4ed8;
+        }
+
+        .type-tag--rental {
+          background: rgba(5, 150, 105, 0.12);
+          color: #047857;
+        }
+
+        .type-tag--general {
+          background: rgba(107, 114, 128, 0.12);
+          color: #4b5563;
+        }
+
+        /* Card Type Variants */
+        .asset-card--investment {
+          border-color: rgba(37, 99, 235, 0.3);
+        }
+
+        .asset-card--investment:hover {
+          border-color: rgba(37, 99, 235, 0.5);
+          box-shadow: 0 15px 35px -8px rgba(37, 99, 235, 0.15);
+        }
+
+        .asset-card--rental {
+          border-color: rgba(5, 150, 105, 0.3);
+        }
+
+        .asset-card--rental:hover {
+          border-color: rgba(5, 150, 105, 0.5);
+          box-shadow: 0 15px 35px -8px rgba(5, 150, 105, 0.15);
+        }
+
+        /* Button Variants */
+        .asset-card__btn--investment {
+          background: linear-gradient(135deg, #2563eb, #3b82f6);
+          color: #fff;
+        }
+
+        .asset-card__btn--investment:hover {
+          box-shadow: 0 8px 20px -4px rgba(37, 99, 235, 0.4);
+        }
+
+        .asset-card__btn--rental {
+          background: linear-gradient(135deg, #059669, #10b981);
+          color: #fff;
+        }
+
+        .asset-card__btn--rental:hover {
+          box-shadow: 0 8px 20px -4px rgba(5, 150, 105, 0.4);
+        }
+
         .asset-card__bidding-info {
           background: linear-gradient(135deg, #fffbf0 0%, #fff8e6 100%);
           border: 1px solid rgba(201, 162, 39, 0.2);
@@ -1498,9 +1601,32 @@ export default function Marketplace() {
             padding: 40px 5%;
           }
 
-          .access__card {
-            min-height: auto;
-            padding: 24px;
+          .access__btn {
+            padding: 20px 24px;
+            gap: 16px;
+          }
+
+          .access__btn-icon {
+            width: 52px;
+            height: 52px;
+          }
+
+          .access__btn-icon svg {
+            width: 26px;
+            height: 26px;
+          }
+
+          .access__btn-content h3 {
+            font-size: 1.1rem;
+          }
+
+          .access__btn-content p {
+            font-size: 0.85rem;
+          }
+
+          .access__btn-arrow {
+            width: 40px;
+            height: 40px;
           }
 
           .filters-section {
@@ -1588,12 +1714,32 @@ export default function Marketplace() {
             font-size: 0.9375rem;
           }
 
-          .access__card {
-            padding: 20px;
+          .access__btn {
+            padding: 16px 20px;
+            gap: 14px;
           }
 
-          .access__card h2 {
-            font-size: 1.25rem;
+          .access__btn-icon {
+            width: 48px;
+            height: 48px;
+          }
+
+          .access__btn-content h3 {
+            font-size: 1rem;
+          }
+
+          .access__btn-content p {
+            font-size: 0.8rem;
+          }
+
+          .access__btn-arrow {
+            width: 36px;
+            height: 36px;
+          }
+
+          .access__btn-arrow svg {
+            width: 18px;
+            height: 18px;
           }
 
           .filters__grid {
