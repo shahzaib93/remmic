@@ -447,10 +447,13 @@ export default function Navbar() {
           display: none;
           background: transparent;
           border: none;
-          padding: 10px;
+          padding: 12px;
           cursor: pointer;
           z-index: 10000;
           position: relative;
+          margin-left: auto;
+          -webkit-tap-highlight-color: transparent;
+          touch-action: manipulation;
         }
 
         .hamburger {
@@ -509,6 +512,10 @@ export default function Navbar() {
           width: 100%;
         }
 
+        .mobile-menu-button:active .hamburger .line {
+          background: var(--nav-gold);
+        }
+
         /* Mobile Menu Overlay */
         .mobile-menu-overlay {
           position: fixed;
@@ -516,9 +523,7 @@ export default function Navbar() {
           left: 0;
           right: 0;
           bottom: 0;
-          background: rgba(10, 10, 10, 0.4);
-          backdrop-filter: blur(12px) saturate(1.2);
-          -webkit-backdrop-filter: blur(12px) saturate(1.2);
+          background: rgba(10, 10, 10, 0.5);
           opacity: 0;
           visibility: hidden;
           transition: all 0.3s ease;
@@ -537,17 +542,13 @@ export default function Navbar() {
           right: -320px;
           width: 320px;
           height: 100vh;
-          background: rgba(255, 255, 255, 0.9);
-          backdrop-filter: blur(20px) saturate(1.5);
-          -webkit-backdrop-filter: blur(20px) saturate(1.5);
-          box-shadow: -8px 0 40px rgba(0, 0, 0, 0.15),
-                      1px 0 0 rgba(255, 255, 255, 0.4) inset;
+          background: #ffffff;
+          box-shadow: -8px 0 40px rgba(0, 0, 0, 0.15);
           transition: right 0.4s cubic-bezier(0.4, 0, 0.2, 1);
           z-index: 9999;
           overflow-y: auto;
           display: flex;
           flex-direction: column;
-          border-left: 1px solid rgba(255, 255, 255, 0.3);
         }
 
         .mobile-menu.active {
@@ -754,7 +755,11 @@ export default function Navbar() {
         /* Media Queries */
         @media screen and (max-width: 991px) {
           .mobile-menu-button {
-            display: block;
+            display: flex !important;
+            align-items: center;
+            justify-content: center;
+            min-width: 44px;
+            min-height: 44px;
           }
 
           .desktop-menu {
@@ -767,6 +772,10 @@ export default function Navbar() {
 
           :global(.nav-menu.w-nav-menu) {
             display: none !important;
+          }
+
+          :global(.nav-container) {
+            justify-content: space-between !important;
           }
         }
 

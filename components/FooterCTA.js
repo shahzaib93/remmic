@@ -196,7 +196,7 @@ export default function FooterCTA({
         </div>
         {showImage && (
           <div className="footer-cta__image">
-            <img src="/house5.jpg" alt="Real Estate Investment Platform" />
+            <img src="https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=800&q=80" alt="Real Estate Investment Platform" />
           </div>
         )}
       </div>

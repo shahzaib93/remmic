@@ -12,7 +12,7 @@ const ASSET_DETAILS = {
     description:
       'Smart-enabled one kanal villa curated for yield plus appreciation investors. Managed tenant pipeline with predictive maintenance stack.',
     grade: 'A',
-    gallery: ['/house5.jpg', '/house6.jpg', '/house7.jpg'],
+    gallery: ['https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=800&q=80', 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=800&q=80', 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=800&q=80'],
     overview: {
       assetType: 'Residential villa',
       highlights: ['AI-backed valuation & REMMIC audit complete', 'Tenant secured for 24 months', 'On-chain reporting pilot ready'],
@@ -38,7 +38,7 @@ const ASSET_DETAILS = {
     description:
       'Grade-A commercial floors with 9-year leaseback to a fintech anchor tenant. Includes REMMIC building ops and insurance coverage from Jubilee.',
     grade: 'A-',
-    gallery: ['/house6.jpg', '/house5.jpg', '/house7.jpg'],
+    gallery: ['https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=800&q=80', 'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=800&q=80', 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=800&q=80'],
     overview: {
       assetType: 'Commercial office floors',
       highlights: ['Lease-backed cash flows', 'Capex reserve funded', 'Environmental compliance cleared'],
@@ -64,7 +64,7 @@ const ASSET_DETAILS = {
     description:
       'Seafront residences with occupancy-backed rental roll. Conservative remittance strategy with diversified tenant roster.',
     grade: 'A+',
-    gallery: ['/house7.jpg', '/house6.jpg', '/house5.jpg'],
+    gallery: ['https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=800&q=80', 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=800&q=80', 'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=800&q=80'],
     overview: {
       assetType: 'Luxury residential tower',
       highlights: ['Insurance pending final bind', 'Rental escrow monitored by REMMIC', 'Marine-grade maintenance schedule'],
@@ -90,7 +90,7 @@ const ASSET_DETAILS = {
     description:
       'Innovation campus with hybrid leasing mix and embedded data center capacity. Aggressive yield profile with upside through token liquidity pilot.',
     grade: 'B+',
-    gallery: ['/house6.jpg', '/house5.jpg', '/house7.jpg'],
+    gallery: ['https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=800&q=80', 'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=800&q=80', 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=800&q=80'],
     overview: {
       assetType: 'Commercial tech campus',
       highlights: ['Token liquidity (coming soon)', 'Power redundancy upgrades complete', 'ESG reporting available'],
@@ -116,7 +116,7 @@ const ASSET_DETAILS = {
     description:
       'Critical logistics facility catering to FMCG exporters. Mid-risk yield with resilient tenants and REMMIC-managed maintenance.',
     grade: 'A',
-    gallery: ['/house5.jpg', '/house6.jpg', '/house7.jpg'],
+    gallery: ['https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=800&q=80', 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=800&q=80', 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=800&q=80'],
     overview: {
       assetType: 'Industrial logistics',
       highlights: ['Port adjacency advantage', 'Dual insurance pending', 'FX-hedged rent structure'],
@@ -142,7 +142,7 @@ const ASSET_DETAILS = {
     description:
       'Boutique hospitality asset with seasonal uplift and curated eco-tourism experiences. Conservative yield with upside in peak quarters.',
     grade: 'A-',
-    gallery: ['/house7.jpg', '/house5.jpg', '/house6.jpg'],
+    gallery: ['https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=800&q=80', 'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=800&q=80', 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=800&q=80'],
     overview: {
       assetType: 'Hospitality',
       highlights: ['Insurance active via TPL', 'Eco-certification underway', 'Remote ops center monitoring'],

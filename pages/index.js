@@ -100,7 +100,7 @@ export default function Home() {
               }}>
                 <div className="hero__image-main">
                   <img 
-                    src="/house5.jpg" 
+                    src="https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=800&q=80" 
                     alt="Luxury residential property showcasing REMMIC's premium real estate investment opportunities" 
                     loading="eager"
                   />
@@ -295,7 +295,7 @@ export default function Home() {
                   {/* Asset Card 1 */}
                   <div className="hot-asset-card">
                     <div className="hot-asset-card__image">
-                      <img src="/house5.jpg" alt="Luxury Villa in DHA Phase 5" />
+                      <img src="https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=800&q=80" alt="Luxury Villa in DHA Phase 5" />
                       <div className="hot-asset-card__status">
                         <span className="hot-asset-card__status-dot"></span>
                         Live Auction
@@ -326,7 +326,7 @@ export default function Home() {
                   {/* Asset Card 2 */}
                   <div className="hot-asset-card">
                     <div className="hot-asset-card__image">
-                      <img src="/house5.jpg" alt="Commercial Plaza Gulberg" />
+                      <img src="https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=800&q=80" alt="Commercial Plaza Gulberg" />
                       <div className="hot-asset-card__status hot-asset-card__status--featured">
                         <span className="hot-asset-card__status-dot"></span>
                         Featured
@@ -357,7 +357,7 @@ export default function Home() {
                   {/* Asset Card 3 */}
                   <div className="hot-asset-card">
                     <div className="hot-asset-card__image">
-                      <img src="/house5.jpg" alt="Apartment Block Bahria Town" />
+                      <img src="https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=800&q=80" alt="Apartment Block Bahria Town" />
                       <div className="hot-asset-card__status">
                         <span className="hot-asset-card__status-dot"></span>
                         Just Listed
@@ -388,7 +388,7 @@ export default function Home() {
                   {/* Asset Card 4 */}
                   <div className="hot-asset-card">
                     <div className="hot-asset-card__image">
-                      <img src="/house5.jpg" alt="Industrial Warehouse Karachi" />
+                      <img src="https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=800&q=80" alt="Industrial Warehouse Karachi" />
                       <div className="hot-asset-card__status">
                         <span className="hot-asset-card__status-dot"></span>
                         High Demand
@@ -419,7 +419,7 @@ export default function Home() {
                   {/* Asset Card 5 */}
                   <div className="hot-asset-card">
                     <div className="hot-asset-card__image">
-                      <img src="/house5.jpg" alt="Retail Space F-7 Islamabad" />
+                      <img src="https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=800&q=80" alt="Retail Space F-7 Islamabad" />
                       <div className="hot-asset-card__status">
                         <span className="hot-asset-card__status-dot"></span>
                         Almost Full
@@ -450,7 +450,7 @@ export default function Home() {
                   {/* Duplicate cards for seamless loop */}
                   <div className="hot-asset-card">
                     <div className="hot-asset-card__image">
-                      <img src="/house5.jpg" alt="Luxury Villa in DHA Phase 5" />
+                      <img src="https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=800&q=80" alt="Luxury Villa in DHA Phase 5" />
                       <div className="hot-asset-card__status">
                         <span className="hot-asset-card__status-dot"></span>
                         Live Auction
@@ -480,7 +480,7 @@ export default function Home() {
 
                   <div className="hot-asset-card">
                     <div className="hot-asset-card__image">
-                      <img src="/house5.jpg" alt="Commercial Plaza Gulberg" />
+                      <img src="https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=800&q=80" alt="Commercial Plaza Gulberg" />
                       <div className="hot-asset-card__status hot-asset-card__status--featured">
                         <span className="hot-asset-card__status-dot"></span>
                         Featured
@@ -741,7 +741,7 @@ export default function Home() {
                 </div>
               </div>
               <div className="footer-cta__image">
-                <img src="/house5.jpg" alt="Real Estate Investment Platform" />
+                <img src="https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=800&q=80" alt="Real Estate Investment Platform" />
               </div>
             </div>
           </section>
