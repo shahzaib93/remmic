@@ -30,7 +30,12 @@
       "WebSearch",
       "Bash(find:*)",
       "Bash(wc:*)",
+<<<<<<< Updated upstream
       "Bash(npm install:*)"
+=======
+      "Bash(npm install:*)",
+      "Bash(npm uninstall:*)"
+>>>>>>> Stashed changes
     ],
     "additionalDirectories": [
       "/home/aicoder/Documents/Remmic"
