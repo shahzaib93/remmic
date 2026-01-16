@@ -60,7 +60,7 @@ export default function MarketplaceToolbar({
               placeholder="Search by address or city..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-12 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent transition-all"
+              className="w-full pl-12 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#c9a227] focus:border-transparent transition-all"
             />
             {searchTerm && (
               <button
@@ -82,7 +82,7 @@ export default function MarketplaceToolbar({
             <select
               value={sortOption}
               onChange={(e) => setSortOption(e.target.value)}
-              className="w-full lg:w-auto appearance-none px-4 py-3 pr-10 bg-gray-50 border border-gray-200 rounded-xl text-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-900 cursor-pointer"
+              className="w-full lg:w-auto appearance-none px-4 py-3 pr-10 bg-gray-50 border border-gray-200 rounded-xl text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#c9a227] cursor-pointer"
             >
               <option value="newest">Newest First</option>
               <option value="price-low">Price: Low to High</option>
@@ -109,7 +109,7 @@ export default function MarketplaceToolbar({
           {/* Filters Button */}
           <button
             onClick={onOpenFilters}
-            className="flex items-center gap-2 px-5 py-3 bg-gray-900 text-white rounded-xl font-medium hover:bg-gray-800 transition-colors whitespace-nowrap"
+            className="flex items-center gap-2 px-5 py-3 bg-gradient-to-r from-[#c9a227] to-[#b8922a] text-white rounded-xl font-medium shadow-md whitespace-nowrap"
           >
             <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
@@ -175,7 +175,7 @@ export function FiltersDrawer({ isOpen, onClose }) {
                     onClick={() => setPropertyType(type.toLowerCase())}
                     className={`px-4 py-3 rounded-xl text-sm font-medium transition-all ${
                       propertyType === type.toLowerCase()
-                        ? 'bg-gray-900 text-white'
+                        ? 'bg-gradient-to-r from-[#c9a227] to-[#b8922a] text-white shadow-md'
                         : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                     }`}
                   >
@@ -197,7 +197,7 @@ export function FiltersDrawer({ isOpen, onClose }) {
                     onClick={() => setBedrooms(bed.toLowerCase())}
                     className={`flex-1 px-3 py-3 rounded-xl text-sm font-medium transition-all ${
                       bedrooms === bed.toLowerCase()
-                        ? 'bg-gray-900 text-white'
+                        ? 'bg-gradient-to-r from-[#c9a227] to-[#b8922a] text-white shadow-md'
                         : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                     }`}
                   >
@@ -215,7 +215,7 @@ export function FiltersDrawer({ isOpen, onClose }) {
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="text-xs text-gray-500 mb-1 block">Min Price</label>
-                  <select className="w-full px-4 py-3 bg-gray-100 rounded-xl text-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-900">
+                  <select className="w-full px-4 py-3 bg-gray-100 rounded-xl text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#c9a227]">
                     <option value="0">Any</option>
                     <option value="5000000">PKR 50 Lac</option>
                     <option value="10000000">PKR 1 Cr</option>
@@ -225,7 +225,7 @@ export function FiltersDrawer({ isOpen, onClose }) {
                 </div>
                 <div>
                   <label className="text-xs text-gray-500 mb-1 block">Max Price</label>
-                  <select className="w-full px-4 py-3 bg-gray-100 rounded-xl text-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-900">
+                  <select className="w-full px-4 py-3 bg-gray-100 rounded-xl text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#c9a227]">
                     <option value="200000000">Any</option>
                     <option value="10000000">PKR 1 Cr</option>
                     <option value="20000000">PKR 2 Cr</option>
@@ -265,7 +265,7 @@ export function FiltersDrawer({ isOpen, onClose }) {
               </button>
               <button
                 onClick={onClose}
-                className="flex-1 px-6 py-3 bg-gray-900 text-white rounded-xl font-medium hover:bg-gray-800 transition-colors"
+                className="flex-1 px-6 py-3 bg-gradient-to-r from-[#c9a227] to-[#b8922a] text-white rounded-xl font-medium shadow-md"
               >
                 Apply Filters
               </button>

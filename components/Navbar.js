@@ -69,7 +69,7 @@ export default function Navbar() {
               loading="lazy"
               alt="REMMIC Logo"
               className="nav-logo"
-              style={{ height: '50px', width: 'auto' }}
+              style={{ height: '40px', width: 'auto' }}
               onError={(e) => {
                 e.target.src = '/REMMIC LOGO SVG.svg';
               }}
@@ -227,23 +227,26 @@ export default function Navbar() {
           left: 0;
           right: 0;
           z-index: 1000;
-          background: rgba(255, 255, 255, 0.85);
-          backdrop-filter: blur(20px) saturate(1.5);
-          -webkit-backdrop-filter: blur(20px) saturate(1.5);
-          border-bottom: 1px solid rgba(255, 255, 255, 0.2);
-          transition: all 0.3s ease;
-          height: 90px !important;
-          min-height: 90px !important;
-          max-height: 90px !important;
+          background: rgba(255, 255, 255, 0.98);
+          backdrop-filter: blur(12px) saturate(1.2);
+          -webkit-backdrop-filter: blur(12px) saturate(1.2);
+          border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+          transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+          height: 72px !important;
+          min-height: 72px !important;
+          max-height: 72px !important;
         }
 
         :global(.navbar-scrolled) {
-          background: rgba(255, 255, 255, 0.75);
-          backdrop-filter: blur(25px) saturate(1.8);
-          -webkit-backdrop-filter: blur(25px) saturate(1.8);
-          box-shadow: 0 4px 32px rgba(0, 0, 0, 0.08),
-                      0 1px 0 rgba(255, 255, 255, 0.4) inset;
-          border-bottom: 1px solid rgba(255, 255, 255, 0.3);
+          background: rgba(255, 255, 255, 0.95);
+          backdrop-filter: blur(20px) saturate(1.5);
+          -webkit-backdrop-filter: blur(20px) saturate(1.5);
+          box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05),
+                      0 20px 40px rgba(0, 0, 0, 0.03);
+          border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+          height: 68px !important;
+          min-height: 68px !important;
+          max-height: 68px !important;
         }
 
         :global(.nav-container) {
@@ -253,23 +256,25 @@ export default function Navbar() {
           padding-bottom: 0 !important;
           display: flex !important;
           align-items: center !important;
-          max-width: 1400px;
+          max-width: 1280px;
           margin: 0 auto;
-          padding: 0 24px;
+          padding: 0 32px;
         }
 
         :global(.w-nav) {
-          height: 90px !important;
+          height: 72px !important;
         }
 
         /* Nav Links */
         :global(.nav-link) {
           position: relative;
-          color: var(--nav-black-soft) !important;
+          color: #1a1a1a !important;
           font-weight: 500 !important;
-          font-size: 15px !important;
-          transition: color 0.25s ease;
-          padding: 8px 16px !important;
+          font-size: 14px !important;
+          letter-spacing: 0.01em;
+          transition: all 0.2s ease;
+          padding: 6px 14px !important;
+          margin: 0 4px;
           background: none;
           border: none;
           cursor: pointer;
@@ -277,24 +282,26 @@ export default function Navbar() {
           align-items: center;
           gap: 4px;
           text-decoration: none;
+          border-radius: 8px;
         }
 
         :global(.nav-link)::after {
           content: '';
           position: absolute;
-          left: 16px;
-          right: 16px;
-          bottom: 4px;
+          left: 14px;
+          right: 14px;
+          bottom: 2px;
           height: 2px;
-          background: linear-gradient(90deg, var(--nav-gold), var(--nav-gold-light));
+          background: var(--nav-gold);
           transform: scaleX(0);
           transform-origin: center;
-          transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+          transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
           border-radius: 2px;
         }
 
         :global(.nav-link:hover) {
           color: var(--nav-gold) !important;
+          background: rgba(201, 162, 39, 0.08);
         }
 
         :global(.nav-link:hover)::after {
@@ -303,6 +310,8 @@ export default function Navbar() {
 
         :global(.nav-link-active) {
           color: var(--nav-gold) !important;
+          background: rgba(201, 162, 39, 0.1);
+          font-weight: 600 !important;
         }
 
         :global(.nav-link-active)::after {
@@ -335,49 +344,37 @@ export default function Navbar() {
           display: inline-flex;
           align-items: center;
           justify-content: center;
-          gap: 10px;
-          padding: 12px 28px;
-          background: linear-gradient(135deg, var(--nav-gold) 0%, var(--nav-gold-light) 50%, var(--nav-gold) 100%);
-          background-size: 200% auto;
-          color: var(--nav-black) !important;
+          gap: 8px;
+          padding: 10px 24px;
+          background: linear-gradient(135deg, var(--nav-gold) 0%, var(--nav-gold-light) 100%);
+          color: white !important;
           font-size: 14px;
           font-weight: 600;
           text-decoration: none;
-          border-radius: 8px;
-          transition: all 0.3s ease;
+          border-radius: 10px;
+          transition: all 0.2s ease;
           position: relative;
           overflow: hidden;
-          box-shadow: 0 4px 15px rgba(201, 162, 39, 0.3);
-          letter-spacing: 0.3px;
+          box-shadow: 0 2px 8px rgba(201, 162, 39, 0.25);
+          letter-spacing: 0.02em;
         }
 
         :global(.modern-button.gold-cta) {
-          background: linear-gradient(135deg, #c9a227 0%, #e8c547 50%, #c9a227 100%);
-          background-size: 200% auto;
+          background: linear-gradient(135deg, #c9a227 0%, #d4b13d 100%);
         }
 
         :global(.modern-button:hover) {
-          transform: translateY(-2px);
-          box-shadow: 0 8px 25px rgba(201, 162, 39, 0.4);
-          background-position: right center;
+          transform: translateY(-1px);
+          box-shadow: 0 4px 12px rgba(201, 162, 39, 0.35);
+          background: linear-gradient(135deg, #b8922a 0%, #c9a227 100%);
         }
 
-        :global(.modern-button::before) {
-          content: '';
-          position: absolute;
-          top: 50%;
-          left: 50%;
-          width: 0;
-          height: 0;
-          border-radius: 50%;
-          background: rgba(255, 255, 255, 0.2);
-          transform: translate(-50%, -50%);
-          transition: width 0.6s, height 0.6s;
+        :global(.modern-button svg) {
+          transition: transform 0.2s ease;
         }
 
-        :global(.modern-button:hover::before) {
-          width: 300px;
-          height: 300px;
+        :global(.modern-button:hover svg) {
+          transform: translateX(2px);
         }
 
         /* User Profile Styles */
@@ -390,26 +387,27 @@ export default function Navbar() {
         :global(.user-profile-button) {
           display: flex;
           align-items: center;
-          gap: 10px;
-          padding: 10px 18px;
-          background: linear-gradient(135deg, rgba(201, 162, 39, 0.1) 0%, rgba(201, 162, 39, 0.05) 100%);
-          border: 1px solid rgba(201, 162, 39, 0.3);
-          border-radius: 8px;
-          transition: all 0.3s ease;
+          gap: 8px;
+          padding: 8px 16px;
+          background: rgba(201, 162, 39, 0.08);
+          border: 1px solid rgba(201, 162, 39, 0.2);
+          border-radius: 10px;
+          transition: all 0.2s ease;
           color: var(--nav-gold-dark);
           text-decoration: none;
         }
 
         :global(.user-profile-button:hover) {
-          background: linear-gradient(135deg, rgba(201, 162, 39, 0.15) 0%, rgba(201, 162, 39, 0.08) 100%);
-          border-color: var(--nav-gold);
+          background: rgba(201, 162, 39, 0.12);
+          border-color: rgba(201, 162, 39, 0.4);
+          transform: translateY(-1px);
         }
 
         :global(.user-name) {
-          font-size: 14px;
+          font-size: 13px;
           font-weight: 600;
-          color: var(--nav-brown);
-          max-width: 150px;
+          color: #1a1a1a;
+          max-width: 140px;
           overflow: hidden;
           text-overflow: ellipsis;
           white-space: nowrap;
@@ -419,13 +417,13 @@ export default function Navbar() {
           display: flex;
           align-items: center;
           justify-content: center;
-          padding: 10px;
+          padding: 8px;
           background: transparent;
-          border: 1px solid rgba(74, 55, 40, 0.2);
+          border: 1px solid rgba(0, 0, 0, 0.1);
           border-radius: 8px;
           cursor: pointer;
-          transition: all 0.3s ease;
-          color: var(--nav-brown);
+          transition: all 0.2s ease;
+          color: #666;
         }
 
         :global(.logout-button:hover) {
@@ -748,8 +746,9 @@ export default function Navbar() {
         .desktop-menu {
           display: flex;
           align-items: center;
+          gap: 8px;
           margin-left: auto;
-          margin-right: 24px;
+          margin-right: 20px;
         }
 
         /* Media Queries */

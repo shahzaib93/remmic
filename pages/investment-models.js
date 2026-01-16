@@ -86,7 +86,6 @@ export default function InvestmentModels() {
                 </article>
               ))}
             </div>
-            <small className="models__disclaimer">Expected ROI figures are indicative and not guaranteed. Transactions available to verified investors only.</small>
           </section>
         </main>
         <Footer />
@@ -188,7 +187,6 @@ export default function InvestmentModels() {
           display: flex;
           flex-direction: column;
           gap: 18px;
-          transition: all 0.25s ease;
           position: relative;
         }
 
@@ -202,17 +200,6 @@ export default function InvestmentModels() {
           background: linear-gradient(90deg, #c9a227 0%, #b8922a 100%);
           border-radius: 20px 20px 0 0;
           opacity: 0;
-          transition: opacity 0.25s ease;
-        }
-
-        .model-card:hover {
-          border-color: rgba(201, 162, 39, 0.35);
-          box-shadow: 0 8px 32px rgba(0, 0, 0, 0.06);
-          transform: translateY(-4px);
-        }
-
-        .model-card:hover::before {
-          opacity: 1;
         }
 
         /* Highlighted Card (Managed Investment) */
@@ -223,7 +210,7 @@ export default function InvestmentModels() {
         }
 
         .model-card--highlight::before {
-          opacity: 1;
+          opacity: 0;
         }
 
         .model-card--highlight::after {
@@ -316,32 +303,13 @@ export default function InvestmentModels() {
           font-size: 0.875rem;
           text-decoration: none;
           border-radius: 12px;
-          transition: all 0.25s ease;
           font-family: 'Manrope', sans-serif;
-        }
-
-        .model-card__cta svg {
-          transition: transform 0.25s ease;
-        }
-
-        .model-card__cta:hover {
-          background: #1a1a1a;
-          box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
-        }
-
-        .model-card__cta:hover svg {
-          transform: translateX(4px);
         }
 
         .model-card--highlight .model-card__cta {
           background: linear-gradient(135deg, #c9a227 0%, #d4b13d 100%);
           color: #0a0a0a;
           box-shadow: 0 4px 16px rgba(201, 162, 39, 0.3);
-        }
-
-        .model-card--highlight .model-card__cta:hover {
-          box-shadow: 0 6px 24px rgba(201, 162, 39, 0.4);
-          transform: translateY(-2px);
         }
 
         /* Risk Disclaimer */

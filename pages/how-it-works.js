@@ -61,7 +61,6 @@ export default function HowItWorks() {
         <main className="main-wrapper">
           <section className="hero">
             <div className={`hero__container ${isMounted ? 'is-visible' : ''}`}>
-              <span className="hero__eyebrow">How REMMIC Works</span>
               <h1 className="hero__title">
                 Step-by-Step Transparency for
                 <span className="hero__title-accent">Real Estate Investing</span>
@@ -75,7 +74,6 @@ export default function HowItWorks() {
 
           <section className="timeline" aria-label="How REMMIC Works timeline">
             <div className="timeline__intro">
-              <span className="timeline__eyebrow">The REMMIC Pipeline</span>
               <h2 className="timeline__title">Follow the Investment Journey</h2>
               <p className="timeline__subtitle">
                 Each step is designed so investors, partners and regulators can track controls end-to-end.
@@ -239,21 +237,6 @@ export default function HowItWorks() {
           max-width: 600px;
           margin: 0 auto 40px;
           text-align: center;
-        }
-
-        .timeline__eyebrow {
-          display: inline-block;
-          padding: 6px 12px;
-          background: rgba(201, 162, 39, 0.08);
-          border: 1px solid rgba(201, 162, 39, 0.2);
-          border-radius: 100px;
-          color: #c9a227;
-          font-size: 0.6875rem;
-          font-weight: 600;
-          margin-bottom: 12px;
-          letter-spacing: 0.06em;
-          text-transform: uppercase;
-          font-family: 'Manrope', sans-serif;
         }
 
         .timeline__title {
@@ -671,10 +654,6 @@ export default function HowItWorks() {
 
           .timeline__intro {
             margin-bottom: 32px;
-          }
-
-          .timeline__eyebrow {
-            margin-bottom: 10px;
           }
 
           .timeline__hint {

@@ -361,7 +361,7 @@ export default function AmanorxGroup() {
 
         .ag-values {
           padding: 80px 20px;
-          background: #1a1a1a;
+          background: radial-gradient(circle at top, rgba(255,255,255,0.08), transparent 60%), #050607;
           color: #fff;
         }
         .ag-values__container {
@@ -381,6 +381,10 @@ export default function AmanorxGroup() {
         }
         .ag-value-card {
           padding: 24px;
+          background: rgba(255, 255, 255, 0.04);
+          border: 1px solid rgba(255, 255, 255, 0.08);
+          border-radius: 16px;
+          backdrop-filter: blur(6px);
         }
         .ag-value-card__number {
           font-size: 48px;
@@ -395,7 +399,7 @@ export default function AmanorxGroup() {
         }
         .ag-value-card__desc {
           font-size: 14px;
-          color: #aaa;
+          color: rgba(255, 255, 255, 0.85);
           line-height: 1.6;
         }
 

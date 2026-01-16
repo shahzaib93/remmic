@@ -87,17 +87,17 @@ export default function Marketplace() {
         />
       </Head>
 
-      <div className="min-h-screen bg-gray-50">
+      <div className="min-h-screen bg-gradient-to-b from-[#f8f7f5] to-white">
         <Navbar />
 
         <main className="pt-24 pb-16">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             {/* Page Header */}
             <div className="text-center mb-10">
-              <h1 className="text-4xl sm:text-5xl font-bold text-gray-900 mb-4">
+              <h1 className="text-4xl sm:text-5xl font-bold text-[#1a1a1a] mb-4">
                 Properties for Sale
               </h1>
-              <p className="text-lg text-gray-500 max-w-2xl mx-auto">
+              <p className="text-lg text-gray-600 max-w-2xl mx-auto">
                 Discover premium properties across Pakistan. Browse our curated collection
                 of homes, apartments, and investment opportunities.
               </p>
@@ -132,9 +132,9 @@ export default function Marketplace() {
             ) : paginatedProperties.length === 0 ? (
               // Empty State
               <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-12 text-center">
-                <div className="w-20 h-20 mx-auto mb-6 bg-gray-100 rounded-full flex items-center justify-center">
+                <div className="w-20 h-20 mx-auto mb-6 bg-[#c9a227]/10 rounded-full flex items-center justify-center">
                   <svg
-                    className="w-10 h-10 text-gray-400"
+                    className="w-10 h-10 text-[#c9a227]"
                     fill="none"
                     viewBox="0 0 24 24"
                     stroke="currentColor"
@@ -147,7 +147,7 @@ export default function Marketplace() {
                     />
                   </svg>
                 </div>
-                <h3 className="text-xl font-semibold text-gray-900 mb-2">
+                <h3 className="text-xl font-semibold text-[#1a1a1a] mb-2">
                   No properties found
                 </h3>
                 <p className="text-gray-500 mb-6 max-w-md mx-auto">
@@ -156,7 +156,7 @@ export default function Marketplace() {
                 </p>
                 <button
                   onClick={handleReset}
-                  className="px-6 py-3 bg-gray-900 text-white rounded-xl font-medium hover:bg-gray-800 transition-colors"
+                  className="px-6 py-3 bg-gradient-to-r from-[#c9a227] to-[#b8922a] text-white rounded-xl font-medium hover:from-[#b8922a] hover:to-[#a67c00] transition-all shadow-md hover:shadow-lg"
                 >
                   Clear Filters
                 </button>
