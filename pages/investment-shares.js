@@ -744,7 +744,7 @@ export default function InvestmentShares() {
       >
         <Navbar />
         
-        <main className="main-wrapper" style={{ background: '#f9fafb' }}>
+        <main className="pt-24 bg-gray-50">
 
           <section id="live-market" className="investment-market">
             <div className="investment-market__shell">

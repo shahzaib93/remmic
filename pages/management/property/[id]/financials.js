@@ -12,7 +12,6 @@ import {
   MAINTENANCE_STATUS
 } from '../../../../lib/firebase'
 import { generateMonthlyStatement } from '../../../../utils/pdf'
-import styles from '../../../../styles/adminOverview.module.css'
 
 export default function FinancialReporting() {
   const router = useRouter()
@@ -116,8 +115,7 @@ export default function FinancialReporting() {
             <button
               onClick={handleGeneratePDF}
               disabled={generating}
-              className={styles.actionButtonPrimary}
-              style={{ padding: '0.75rem 1.25rem' }}
+              className="border-none rounded-full px-5 py-3 text-[0.78rem] font-semibold cursor-pointer inline-flex items-center gap-1.5 bg-gradient-to-br from-green-500 to-green-600 text-white shadow-[0_10px_18px_rgba(34,197,94,0.28)] transition-all hover:-translate-y-0.5 hover:shadow-[0_14px_24px_rgba(34,197,94,0.32)] disabled:opacity-55 disabled:cursor-not-allowed disabled:transform-none disabled:shadow-none"
             >
               {generating ? 'Generating...' : 'Download PDF Statement'}
             </button>
@@ -125,7 +123,7 @@ export default function FinancialReporting() {
         </div>
 
         {/* Filters */}
-        <div className={styles.panel} style={{ marginBottom: '2rem' }}>
+        <div className="flex flex-col gap-5 bg-white rounded-[1.75rem] p-7 shadow-[0_12px_32px_rgba(15,23,42,0.08)] border border-slate-300/[0.18] mb-8">
           <h3 style={{ margin: '0 0 1rem', fontSize: '1rem' }}>Filter by Date Range</h3>
           <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', alignItems: 'flex-end' }}>
             <div>
@@ -148,8 +146,7 @@ export default function FinancialReporting() {
             </div>
             <button
               onClick={() => setDateRange({ start: '', end: '' })}
-              className={styles.actionButtonSecondary}
-              style={{ padding: '0.5rem 1rem' }}
+              className="border border-slate-300/35 rounded-full px-4 py-2 text-[0.78rem] font-semibold cursor-pointer inline-flex items-center gap-1.5 bg-slate-300/[0.18] text-gray-800 transition-colors hover:bg-slate-300/[0.28]"
             >
               Clear
             </button>
@@ -163,45 +160,45 @@ export default function FinancialReporting() {
         ) : (
           <>
             {/* Summary Cards */}
-            <div className={styles.metricGrid} style={{ marginBottom: '2rem' }}>
-              <div className={styles.metricCard}>
-                <h3>Total Rent Due</h3>
-                <div className={styles.metricValue}>{formatCurrency(summary?.totalRentDue || 0)}</div>
-                <div className={styles.metricMeta}>
+            <div className="grid grid-cols-[repeat(auto-fit,minmax(220px,1fr))] gap-6 mb-8">
+              <div className="relative overflow-hidden grid gap-2.5 bg-gradient-to-br from-white to-[#fafafa] rounded-[1.25rem] p-6 shadow-[0_10px_24px_rgba(15,23,42,0.08)] border border-slate-300/[0.16] transition-all before:content-[''] before:absolute before:top-0 before:left-0 before:right-0 before:h-1 before:bg-gradient-to-r before:from-[#c9a227] before:via-[#d4b13d] before:to-[#c9a227] hover:-translate-y-0.5 hover:shadow-[0_15px_30px_rgba(15,23,42,0.12)]">
+                <h3 className="m-0 text-[0.85rem] font-semibold text-slate-500 uppercase tracking-wide">Total Rent Due</h3>
+                <div className="text-[clamp(1.6rem,2.8vw,2rem)] font-bold text-slate-900">{formatCurrency(summary?.totalRentDue || 0)}</div>
+                <div className="flex justify-between items-center text-[0.78rem] text-slate-400">
                   <span>{summary?.recordCount || 0} records</span>
                 </div>
               </div>
-              <div className={styles.metricCard}>
-                <h3>Rent Collected</h3>
-                <div className={styles.metricValue} style={{ color: '#059669' }}>
+              <div className="relative overflow-hidden grid gap-2.5 bg-gradient-to-br from-white to-[#fafafa] rounded-[1.25rem] p-6 shadow-[0_10px_24px_rgba(15,23,42,0.08)] border border-slate-300/[0.16] transition-all before:content-[''] before:absolute before:top-0 before:left-0 before:right-0 before:h-1 before:bg-gradient-to-r before:from-[#c9a227] before:via-[#d4b13d] before:to-[#c9a227] hover:-translate-y-0.5 hover:shadow-[0_15px_30px_rgba(15,23,42,0.12)]">
+                <h3 className="m-0 text-[0.85rem] font-semibold text-slate-500 uppercase tracking-wide">Rent Collected</h3>
+                <div className="text-[clamp(1.6rem,2.8vw,2rem)] font-bold text-emerald-600">
                   {formatCurrency(summary?.totalRentCollected || 0)}
                 </div>
-                <div className={styles.metricMeta}>
+                <div className="flex justify-between items-center text-[0.78rem] text-slate-400">
                   <span>{totalPaid} paid, {totalPartial} partial</span>
                 </div>
               </div>
-              <div className={styles.metricCard}>
-                <h3>Maintenance Expenses</h3>
-                <div className={styles.metricValue} style={{ color: '#dc2626' }}>
+              <div className="relative overflow-hidden grid gap-2.5 bg-gradient-to-br from-white to-[#fafafa] rounded-[1.25rem] p-6 shadow-[0_10px_24px_rgba(15,23,42,0.08)] border border-slate-300/[0.16] transition-all before:content-[''] before:absolute before:top-0 before:left-0 before:right-0 before:h-1 before:bg-gradient-to-r before:from-[#c9a227] before:via-[#d4b13d] before:to-[#c9a227] hover:-translate-y-0.5 hover:shadow-[0_15px_30px_rgba(15,23,42,0.12)]">
+                <h3 className="m-0 text-[0.85rem] font-semibold text-slate-500 uppercase tracking-wide">Maintenance Expenses</h3>
+                <div className="text-[clamp(1.6rem,2.8vw,2rem)] font-bold text-red-600">
                   {formatCurrency(summary?.totalMaintenanceCost || 0)}
                 </div>
-                <div className={styles.metricMeta}>
+                <div className="flex justify-between items-center text-[0.78rem] text-slate-400">
                   <span>{summary?.maintenanceCount || 0} requests</span>
                 </div>
               </div>
-              <div className={styles.metricCard}>
-                <h3>Net Amount</h3>
-                <div className={styles.metricValue} style={{ color: (summary?.netAmount || 0) >= 0 ? '#059669' : '#dc2626' }}>
+              <div className="relative overflow-hidden grid gap-2.5 bg-gradient-to-br from-white to-[#fafafa] rounded-[1.25rem] p-6 shadow-[0_10px_24px_rgba(15,23,42,0.08)] border border-slate-300/[0.16] transition-all before:content-[''] before:absolute before:top-0 before:left-0 before:right-0 before:h-1 before:bg-gradient-to-r before:from-[#c9a227] before:via-[#d4b13d] before:to-[#c9a227] hover:-translate-y-0.5 hover:shadow-[0_15px_30px_rgba(15,23,42,0.12)]">
+                <h3 className="m-0 text-[0.85rem] font-semibold text-slate-500 uppercase tracking-wide">Net Amount</h3>
+                <div className="text-[clamp(1.6rem,2.8vw,2rem)] font-bold" style={{ color: (summary?.netAmount || 0) >= 0 ? '#059669' : '#dc2626' }}>
                   {formatCurrency(summary?.netAmount || 0)}
                 </div>
-                <div className={styles.metricMeta}>
+                <div className="flex justify-between items-center text-[0.78rem] text-slate-400">
                   <span>After all expenses</span>
                 </div>
               </div>
             </div>
 
             {/* Collection Status */}
-            <div className={styles.panel} style={{ marginBottom: '2rem' }}>
+            <div className="flex flex-col gap-5 bg-white rounded-[1.75rem] p-7 shadow-[0_12px_32px_rgba(15,23,42,0.08)] border border-slate-300/[0.18]" style={{ marginBottom: '2rem' }}>
               <h3 style={{ margin: '0 0 1rem' }}>Rent Collection Status</h3>
               <div style={{ display: 'flex', gap: '2rem', flexWrap: 'wrap' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
@@ -227,8 +224,8 @@ export default function FinancialReporting() {
             </div>
 
             {/* Recent Transactions */}
-            <div className={styles.panel}>
-              <div className={styles.panelHeader}>
+            <div className="flex flex-col gap-5 bg-white rounded-[1.75rem] p-7 shadow-[0_12px_32px_rgba(15,23,42,0.08)] border border-slate-300/[0.18]">
+              <div className="flex justify-between items-center gap-4">
                 <h2>Recent Transactions</h2>
               </div>
               <div style={{ overflowX: 'auto' }}>

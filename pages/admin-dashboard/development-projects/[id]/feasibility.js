@@ -13,7 +13,6 @@ import {
   addProjectDrawing,
   getProjectDrawings
 } from '../../../../lib/firebase'
-import styles from '../../../../styles/adminOverview.module.css'
 
 export default function FeasibilityModule() {
   const router = useRouter()
@@ -228,26 +227,26 @@ export default function FeasibilityModule() {
         </div>
 
         {/* Summary Cards */}
-        <div className={styles.metricGrid} style={{ marginBottom: '2rem' }}>
-          <div className={styles.metricCard}>
-            <h3>Total Estimated Cost</h3>
-            <div className={styles.metricValue}>{formatCurrency(totalCost)}</div>
+        <div className="grid grid-cols-4 max-lg:grid-cols-2 max-md:grid-cols-1 gap-6" style={{ marginBottom: '2rem' }}>
+          <div className="bg-white rounded-2xl p-6 shadow-[0_4px_16px_rgba(15,23,42,0.05)] border border-slate-100 text-center">
+            <h3 className="text-xs uppercase tracking-wider text-gray-500 mb-2 font-semibold">Total Estimated Cost</h3>
+            <div className="text-[2.25rem] font-bold text-gray-900 mb-1">{formatCurrency(totalCost)}</div>
           </div>
-          <div className={styles.metricCard}>
-            <h3>Market Score</h3>
-            <div className={styles.metricValue} style={{ color: averageScore >= 70 ? '#059669' : averageScore >= 50 ? '#d97706' : '#dc2626' }}>
+          <div className="bg-white rounded-2xl p-6 shadow-[0_4px_16px_rgba(15,23,42,0.05)] border border-slate-100 text-center">
+            <h3 className="text-xs uppercase tracking-wider text-gray-500 mb-2 font-semibold">Market Score</h3>
+            <div className="text-[2.25rem] font-bold mb-1" style={{ color: averageScore >= 70 ? '#059669' : averageScore >= 50 ? '#d97706' : '#dc2626' }}>
               {averageScore}/100
             </div>
           </div>
-          <div className={styles.metricCard}>
-            <h3>Moderate ROI</h3>
-            <div className={styles.metricValue} style={{ color: '#059669' }}>
+          <div className="bg-white rounded-2xl p-6 shadow-[0_4px_16px_rgba(15,23,42,0.05)] border border-slate-100 text-center">
+            <h3 className="text-xs uppercase tracking-wider text-gray-500 mb-2 font-semibold">Moderate ROI</h3>
+            <div className="text-[2.25rem] font-bold mb-1" style={{ color: '#059669' }}>
               {formData.moderateROI || 0}%
             </div>
           </div>
-          <div className={styles.metricCard}>
-            <h3>Drawings</h3>
-            <div className={styles.metricValue}>{drawings.length}</div>
+          <div className="bg-white rounded-2xl p-6 shadow-[0_4px_16px_rgba(15,23,42,0.05)] border border-slate-100 text-center">
+            <h3 className="text-xs uppercase tracking-wider text-gray-500 mb-2 font-semibold">Drawings</h3>
+            <div className="text-[2.25rem] font-bold text-gray-900 mb-1">{drawings.length}</div>
           </div>
         </div>
 
@@ -274,7 +273,7 @@ export default function FeasibilityModule() {
         </div>
 
         {/* Tab Content */}
-        <div className={styles.panel} style={{ marginBottom: '2rem' }}>
+        <div className="bg-white rounded-[1.75rem] p-7 shadow-[0_12px_32px_rgba(15,23,42,0.08)] border border-slate-200/20" style={{ marginBottom: '2rem' }}>
           {activeTab === 'analysis' && (
             <>
               <h3 style={{ margin: '0 0 1.5rem' }}>Market Analysis</h3>
@@ -640,7 +639,7 @@ export default function FeasibilityModule() {
             <>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
                 <h3 style={{ margin: 0 }}>Architectural Drawings</h3>
-                <label className={styles.actionButtonPrimary} style={{ cursor: 'pointer' }}>
+                <label className="border-none rounded-full px-5 py-2.5 text-sm font-semibold cursor-pointer bg-gradient-to-br from-green-500 to-green-600 text-white shadow-[0_10px_18px_rgba(34,197,94,0.28)] transition-all hover:-translate-y-0.5 hover:shadow-[0_14px_24px_rgba(34,197,94,0.35)]" style={{ cursor: 'pointer' }}>
                   + Upload Drawing
                   <input
                     type="file"
@@ -674,7 +673,7 @@ export default function FeasibilityModule() {
                       <a
                         href={drawing.fileUrl}
                         download={drawing.fileName}
-                        className={styles.actionButtonSecondary}
+                        className="border border-slate-300/35 rounded-full px-4 py-2 text-sm font-semibold bg-slate-200/50 text-gray-800 transition-colors hover:bg-slate-300/50"
                         style={{ display: 'block', textAlign: 'center', textDecoration: 'none', padding: '0.5rem' }}
                       >
                         Download
@@ -692,14 +691,14 @@ export default function FeasibilityModule() {
           <button
             onClick={() => handleSave('draft')}
             disabled={saving}
-            className={styles.actionButtonSecondary}
+            className="border border-slate-300/35 rounded-full px-4 py-2 text-sm font-semibold bg-slate-200/50 text-gray-800 transition-colors hover:bg-slate-300/50"
           >
             {saving ? 'Saving...' : 'Save as Draft'}
           </button>
           <button
             onClick={() => handleSave('submitted')}
             disabled={saving}
-            className={styles.actionButtonPrimary}
+            className="border-none rounded-full px-5 py-2.5 text-sm font-semibold cursor-pointer bg-gradient-to-br from-green-500 to-green-600 text-white shadow-[0_10px_18px_rgba(34,197,94,0.28)] transition-all hover:-translate-y-0.5 hover:shadow-[0_14px_24px_rgba(34,197,94,0.35)]"
           >
             {saving ? 'Saving...' : 'Submit for Approval'}
           </button>

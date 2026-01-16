@@ -12,7 +12,6 @@ import {
   MAINTENANCE_STATUS,
   RENT_STATUS
 } from '../../lib/firebase'
-import styles from '../../styles/adminOverview.module.css'
 
 export default function PropertyManagerDashboard() {
   const router = useRouter()
@@ -130,7 +129,7 @@ export default function PropertyManagerDashboard() {
         <main style={{ padding: '2rem', textAlign: 'center', minHeight: '70vh' }}>
           <h1>Please Sign In</h1>
           <p style={{ color: '#6b7280' }}>You need to sign in to access the property manager dashboard.</p>
-          <Link href="/auth" className={styles.actionButtonPrimary} style={{ marginTop: '1rem', display: 'inline-block' }}>
+          <Link href="/auth" className="border-none rounded-full px-5 py-2.5 text-sm font-semibold cursor-pointer bg-gradient-to-br from-green-500 to-green-600 text-white shadow-[0_10px_18px_rgba(34,197,94,0.28)] transition-all hover:-translate-y-0.5 hover:shadow-[0_14px_24px_rgba(34,197,94,0.35)]" style={{ marginTop: '1rem', display: 'inline-block' }}>
             Sign In
           </Link>
         </main>
@@ -156,36 +155,36 @@ export default function PropertyManagerDashboard() {
         </div>
 
         {/* Stats */}
-        <div className={styles.metricGrid} style={{ marginBottom: '2rem' }}>
-          <div className={styles.metricCard}>
-            <h3>Assigned Properties</h3>
-            <div className={styles.metricValue}>{stats.totalProperties}</div>
-            <div className={styles.metricMeta}>
+        <div className="grid grid-cols-4 max-lg:grid-cols-2 max-md:grid-cols-1 gap-6" style={{ marginBottom: '2rem' }}>
+          <div className="bg-white rounded-2xl p-6 shadow-[0_4px_16px_rgba(15,23,42,0.05)] border border-slate-100 text-center">
+            <h3 className="text-xs uppercase tracking-wider text-gray-500 mb-2 font-semibold">Assigned Properties</h3>
+            <div className="text-[2.25rem] font-bold text-gray-900 mb-1">{stats.totalProperties}</div>
+            <div className="text-xs text-gray-500">
               <span>Under your management</span>
             </div>
           </div>
-          <div className={styles.metricCard}>
-            <h3>Active Tenants</h3>
-            <div className={styles.metricValue}>{stats.totalTenants}</div>
-            <div className={styles.metricMeta}>
+          <div className="bg-white rounded-2xl p-6 shadow-[0_4px_16px_rgba(15,23,42,0.05)] border border-slate-100 text-center">
+            <h3 className="text-xs uppercase tracking-wider text-gray-500 mb-2 font-semibold">Active Tenants</h3>
+            <div className="text-[2.25rem] font-bold text-gray-900 mb-1">{stats.totalTenants}</div>
+            <div className="text-xs text-gray-500">
               <span>Across all properties</span>
             </div>
           </div>
-          <div className={styles.metricCard}>
-            <h3>Pending Maintenance</h3>
-            <div className={styles.metricValue} style={{ color: stats.pendingMaintenance > 0 ? '#d97706' : '#059669' }}>
+          <div className="bg-white rounded-2xl p-6 shadow-[0_4px_16px_rgba(15,23,42,0.05)] border border-slate-100 text-center">
+            <h3 className="text-xs uppercase tracking-wider text-gray-500 mb-2 font-semibold">Pending Maintenance</h3>
+            <div className="text-[2.25rem] font-bold mb-1" style={{ color: stats.pendingMaintenance > 0 ? '#d97706' : '#059669' }}>
               {stats.pendingMaintenance}
             </div>
-            <div className={styles.metricMeta}>
+            <div className="text-xs text-gray-500">
               <span>Requires attention</span>
             </div>
           </div>
-          <div className={styles.metricCard}>
-            <h3>Rent Outstanding</h3>
-            <div className={styles.metricValue} style={{ color: stats.rentDue > 0 ? '#dc2626' : '#059669' }}>
+          <div className="bg-white rounded-2xl p-6 shadow-[0_4px_16px_rgba(15,23,42,0.05)] border border-slate-100 text-center">
+            <h3 className="text-xs uppercase tracking-wider text-gray-500 mb-2 font-semibold">Rent Outstanding</h3>
+            <div className="text-[2.25rem] font-bold mb-1" style={{ color: stats.rentDue > 0 ? '#dc2626' : '#059669' }}>
               {formatCurrency(stats.rentDue)}
             </div>
-            <div className={styles.metricMeta}>
+            <div className="text-xs text-gray-500">
               <span>Due from tenants</span>
             </div>
           </div>
@@ -196,7 +195,7 @@ export default function PropertyManagerDashboard() {
             <p style={{ color: '#6b7280' }}>Loading your properties...</p>
           </div>
         ) : assignedProperties.length === 0 ? (
-          <div className={styles.panel} style={{ textAlign: 'center', padding: '3rem' }}>
+          <div className="bg-white rounded-[1.75rem] p-7 shadow-[0_12px_32px_rgba(15,23,42,0.08)] border border-slate-200/20" style={{ textAlign: 'center', padding: '3rem' }}>
             <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>🏠</div>
             <h2>No Properties Assigned</h2>
             <p style={{ color: '#6b7280' }}>
@@ -207,8 +206,8 @@ export default function PropertyManagerDashboard() {
         ) : (
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2rem' }}>
             {/* Assigned Properties */}
-            <div className={styles.panel}>
-              <div className={styles.panelHeader}>
+            <div className="bg-white rounded-[1.75rem] p-7 shadow-[0_12px_32px_rgba(15,23,42,0.08)] border border-slate-200/20">
+              <div className="flex justify-between items-center mb-5">
                 <h2>My Properties</h2>
               </div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
@@ -246,8 +245,8 @@ export default function PropertyManagerDashboard() {
             </div>
 
             {/* Pending Maintenance */}
-            <div className={styles.panel}>
-              <div className={styles.panelHeader}>
+            <div className="bg-white rounded-[1.75rem] p-7 shadow-[0_12px_32px_rgba(15,23,42,0.08)] border border-slate-200/20">
+              <div className="flex justify-between items-center mb-5">
                 <h2>Pending Maintenance</h2>
                 <span style={{
                   padding: '0.25rem 0.75rem',
@@ -297,8 +296,8 @@ export default function PropertyManagerDashboard() {
             </div>
 
             {/* Rent Due */}
-            <div className={styles.panel} style={{ gridColumn: '1 / -1' }}>
-              <div className={styles.panelHeader}>
+            <div className="bg-white rounded-[1.75rem] p-7 shadow-[0_12px_32px_rgba(15,23,42,0.08)] border border-slate-200/20" style={{ gridColumn: '1 / -1' }}>
+              <div className="flex justify-between items-center mb-5">
                 <h2>Outstanding Rent</h2>
               </div>
               {recentRentRecords.length === 0 ? (
@@ -351,21 +350,21 @@ export default function PropertyManagerDashboard() {
         )}
 
         {/* Quick Actions */}
-        <div className={styles.panel} style={{ marginTop: '2rem' }}>
+        <div className="bg-white rounded-[1.75rem] p-7 shadow-[0_12px_32px_rgba(15,23,42,0.08)] border border-slate-200/20" style={{ marginTop: '2rem' }}>
           <h3 style={{ margin: '0 0 1rem' }}>Quick Actions</h3>
           <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
             {assignedProperties.slice(0, 3).map(property => (
               <div key={property.id} style={{ display: 'flex', gap: '0.5rem' }}>
                 <Link
                   href={`/management/property/${property.id}/tenants`}
-                  className={styles.actionButtonSecondary}
+                  className="border border-slate-300/35 rounded-full px-4 py-2 text-sm font-semibold bg-slate-200/50 text-gray-800 transition-colors hover:bg-slate-300/50"
                   style={{ textDecoration: 'none' }}
                 >
                   Tenants - {property.title?.slice(0, 15) || 'Property'}
                 </Link>
                 <Link
                   href={`/management/property/${property.id}/maintenance`}
-                  className={styles.actionButtonSecondary}
+                  className="border border-slate-300/35 rounded-full px-4 py-2 text-sm font-semibold bg-slate-200/50 text-gray-800 transition-colors hover:bg-slate-300/50"
                   style={{ textDecoration: 'none' }}
                 >
                   Maintenance

@@ -148,7 +148,7 @@ export default function FAQs() {
       </Head>
       <div className="page-wrapper">
         <Navbar />
-        <main className="main-wrapper">
+        <main className="pt-24">
           {/* Hero Section */}
           <section className="faq-hero">
             <div className="faq-hero__container">

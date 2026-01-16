@@ -191,7 +191,7 @@ export default function AddProperty() {
       <div className="page-wrapper">
         <Navbar />
         
-        <div className="main-wrapper" style={{paddingTop: '100px', minHeight: '100vh', background: '#f9fafb'}}>
+        <div className="pt-24 min-h-screen bg-gray-50">
           <div className="section-add-property">
             <div className="padding-global">
               <div className="container-large">

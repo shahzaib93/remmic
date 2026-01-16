@@ -10,7 +10,6 @@ import {
   getDocuments,
   DEVELOPMENT_PROJECT_STATUS
 } from '../../lib/firebase'
-import styles from '../../styles/adminOverview.module.css'
 
 const STATUS_LABELS = {
   under_evaluation: 'Under Evaluation',
@@ -127,7 +126,7 @@ export default function LandownerDashboard() {
         <main style={{ padding: '2rem', textAlign: 'center', minHeight: '70vh' }}>
           <h1>Please Sign In</h1>
           <p style={{ color: '#6b7280' }}>You need to sign in to access the landowner dashboard.</p>
-          <Link href="/auth" className={styles.actionButtonPrimary} style={{ marginTop: '1rem', display: 'inline-block' }}>
+          <Link href="/auth" className="border-none rounded-full px-5 py-2.5 text-sm font-semibold cursor-pointer bg-gradient-to-br from-green-500 to-green-600 text-white shadow-[0_10px_18px_rgba(34,197,94,0.28)] transition-all hover:-translate-y-0.5 hover:shadow-[0_14px_24px_rgba(34,197,94,0.35)]" style={{ marginTop: '1rem', display: 'inline-block' }}>
             Sign In
           </Link>
         </main>
@@ -153,32 +152,32 @@ export default function LandownerDashboard() {
         </div>
 
         {/* Stats */}
-        <div className={styles.metricGrid} style={{ marginBottom: '2rem' }}>
-          <div className={styles.metricCard}>
-            <h3>Total Properties</h3>
-            <div className={styles.metricValue}>{stats.totalProperties}</div>
-            <div className={styles.metricMeta}>
+        <div className="grid grid-cols-4 max-lg:grid-cols-2 max-md:grid-cols-1 gap-6" style={{ marginBottom: '2rem' }}>
+          <div className="bg-white rounded-2xl p-6 shadow-[0_4px_16px_rgba(15,23,42,0.05)] border border-slate-100 text-center">
+            <h3 className="text-xs uppercase tracking-wider text-gray-500 mb-2 font-semibold">Total Properties</h3>
+            <div className="text-[2.25rem] font-bold text-gray-900 mb-1">{stats.totalProperties}</div>
+            <div className="text-xs text-gray-500">
               <span>Registered with REMMIC</span>
             </div>
           </div>
-          <div className={styles.metricCard}>
-            <h3>Under Development</h3>
-            <div className={styles.metricValue} style={{ color: '#f97316' }}>{stats.underDevelopment}</div>
-            <div className={styles.metricMeta}>
+          <div className="bg-white rounded-2xl p-6 shadow-[0_4px_16px_rgba(15,23,42,0.05)] border border-slate-100 text-center">
+            <h3 className="text-xs uppercase tracking-wider text-gray-500 mb-2 font-semibold">Under Development</h3>
+            <div className="text-[2.25rem] font-bold mb-1" style={{ color: '#f97316' }}>{stats.underDevelopment}</div>
+            <div className="text-xs text-gray-500">
               <span>Active projects</span>
             </div>
           </div>
-          <div className={styles.metricCard}>
-            <h3>Completed</h3>
-            <div className={styles.metricValue} style={{ color: '#059669' }}>{stats.completed}</div>
-            <div className={styles.metricMeta}>
+          <div className="bg-white rounded-2xl p-6 shadow-[0_4px_16px_rgba(15,23,42,0.05)] border border-slate-100 text-center">
+            <h3 className="text-xs uppercase tracking-wider text-gray-500 mb-2 font-semibold">Completed</h3>
+            <div className="text-[2.25rem] font-bold mb-1" style={{ color: '#059669' }}>{stats.completed}</div>
+            <div className="text-xs text-gray-500">
               <span>Projects delivered</span>
             </div>
           </div>
-          <div className={styles.metricCard}>
-            <h3>Total Project Value</h3>
-            <div className={styles.metricValue}>{formatCurrency(stats.totalValue)}</div>
-            <div className={styles.metricMeta}>
+          <div className="bg-white rounded-2xl p-6 shadow-[0_4px_16px_rgba(15,23,42,0.05)] border border-slate-100 text-center">
+            <h3 className="text-xs uppercase tracking-wider text-gray-500 mb-2 font-semibold">Total Project Value</h3>
+            <div className="text-[2.25rem] font-bold text-gray-900 mb-1">{formatCurrency(stats.totalValue)}</div>
+            <div className="text-xs text-gray-500">
               <span>Estimated</span>
             </div>
           </div>
@@ -193,15 +192,15 @@ export default function LandownerDashboard() {
             {/* Main Content */}
             <div>
               {/* Properties */}
-              <div className={styles.panel} style={{ marginBottom: '2rem' }}>
-                <div className={styles.panelHeader}>
+              <div className="bg-white rounded-[1.75rem] p-7 shadow-[0_12px_32px_rgba(15,23,42,0.08)] border border-slate-200/20" style={{ marginBottom: '2rem' }}>
+                <div className="flex justify-between items-center mb-5">
                   <h2>My Properties</h2>
                 </div>
                 {properties.length === 0 ? (
                   <div style={{ textAlign: 'center', padding: '2rem', color: '#6b7280' }}>
                     <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>🏠</div>
                     <p>No properties registered yet</p>
-                    <Link href="/evaluation" className={styles.actionButtonPrimary} style={{ marginTop: '1rem', display: 'inline-block', textDecoration: 'none' }}>
+                    <Link href="/evaluation" className="border-none rounded-full px-5 py-2.5 text-sm font-semibold cursor-pointer bg-gradient-to-br from-green-500 to-green-600 text-white shadow-[0_10px_18px_rgba(34,197,94,0.28)] transition-all hover:-translate-y-0.5 hover:shadow-[0_14px_24px_rgba(34,197,94,0.35)]" style={{ marginTop: '1rem', display: 'inline-block', textDecoration: 'none' }}>
                       Submit Property for Evaluation
                     </Link>
                   </div>
@@ -266,14 +265,14 @@ export default function LandownerDashboard() {
                           <div style={{ display: 'flex', gap: '0.5rem' }}>
                             <Link
                               href={`/management/property/${property.id}`}
-                              className={styles.actionButtonSecondary}
+                              className="border border-slate-300/35 rounded-full px-4 py-2 text-sm font-semibold bg-slate-200/50 text-gray-800 transition-colors hover:bg-slate-300/50"
                               style={{ flex: 1, textAlign: 'center', textDecoration: 'none', padding: '0.5rem' }}
                             >
                               View Details
                             </Link>
                             <Link
                               href={`/management/property/${property.id}/documents`}
-                              className={styles.actionButtonSecondary}
+                              className="border border-slate-300/35 rounded-full px-4 py-2 text-sm font-semibold bg-slate-200/50 text-gray-800 transition-colors hover:bg-slate-300/50"
                               style={{ flex: 1, textAlign: 'center', textDecoration: 'none', padding: '0.5rem' }}
                             >
                               Documents
@@ -288,8 +287,8 @@ export default function LandownerDashboard() {
 
               {/* Development Projects */}
               {projects.length > 0 && (
-                <div className={styles.panel}>
-                  <div className={styles.panelHeader}>
+                <div className="bg-white rounded-[1.75rem] p-7 shadow-[0_12px_32px_rgba(15,23,42,0.08)] border border-slate-200/20">
+                  <div className="flex justify-between items-center mb-5">
                     <h2>Development Projects</h2>
                   </div>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
@@ -343,7 +342,7 @@ export default function LandownerDashboard() {
             {/* Sidebar */}
             <div>
               {/* Quick Actions */}
-              <div className={styles.panel} style={{ marginBottom: '2rem' }}>
+              <div className="bg-white rounded-[1.75rem] p-7 shadow-[0_12px_32px_rgba(15,23,42,0.08)] border border-slate-200/20" style={{ marginBottom: '2rem' }}>
                 <h3 style={{ margin: '0 0 1rem' }}>Quick Actions</h3>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
                   <Link
@@ -398,7 +397,7 @@ export default function LandownerDashboard() {
               </div>
 
               {/* Recent Documents */}
-              <div className={styles.panel} style={{ marginBottom: '2rem' }}>
+              <div className="bg-white rounded-[1.75rem] p-7 shadow-[0_12px_32px_rgba(15,23,42,0.08)] border border-slate-200/20" style={{ marginBottom: '2rem' }}>
                 <h3 style={{ margin: '0 0 1rem' }}>Recent Documents</h3>
                 {recentDocuments.length === 0 ? (
                   <p style={{ color: '#6b7280', fontSize: '0.875rem' }}>No documents yet</p>
@@ -437,14 +436,14 @@ export default function LandownerDashboard() {
               </div>
 
               {/* Contact Info */}
-              <div className={styles.panel}>
+              <div className="bg-white rounded-[1.75rem] p-7 shadow-[0_12px_32px_rgba(15,23,42,0.08)] border border-slate-200/20">
                 <h3 style={{ margin: '0 0 1rem' }}>Need Help?</h3>
                 <p style={{ fontSize: '0.875rem', color: '#6b7280', marginBottom: '1rem' }}>
                   Contact your REMMIC property manager for any questions about your properties or projects.
                 </p>
                 <a
                   href="mailto:support@remmic.pk"
-                  className={styles.actionButtonPrimary}
+                  className="border-none rounded-full px-5 py-2.5 text-sm font-semibold cursor-pointer bg-gradient-to-br from-green-500 to-green-600 text-white shadow-[0_10px_18px_rgba(34,197,94,0.28)] transition-all hover:-translate-y-0.5 hover:shadow-[0_14px_24px_rgba(34,197,94,0.35)]"
                   style={{ display: 'block', textAlign: 'center', textDecoration: 'none' }}
                 >
                   Contact Support

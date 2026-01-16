@@ -60,7 +60,7 @@ export default function Services() {
 
       <div className="page-wrapper">
         <Navbar />
-        <main className="main-wrapper">
+        <main className="pt-24">
           <section className="hero">
             <div className={`hero__content ${visible ? 'is-visible' : ''}`}>
               <p className="hero__eyebrow">Services</p>

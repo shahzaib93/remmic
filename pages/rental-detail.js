@@ -4,7 +4,6 @@ import { useEffect, useState } from 'react'
 import Navbar from '../components/Navbar'
 import Footer from '../components/Footer'
 import { getPropertyById, ensurePropertyImage, formatCurrency } from '../utils/propertyStorage'
-import styles from '../styles/rentalDetail.module.css'
 
 export default function RentalDetail() {
   const router = useRouter()
@@ -195,9 +194,9 @@ export default function RentalDetail() {
         <Head>
           <title>Loading... - REMMIC</title>
         </Head>
-        <div className={styles.loadingContainer}>
-          <div className={styles.loadingSpinner}></div>
-          <p className={styles.loadingText}>Loading property details...</p>
+        <div className="flex flex-col items-center justify-center min-h-screen gap-4">
+          <div className="w-12 h-12 border-[3px] border-gray-200 border-t-[#c9a227] rounded-full animate-spin" />
+          <p className="text-base text-gray-500">Loading property details...</p>
         </div>
       </>
     )
@@ -216,110 +215,114 @@ export default function RentalDetail() {
       <div className="page-wrapper">
         <Navbar />
 
-        <main className={styles.pageContainer}>
-          <div className={styles.contentWrapper}>
+        <main className="pt-[120px] min-h-screen bg-gray-50 max-md:pt-[100px]">
+          <div className="max-w-[1200px] mx-auto px-[5%] pb-16 max-md:px-[4%] max-md:pb-12">
 
             {/* Back Button */}
             <button
-              className={styles.backButton}
+              className="inline-flex items-center gap-2 py-3 px-5 bg-gray-900 text-white border-none rounded-xl text-sm font-semibold cursor-pointer transition-all duration-300 mb-8 hover:bg-[#4a3728] hover:-translate-x-1"
               onClick={() => router.back()}
               aria-label="Go back to rentals"
             >
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <svg className="w-[18px] h-[18px]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
               </svg>
               Back to Rentals
             </button>
 
             {/* Property Card */}
-            <article className={styles.propertyCard}>
+            <article className="bg-white rounded-2xl shadow-lg overflow-hidden mb-8 border border-gray-100">
 
               {/* Hero Image */}
-              <div className={styles.heroImage}>
+              <div className="relative h-[450px] overflow-hidden max-lg:h-[350px] max-md:h-[280px] max-sm:h-[220px] group">
                 <img
+                  className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.02]"
                   src={property.gallery?.[activeImage] || property.image}
                   alt={property.title}
                 />
-                <span className={`${styles.statusBadge} ${property.status === 'Available' ? styles.statusAvailable : styles.statusRented}`}>
+                <span className={`absolute top-5 left-5 py-2 px-4 rounded-lg font-semibold text-sm uppercase tracking-wider text-white ${property.status === 'Available' ? 'bg-green-500' : 'bg-amber-500'}`}>
                   {property.status}
                 </span>
-                <span className={styles.typeBadge}>
+                <span className="absolute top-5 right-5 py-2 px-4 bg-[rgba(10,10,10,0.85)] text-white rounded-lg font-semibold text-sm backdrop-blur-sm">
                   {property.type}
                 </span>
               </div>
 
               {/* Property Content */}
-              <div className={styles.propertyContent}>
+              <div className="p-10 max-lg:p-8 max-md:p-6 max-sm:p-5">
 
                 {/* Header */}
-                <header className={styles.propertyHeader}>
-                  <h1 className={styles.propertyTitle}>{property.title}</h1>
-                  <p className={styles.priceLabel}>Monthly Rent</p>
-                  <p className={styles.propertyPrice}>
+                <header className="mb-8 pb-6 border-b border-gray-100">
+                  <h1 className="text-4xl font-bold text-gray-900 m-0 mb-4 leading-tight max-lg:text-3xl max-md:text-2xl max-sm:text-xl">{property.title}</h1>
+                  <p className="text-sm text-gray-500 font-medium mb-1">Monthly Rent</p>
+                  <p className="text-2xl font-bold text-[#c9a227] m-0 max-md:text-xl">
                     {property.priceDisplay || `PKR ${typeof property.price === 'number' ? property.price.toLocaleString() : property.price}`}
                   </p>
                 </header>
 
                 {/* Details Grid */}
-                <div className={styles.detailsGrid}>
-                  <div className={styles.detailItem}>
-                    <span className={styles.detailLabel}>Location</span>
-                    <span className={styles.detailValue}>{property.location}</span>
+                <div className="grid grid-cols-[repeat(auto-fit,minmax(180px,1fr))] gap-5 mb-8 p-6 bg-gray-50 rounded-xl max-lg:grid-cols-2 max-md:gap-4 max-md:p-4 max-sm:grid-cols-1">
+                  <div className="flex flex-col gap-1">
+                    <span className="text-xs text-gray-400 uppercase tracking-wider font-semibold">Location</span>
+                    <span className="text-base text-gray-900 font-medium">{property.location}</span>
                   </div>
-                  <div className={styles.detailItem}>
-                    <span className={styles.detailLabel}>Area</span>
-                    <span className={styles.detailValue}>{property.area}</span>
+                  <div className="flex flex-col gap-1">
+                    <span className="text-xs text-gray-400 uppercase tracking-wider font-semibold">Area</span>
+                    <span className="text-base text-gray-900 font-medium">{property.area}</span>
                   </div>
                   {property.bedrooms > 0 && (
-                    <div className={styles.detailItem}>
-                      <span className={styles.detailLabel}>Bedrooms</span>
-                      <span className={styles.detailValue}>{property.bedrooms}</span>
+                    <div className="flex flex-col gap-1">
+                      <span className="text-xs text-gray-400 uppercase tracking-wider font-semibold">Bedrooms</span>
+                      <span className="text-base text-gray-900 font-medium">{property.bedrooms}</span>
                     </div>
                   )}
-                  <div className={styles.detailItem}>
-                    <span className={styles.detailLabel}>Bathrooms</span>
-                    <span className={styles.detailValue}>{property.bathrooms}</span>
+                  <div className="flex flex-col gap-1">
+                    <span className="text-xs text-gray-400 uppercase tracking-wider font-semibold">Bathrooms</span>
+                    <span className="text-base text-gray-900 font-medium">{property.bathrooms}</span>
                   </div>
-                  <div className={styles.detailItem}>
-                    <span className={styles.detailLabel}>Furnished</span>
-                    <span className={styles.detailValue}>{property.furnished}</span>
+                  <div className="flex flex-col gap-1">
+                    <span className="text-xs text-gray-400 uppercase tracking-wider font-semibold">Furnished</span>
+                    <span className="text-base text-gray-900 font-medium">{property.furnished}</span>
                   </div>
-                  <div className={styles.detailItem}>
-                    <span className={styles.detailLabel}>Security Deposit</span>
-                    <span className={styles.detailValue}>{formatSecurityDeposit(property.security)}</span>
+                  <div className="flex flex-col gap-1">
+                    <span className="text-xs text-gray-400 uppercase tracking-wider font-semibold">Security Deposit</span>
+                    <span className="text-base text-gray-900 font-medium">{formatSecurityDeposit(property.security)}</span>
                   </div>
                 </div>
 
                 {/* Description */}
-                <section className={styles.descriptionSection}>
-                  <h2 className={styles.sectionTitle}>Description</h2>
-                  <p className={styles.description}>{property.description}</p>
+                <section className="mb-8">
+                  <h2 className="text-xl font-bold text-gray-900 m-0 mb-4 flex items-center gap-3 before:content-[''] before:w-1 before:h-6 before:bg-gradient-to-b before:from-[#c9a227] before:to-[#d4b13d] before:rounded-full max-sm:text-lg">Description</h2>
+                  <p className="text-base leading-relaxed text-gray-600 m-0">{property.description}</p>
                 </section>
 
                 {/* Features */}
-                <section className={styles.featuresSection}>
-                  <h2 className={styles.sectionTitle}>Features & Amenities</h2>
-                  <div className={styles.featuresGrid}>
+                <section className="mb-8">
+                  <h2 className="text-xl font-bold text-gray-900 m-0 mb-4 flex items-center gap-3 before:content-[''] before:w-1 before:h-6 before:bg-gradient-to-b before:from-[#c9a227] before:to-[#d4b13d] before:rounded-full max-sm:text-lg">Features & Amenities</h2>
+                  <div className="flex flex-wrap gap-3">
                     {(Array.isArray(property.features) ? property.features : [property.features].filter(Boolean)).map((feature, index) => (
-                      <span key={index} className={styles.featureTag}>
+                      <span
+                        key={index}
+                        className="inline-flex items-center gap-2 py-2 px-4 bg-[rgba(201,162,39,0.08)] text-[#a8861f] border border-[#c9a227] rounded-full text-sm font-medium transition-all duration-200 hover:bg-[#c9a227] hover:text-gray-900 max-sm:text-xs max-sm:py-1 max-sm:px-3"
+                      >
                         {feature}
                       </span>
                     ))}
                     {(!property.features || property.features.length === 0) && (
-                      <span className={styles.featureTag}>Details coming soon</span>
+                      <span className="inline-flex items-center gap-2 py-2 px-4 bg-[rgba(201,162,39,0.08)] text-[#a8861f] border border-[#c9a227] rounded-full text-sm font-medium">Details coming soon</span>
                     )}
                   </div>
                 </section>
 
                 {/* Gallery */}
                 {property.gallery && property.gallery.length > 0 && (
-                  <section className={styles.gallerySection}>
-                    <h2 className={styles.sectionTitle}>Photo Gallery</h2>
-                    <div className={styles.galleryGrid}>
+                  <section className="mb-8">
+                    <h2 className="text-xl font-bold text-gray-900 m-0 mb-4 flex items-center gap-3 before:content-[''] before:w-1 before:h-6 before:bg-gradient-to-b before:from-[#c9a227] before:to-[#d4b13d] before:rounded-full max-sm:text-lg">Photo Gallery</h2>
+                    <div className="grid grid-cols-[repeat(auto-fit,minmax(280px,1fr))] gap-4 max-md:grid-cols-1">
                       {property.gallery.map((img, index) => (
                         <div
                           key={index}
-                          className={styles.galleryItem}
+                          className="relative rounded-xl overflow-hidden aspect-[16/10] cursor-pointer group"
                           onClick={() => setActiveImage(index)}
                           role="button"
                           tabIndex={0}
@@ -327,10 +330,12 @@ export default function RentalDetail() {
                           onKeyDown={(e) => e.key === 'Enter' && setActiveImage(index)}
                         >
                           <img
+                            className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-[1.08]"
                             src={img}
                             alt={`${property.title} - Image ${index + 1}`}
                             loading="lazy"
                           />
+                          <div className="absolute inset-0 bg-gradient-to-t from-[rgba(0,0,0,0.3)] to-transparent opacity-0 transition-opacity duration-200 group-hover:opacity-100" />
                         </div>
                       ))}
                     </div>
@@ -340,35 +345,35 @@ export default function RentalDetail() {
             </article>
 
             {/* Contact Card */}
-            <section className={styles.contactCard}>
-              <h2 className={styles.sectionTitle}>Contact Information</h2>
+            <section className="bg-white rounded-2xl p-8 shadow-lg border border-gray-100 max-md:p-6">
+              <h2 className="text-xl font-bold text-gray-900 m-0 mb-4 flex items-center gap-3 before:content-[''] before:w-1 before:h-6 before:bg-gradient-to-b before:from-[#c9a227] before:to-[#d4b13d] before:rounded-full max-sm:text-lg">Contact Information</h2>
 
-              <div className={styles.contactGrid}>
-                <div className={styles.contactItem}>
-                  <span className={styles.contactLabel}>Contact Person</span>
-                  <span className={styles.contactValue}>{property.contactInfo.name}</span>
+              <div className="grid grid-cols-[repeat(auto-fit,minmax(220px,1fr))] gap-6 mb-6 max-md:grid-cols-1 max-md:gap-4">
+                <div className="flex flex-col gap-1">
+                  <span className="text-xs text-gray-400 uppercase tracking-wider font-semibold">Contact Person</span>
+                  <span className="text-base text-gray-900 font-medium">{property.contactInfo.name}</span>
                 </div>
-                <div className={styles.contactItem}>
-                  <span className={styles.contactLabel}>Phone</span>
-                  <a href={`tel:${property.contactInfo.phone}`} className={styles.contactLink}>
+                <div className="flex flex-col gap-1">
+                  <span className="text-xs text-gray-400 uppercase tracking-wider font-semibold">Phone</span>
+                  <a href={`tel:${property.contactInfo.phone}`} className="text-[#c9a227] no-underline font-medium transition-colors duration-200 hover:text-[#a8861f]">
                     {property.contactInfo.phone}
                   </a>
                 </div>
-                <div className={styles.contactItem}>
-                  <span className={styles.contactLabel}>Email</span>
-                  <a href={`mailto:${property.contactInfo.email}`} className={styles.contactLink}>
+                <div className="flex flex-col gap-1">
+                  <span className="text-xs text-gray-400 uppercase tracking-wider font-semibold">Email</span>
+                  <a href={`mailto:${property.contactInfo.email}`} className="text-[#c9a227] no-underline font-medium transition-colors duration-200 hover:text-[#a8861f]">
                     {property.contactInfo.email}
                   </a>
                 </div>
-                <div className={styles.contactItem}>
-                  <span className={styles.contactLabel}>Available From</span>
-                  <span className={styles.contactValue}>{property.availableFrom}</span>
+                <div className="flex flex-col gap-1">
+                  <span className="text-xs text-gray-400 uppercase tracking-wider font-semibold">Available From</span>
+                  <span className="text-base text-gray-900 font-medium">{property.availableFrom}</span>
                 </div>
               </div>
 
-              <div className={styles.contactButtons}>
+              <div className="flex gap-4 flex-wrap max-md:flex-col">
                 <button
-                  className={styles.callButton}
+                  className="flex-1 min-w-[200px] inline-flex items-center justify-center gap-3 py-4 px-6 bg-gradient-to-r from-[#c9a227] to-[#d4b13d] text-gray-900 border-none rounded-xl text-base font-semibold cursor-pointer transition-all duration-300 shadow-[0_4px_14px_rgba(201,162,39,0.25)] hover:-translate-y-0.5 hover:shadow-[0_6px_20px_rgba(201,162,39,0.35)] max-md:w-full"
                   onClick={() => window.location.href = `tel:${property.contactInfo.phone}`}
                 >
                   <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -377,7 +382,7 @@ export default function RentalDetail() {
                   Call Now
                 </button>
                 <button
-                  className={styles.emailButton}
+                  className="btn-outline-gold btn-lg flex-1 min-w-[200px] max-md:w-full"
                   onClick={() => window.location.href = `mailto:${property.contactInfo.email}?subject=Inquiry about ${property.title}`}
                 >
                   <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor">

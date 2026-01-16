@@ -10,7 +10,6 @@ import {
   updateDevelopmentProjectStatus,
   DEVELOPMENT_PROJECT_STATUS
 } from '../../../../lib/firebase'
-import styles from '../../../../styles/adminOverview.module.css'
 
 export default function FundingModule() {
   const router = useRouter()
@@ -201,7 +200,7 @@ export default function FundingModule() {
         </div>
 
         {/* Funding Progress */}
-        <div className={styles.panel} style={{ marginBottom: '2rem' }}>
+        <div className="bg-white rounded-[1.75rem] p-7 shadow-[0_12px_32px_rgba(15,23,42,0.08)] border border-slate-200/20" style={{ marginBottom: '2rem' }}>
           <h3 style={{ margin: '0 0 1.5rem' }}>Funding Progress</h3>
           <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
             <span style={{ fontWeight: 500 }}>
@@ -228,32 +227,32 @@ export default function FundingModule() {
         </div>
 
         {/* Funding Stats */}
-        <div className={styles.metricGrid} style={{ marginBottom: '2rem' }}>
-          <div className={styles.metricCard}>
-            <h3>Capital Required</h3>
-            <div className={styles.metricValue}>{formatCurrency(fundingData.capitalRequired)}</div>
+        <div className="grid grid-cols-4 max-lg:grid-cols-2 max-md:grid-cols-1 gap-6" style={{ marginBottom: '2rem' }}>
+          <div className="bg-white rounded-2xl p-6 shadow-[0_4px_16px_rgba(15,23,42,0.05)] border border-slate-100 text-center">
+            <h3 className="text-xs uppercase tracking-wider text-gray-500 mb-2 font-semibold">Capital Required</h3>
+            <div className="text-[2.25rem] font-bold text-gray-900 mb-1">{formatCurrency(fundingData.capitalRequired)}</div>
           </div>
-          <div className={styles.metricCard}>
-            <h3>Min Investment</h3>
-            <div className={styles.metricValue}>{formatCurrency(fundingData.minimumInvestment)}</div>
+          <div className="bg-white rounded-2xl p-6 shadow-[0_4px_16px_rgba(15,23,42,0.05)] border border-slate-100 text-center">
+            <h3 className="text-xs uppercase tracking-wider text-gray-500 mb-2 font-semibold">Min Investment</h3>
+            <div className="text-[2.25rem] font-bold text-gray-900 mb-1">{formatCurrency(fundingData.minimumInvestment)}</div>
           </div>
-          <div className={styles.metricCard}>
-            <h3>Max Investment</h3>
-            <div className={styles.metricValue}>{formatCurrency(fundingData.maximumInvestment)}</div>
+          <div className="bg-white rounded-2xl p-6 shadow-[0_4px_16px_rgba(15,23,42,0.05)] border border-slate-100 text-center">
+            <h3 className="text-xs uppercase tracking-wider text-gray-500 mb-2 font-semibold">Max Investment</h3>
+            <div className="text-[2.25rem] font-bold text-gray-900 mb-1">{formatCurrency(fundingData.maximumInvestment)}</div>
           </div>
-          <div className={styles.metricCard}>
-            <h3>Expected Return</h3>
-            <div className={styles.metricValue} style={{ color: '#059669' }}>
+          <div className="bg-white rounded-2xl p-6 shadow-[0_4px_16px_rgba(15,23,42,0.05)] border border-slate-100 text-center">
+            <h3 className="text-xs uppercase tracking-wider text-gray-500 mb-2 font-semibold">Expected Return</h3>
+            <div className="text-[2.25rem] font-bold mb-1" style={{ color: '#059669' }}>
               {fundingData.expectedReturn || 0}%
             </div>
-            <div className={styles.metricMeta}>
+            <div className="text-xs text-gray-500">
               <span>Indicative only</span>
             </div>
           </div>
         </div>
 
         {/* Funding Configuration */}
-        <div className={styles.panel} style={{ marginBottom: '2rem' }}>
+        <div className="bg-white rounded-[1.75rem] p-7 shadow-[0_12px_32px_rgba(15,23,42,0.08)] border border-slate-200/20" style={{ marginBottom: '2rem' }}>
           <h3 style={{ margin: '0 0 1.5rem' }}>Funding Configuration</h3>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
             <div>
@@ -377,7 +376,7 @@ export default function FundingModule() {
 
         {/* Simulated Investors (Demo) */}
         {isFundingOpen && (
-          <div className={styles.panel} style={{ marginBottom: '2rem' }}>
+          <div className="bg-white rounded-[1.75rem] p-7 shadow-[0_12px_32px_rgba(15,23,42,0.08)] border border-slate-200/20" style={{ marginBottom: '2rem' }}>
             <h3 style={{ margin: '0 0 1rem' }}>Recent Investments</h3>
             <p style={{ color: '#6b7280', fontSize: '0.875rem', marginBottom: '1rem' }}>
               Investor data will be linked from the investment module.
@@ -393,7 +392,7 @@ export default function FundingModule() {
           {canPublish && (
             <button
               onClick={() => setShowPublishModal(true)}
-              className={styles.actionButtonPrimary}
+              className="border-none rounded-full px-5 py-2.5 text-sm font-semibold cursor-pointer bg-gradient-to-br from-green-500 to-green-600 text-white shadow-[0_10px_18px_rgba(34,197,94,0.28)] transition-all hover:-translate-y-0.5 hover:shadow-[0_14px_24px_rgba(34,197,94,0.35)]"
             >
               Publish to Investment Module
             </button>
@@ -401,7 +400,7 @@ export default function FundingModule() {
           {isFundingOpen && (
             <button
               onClick={() => setShowCloseModal(true)}
-              className={styles.actionButtonSecondary}
+              className="border border-slate-300/35 rounded-full px-4 py-2 text-sm font-semibold bg-slate-200/50 text-gray-800 transition-colors hover:bg-slate-300/50"
               style={{ background: '#fee2e2', color: '#dc2626', border: 'none' }}
             >
               Close Funding
@@ -459,7 +458,7 @@ export default function FundingModule() {
             <div style={{ display: 'flex', gap: '1rem' }}>
               <button
                 onClick={() => setShowPublishModal(false)}
-                className={styles.actionButtonSecondary}
+                className="border border-slate-300/35 rounded-full px-4 py-2 text-sm font-semibold bg-slate-200/50 text-gray-800 transition-colors hover:bg-slate-300/50"
                 style={{ flex: 1 }}
               >
                 Cancel
@@ -467,7 +466,7 @@ export default function FundingModule() {
               <button
                 onClick={handlePublish}
                 disabled={publishing}
-                className={styles.actionButtonPrimary}
+                className="border-none rounded-full px-5 py-2.5 text-sm font-semibold cursor-pointer bg-gradient-to-br from-green-500 to-green-600 text-white shadow-[0_10px_18px_rgba(34,197,94,0.28)] transition-all hover:-translate-y-0.5 hover:shadow-[0_14px_24px_rgba(34,197,94,0.35)]"
                 style={{ flex: 1 }}
               >
                 {publishing ? 'Publishing...' : 'Confirm Publish'}
@@ -505,7 +504,7 @@ export default function FundingModule() {
             <div style={{ display: 'flex', gap: '1rem' }}>
               <button
                 onClick={() => setShowCloseModal(false)}
-                className={styles.actionButtonSecondary}
+                className="border border-slate-300/35 rounded-full px-4 py-2 text-sm font-semibold bg-slate-200/50 text-gray-800 transition-colors hover:bg-slate-300/50"
                 style={{ flex: 1 }}
               >
                 Cancel
@@ -513,7 +512,7 @@ export default function FundingModule() {
               <button
                 onClick={handleCloseFunding}
                 disabled={publishing}
-                className={styles.actionButtonPrimary}
+                className="border-none rounded-full px-5 py-2.5 text-sm font-semibold cursor-pointer bg-gradient-to-br from-green-500 to-green-600 text-white shadow-[0_10px_18px_rgba(34,197,94,0.28)] transition-all hover:-translate-y-0.5 hover:shadow-[0_14px_24px_rgba(34,197,94,0.35)]"
                 style={{ flex: 1, background: fundingData.fundingProgress >= 100 ? '#059669' : '#dc2626' }}
               >
                 {publishing ? 'Processing...' : 'Close Funding'}

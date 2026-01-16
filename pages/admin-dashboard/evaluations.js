@@ -3,7 +3,6 @@ import Link from 'next/link'
 import AdminLayout from '../../components/admin/AdminLayout'
 import { useAdminDashboardData } from '../../hooks/useAdminDashboardData'
 import { useFirebase } from '../../contexts/FirebaseContext'
-import overviewStyles from '../../styles/adminOverview.module.css'
 import { generateEvaluationPdf } from '../../utils/pdf'
 
 const formatCurrency = (value) =>
@@ -35,28 +34,28 @@ const resolveEvaluationId = (evaluation) => {
 }
 
 const getStatusBadgeClass = (status) => {
-  if (!status) return overviewStyles.badgePending
+  if (!status) return 'bg-indigo-500/15 text-indigo-700 border-indigo-500/20'
   const statusLower = status.toLowerCase()
 
   switch (statusLower) {
     case 'completed':
     case 'approved':
     case 'verified':
-      return overviewStyles.badgeSuccess
+      return 'bg-green-500/15 text-emerald-700 border-green-500/20'
     case 'pending':
     case 'review':
     case 'waiting':
-      return overviewStyles.badgePending
+      return 'bg-indigo-500/15 text-indigo-700 border-indigo-500/20'
     case 'active':
     case 'live':
     case 'processing':
-      return overviewStyles.badgeActive
+      return 'bg-emerald-500/15 text-emerald-600 border-emerald-500/20'
     case 'rejected':
     case 'failed':
     case 'cancelled':
-      return overviewStyles.badgeWarning
+      return 'bg-orange-500/15 text-orange-700 border-orange-500/20'
     default:
-      return overviewStyles.badge
+      return 'bg-gradient-to-br from-[rgba(201,162,39,0.15)] to-[rgba(201,162,39,0.1)] text-[#92710c] border-[rgba(201,162,39,0.2)]'
   }
 }
 
@@ -317,44 +316,46 @@ export default function AdminEvaluationsPage() {
       metaTitle='Admin Evaluations'
       onRefresh={refresh}
     >
-      <div className={overviewStyles.section}>
-        <section className={overviewStyles.panel}>
-          <header className={overviewStyles.panelHeader}>
+      <div className="grid gap-7">
+        {/* Summary Section */}
+        <section className="bg-white rounded-[1.75rem] p-7 shadow-[0_12px_32px_rgba(15,23,42,0.08)] border border-slate-200/20 flex flex-col gap-5 max-h-[450px] overflow-hidden">
+          <header className="flex justify-between items-center gap-4">
             <div>
-              <h2>Evaluation summary</h2>
-              <span>{pendingCount} pending - {totalCount} total requests</span>
+              <h2 className="m-0 text-lg font-semibold text-gray-900">Evaluation summary</h2>
+              <span className="text-gray-400 text-sm">{pendingCount} pending - {totalCount} total requests</span>
             </div>
           </header>
-          <div className={overviewStyles.quickGrid}>
-            <article className={overviewStyles.quickCard}>
-              <h3>Pending queue</h3>
-              <p>{pendingCount} submissions waiting for review</p>
+          <div className="grid grid-cols-[repeat(auto-fit,minmax(220px,1fr))] gap-5 max-h-[300px] overflow-y-auto pr-1">
+            <article className="rounded-3xl p-5 bg-white border border-slate-200/20 grid gap-3 shadow-[0_12px_24px_rgba(148,163,184,0.08)] transition-all hover:border-slate-300/30 hover:shadow-[0_16px_30px_rgba(148,163,184,0.12)] hover:-translate-y-0.5">
+              <h3 className="m-0 text-base text-gray-800">Pending queue</h3>
+              <p className="m-0 text-slate-500 text-sm">{pendingCount} submissions waiting for review</p>
             </article>
-            <article className={overviewStyles.quickCard}>
-              <h3>Approved dossiers</h3>
-              <p>{approvedEvaluations.length} marked ready for listing</p>
+            <article className="rounded-3xl p-5 bg-white border border-slate-200/20 grid gap-3 shadow-[0_12px_24px_rgba(148,163,184,0.08)] transition-all hover:border-slate-300/30 hover:shadow-[0_16px_30px_rgba(148,163,184,0.12)] hover:-translate-y-0.5">
+              <h3 className="m-0 text-base text-gray-800">Approved dossiers</h3>
+              <p className="m-0 text-slate-500 text-sm">{approvedEvaluations.length} marked ready for listing</p>
             </article>
-            <article className={overviewStyles.quickCard}>
-              <h3>PDF reports</h3>
-              <p>{pdfReadyCount} generated exports ready to share</p>
+            <article className="rounded-3xl p-5 bg-white border border-slate-200/20 grid gap-3 shadow-[0_12px_24px_rgba(148,163,184,0.08)] transition-all hover:border-slate-300/30 hover:shadow-[0_16px_30px_rgba(148,163,184,0.12)] hover:-translate-y-0.5">
+              <h3 className="m-0 text-base text-gray-800">PDF reports</h3>
+              <p className="m-0 text-slate-500 text-sm">{pdfReadyCount} generated exports ready to share</p>
             </article>
           </div>
         </section>
 
-        <section className={overviewStyles.panel}>
-          <header className={overviewStyles.panelHeader}>
+        {/* Evaluation Requests Section */}
+        <section className="bg-white rounded-[1.75rem] p-7 shadow-[0_12px_32px_rgba(15,23,42,0.08)] border border-slate-200/20 flex flex-col gap-5 max-h-[450px] overflow-hidden">
+          <header className="flex justify-between items-center gap-4">
             <div>
-              <h2>Evaluation requests</h2>
-              <span>{evaluationReviewItems.length ? `${evaluationReviewItems.length} dossiers (showing latest)` : 'No submissions to show'}</span>
+              <h2 className="m-0 text-lg font-semibold text-gray-900">Evaluation requests</h2>
+              <span className="text-gray-400 text-sm">{evaluationReviewItems.length ? `${evaluationReviewItems.length} dossiers (showing latest)` : 'No submissions to show'}</span>
             </div>
           </header>
 
           {actionNotice && (
             <div
-              className={`${overviewStyles.actionNotice} ${
+              className={`mt-4 p-3 rounded-xl text-sm font-medium flex items-center gap-2 ${
                 actionNotice.type === 'error'
-                  ? overviewStyles.actionNoticeError
-                  : overviewStyles.actionNoticeSuccess
+                  ? 'bg-red-100/50 text-red-700 border border-red-200/50'
+                  : 'bg-green-100/50 text-emerald-700 border border-green-200/50'
               }`}
             >
               {actionNotice.message}
@@ -362,9 +363,9 @@ export default function AdminEvaluationsPage() {
           )}
 
           {loading ? (
-            <div className={overviewStyles.emptyState}>Loading evaluation dossiers...</div>
+            <div className="border border-dashed border-slate-300/40 rounded-3xl py-10 px-6 text-center text-slate-400 text-[0.95rem]">Loading evaluation dossiers...</div>
           ) : evaluationReviewItems.length ? (
-            <div className={overviewStyles.list}>
+            <div className="grid gap-4 overflow-y-auto flex-1 pr-1">
               {evaluationReviewItems.map((evaluation, index) => {
                 const evaluationId = resolveEvaluationId(evaluation) || `evaluation-${index}`
                 const statusValue = (evaluation.status || 'pending')
@@ -381,26 +382,26 @@ export default function AdminEvaluationsPage() {
                 const currentComment = commentDrafts[evaluationId] ?? evaluation.adminComment ?? ''
 
                 return (
-                  <div key={evaluationId} className={overviewStyles.listItem}>
-                    <span className={`${overviewStyles.badge} ${getStatusBadgeClass(statusValue)}`}>
+                  <div key={evaluationId} className="grid grid-cols-[auto_1fr_minmax(150px,220px)] gap-x-4 gap-y-2 items-start py-3.5 border-b border-slate-200/55 last:border-b-0">
+                    <span className={`inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-semibold uppercase tracking-wide border ${getStatusBadgeClass(statusValue)}`}>
                       {(evaluation.propertyType || evaluation.type || 'evaluation').toUpperCase()}
                     </span>
                     <div>
-                      <strong>{evaluation.property || evaluation.propertyName || evaluation.propertyAddress || 'Submitted property'}</strong>
-                      <div className={overviewStyles.smallMeta}>
+                      <strong className="font-semibold text-gray-800">{evaluation.property || evaluation.propertyName || evaluation.propertyAddress || 'Submitted property'}</strong>
+                      <div className="text-gray-400 text-sm">
                         {evaluation.address || evaluation.propertyAddress || evaluation.city || 'Address unavailable'}
                       </div>
-                      <div className={overviewStyles.smallMeta}>
+                      <div className="text-gray-400 text-sm">
                         Submitted: {formatDate(evaluation.submittedAt || evaluation.createdAt)} - Owner: {evaluation.fullName || evaluation.contactName || 'Not provided'} ({evaluation.contact || evaluation.userPhone || 'no phone'})
                       </div>
 
                       {imageAssets?.length ? (
-                        <div className={overviewStyles.mediaStrip}>
+                        <div className="flex gap-2 my-2">
                           {imageAssets.slice(0, 4).map((media, mediaIndex) => {
                             const previewUrl = media?.dataUrl || media?.url
                             if (!previewUrl) {
                               return (
-                                <div key={`${evaluationId}-media-${mediaIndex}`} className={overviewStyles.mediaThumbPlaceholder}>
+                                <div key={`${evaluationId}-media-${mediaIndex}`} className="w-14 h-14 rounded-xl border border-slate-300/35 flex items-center justify-center text-xs font-bold text-slate-600 bg-slate-200/70">
                                   {(media?.name || 'image').slice(0, 2).toUpperCase()}
                                 </div>
                               )
@@ -410,7 +411,7 @@ export default function AdminEvaluationsPage() {
                                 key={`${evaluationId}-media-${mediaIndex}`}
                                 src={previewUrl}
                                 alt={media?.name || `media-${mediaIndex + 1}`}
-                                className={overviewStyles.mediaThumb}
+                                className="w-14 h-14 rounded-xl object-cover border border-slate-300/35"
                               />
                             )
                           })}
@@ -418,7 +419,7 @@ export default function AdminEvaluationsPage() {
                       ) : null}
 
                       {documentAssets?.length ? (
-                        <div className={overviewStyles.documentRow}>
+                        <div className="flex gap-2 flex-wrap mb-2">
                           {documentAssets.slice(0, 4).map((docItem, docIndex) => (
                             <a
                               key={`${evaluationId}-doc-${docIndex}`}
@@ -426,7 +427,7 @@ export default function AdminEvaluationsPage() {
                               download={docItem?.name || `document-${docIndex + 1}`}
                               target='_blank'
                               rel='noreferrer'
-                              className={overviewStyles.docLink}
+                              className="text-xs px-3 py-1 rounded-full bg-slate-800/10 text-slate-900 no-underline hover:bg-slate-800/20"
                             >
                               {docItem?.name || `Document ${docIndex + 1}`}
                             </a>
@@ -434,27 +435,27 @@ export default function AdminEvaluationsPage() {
                         </div>
                       ) : null}
 
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem', marginTop: '0.75rem' }}>
-                        <label style={{ fontSize: '0.85rem', color: '#475467' }} htmlFor={`value-${evaluationId}`}>
+                      <div className="flex flex-col gap-1 mt-3">
+                        <label className="text-sm text-slate-600" htmlFor={`value-${evaluationId}`}>
                           Evaluated value (PKR)
                         </label>
                         <input
                           id={`value-${evaluationId}`}
                           type='text'
-                          className={overviewStyles.inlineInput}
+                          className="border border-slate-300/60 rounded-xl px-3 py-2 text-sm w-full transition-all focus:border-orange-500 focus:ring-2 focus:ring-orange-500/15 focus:outline-none"
                           placeholder='PKR 25,000,000'
                           value={currentValue}
                           onChange={(event) =>
                             setValueDrafts((prev) => ({ ...prev, [evaluationId]: event.target.value }))
                           }
                         />
-                        <label style={{ fontSize: '0.85rem', color: '#475467' }} htmlFor={`comment-${evaluationId}`}>
+                        <label className="text-sm text-slate-600" htmlFor={`comment-${evaluationId}`}>
                           Admin notes / PDF annotation
                         </label>
                         <textarea
                           id={`comment-${evaluationId}`}
                           rows={3}
-                          className={overviewStyles.inlineTextarea}
+                          className="border border-slate-300/60 rounded-xl px-3 py-2 text-sm w-full resize-y min-h-[70px] transition-all focus:border-orange-500 focus:ring-2 focus:ring-orange-500/15 focus:outline-none"
                           placeholder='Add guidance for the PDF report'
                           value={currentComment}
                           onChange={(event) =>
@@ -463,11 +464,11 @@ export default function AdminEvaluationsPage() {
                         />
                       </div>
 
-                      <div className={overviewStyles.inlineMetaRow}>
-                        <Link href={`/evaluation-detail?id=${evaluationId}`} className={overviewStyles.inlineLink}>
+                      <div className="flex gap-4 flex-wrap items-center my-2">
+                        <Link href={`/evaluation-detail?id=${evaluationId}`} className="text-sm text-blue-600 no-underline font-semibold hover:underline">
                           Review full submission
                         </Link>
-                        <span className={overviewStyles.smallMeta}>
+                        <span className="text-gray-400 text-sm">
                           Requested value: {evaluation.propertyValue ? formatCurrency(evaluation.propertyValue) : '--'}
                         </span>
                         {evaluation.pdfReport && (
@@ -475,20 +476,20 @@ export default function AdminEvaluationsPage() {
                             href={evaluation.pdfReport}
                             target='_blank'
                             rel='noreferrer'
-                            className={overviewStyles.inlineLink}
+                            className="text-sm text-blue-600 no-underline font-semibold hover:underline"
                           >
                             Download existing PDF
                           </a>
                         )}
                       </div>
                     </div>
-                    <div className={overviewStyles.listItemMeta}>
-                      <span className={overviewStyles.smallMeta}>{formatDate(evaluation.submittedAt || evaluation.createdAt)}</span>
-                      <div className={overviewStyles.listActions}>
+                    <div className="flex flex-col items-end justify-center gap-1.5 min-w-[170px]">
+                      <span className="text-gray-400 text-sm">{formatDate(evaluation.submittedAt || evaluation.createdAt)}</span>
+                      <div className="inline-flex gap-1.5 flex-wrap justify-end w-full">
                         {isPending && (
                           <button
                             type='button'
-                            className={`${overviewStyles.actionButton} ${overviewStyles.actionButtonPrimary}`}
+                            className="border-none rounded-full px-3.5 py-1.5 text-xs font-semibold cursor-pointer transition-all inline-flex items-center gap-1 bg-gradient-to-br from-green-500 to-green-600 text-white shadow-[0_10px_18px_rgba(34,197,94,0.28)] hover:-translate-y-0.5 hover:shadow-[0_14px_24px_rgba(34,197,94,0.32)] disabled:opacity-55 disabled:cursor-not-allowed disabled:transform-none disabled:shadow-none"
                             onClick={() => handleApproveEvaluation(evaluation)}
                             disabled={processingEvaluationId === evaluationId || deletingEvaluationId === evaluationId}
                           >
@@ -497,7 +498,7 @@ export default function AdminEvaluationsPage() {
                         )}
                         <button
                           type='button'
-                          className={`${overviewStyles.actionButton} ${overviewStyles.actionButtonDanger}`}
+                          className="border border-red-300/40 rounded-full px-3.5 py-1.5 text-xs font-semibold cursor-pointer transition-all inline-flex items-center gap-1 bg-red-500/10 text-red-600 hover:bg-red-500/20 disabled:opacity-55 disabled:cursor-not-allowed"
                           onClick={() => handleDeleteEvaluation(evaluation)}
                           disabled={deletingEvaluationId === evaluationId || processingEvaluationId === evaluationId}
                         >
@@ -510,7 +511,7 @@ export default function AdminEvaluationsPage() {
               })}
             </div>
           ) : (
-            <div className={overviewStyles.emptyState}>No evaluation submissions available.</div>
+            <div className="border border-dashed border-slate-300/40 rounded-3xl py-10 px-6 text-center text-slate-400 text-[0.95rem]">No evaluation submissions available.</div>
           )}
         </section>
       </div>

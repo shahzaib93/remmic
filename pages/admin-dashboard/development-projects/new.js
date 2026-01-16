@@ -6,7 +6,6 @@ import Navbar from '../../../components/Navbar'
 import Footer from '../../../components/Footer'
 import { useFirebase } from '../../../contexts/FirebaseContext'
 import { addDevelopmentProject, DEVELOPMENT_PROJECT_STATUS } from '../../../lib/firebase'
-import styles from '../../../styles/adminOverview.module.css'
 
 export default function NewDevelopmentProject() {
   const router = useRouter()
@@ -85,25 +84,25 @@ export default function NewDevelopmentProject() {
       </Head>
       <Navbar />
 
-      <main style={{ padding: '2rem', maxWidth: 800, margin: '0 auto', minHeight: '70vh' }}>
+      <main className="p-8 max-w-[800px] mx-auto min-h-[70vh]">
         {/* Header */}
-        <div style={{ marginBottom: '2rem' }}>
-          <Link href="/admin-dashboard" style={{ color: '#6b7280', fontSize: '0.875rem', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '0.25rem', marginBottom: '0.5rem' }}>
+        <div className="mb-8">
+          <Link href="/admin-dashboard" className="text-gray-500 text-sm no-underline flex items-center gap-1 mb-2 hover:text-gray-700">
             <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M15 19l-7-7 7-7"/></svg>
             Back to Admin Dashboard
           </Link>
-          <h1 style={{ margin: 0, color: '#1f2937' }}>Create Development Project</h1>
-          <p style={{ margin: '0.5rem 0 0', color: '#6b7280' }}>
+          <h1 className="m-0 text-gray-800 text-2xl font-bold">Create Development Project</h1>
+          <p className="mt-2 mb-0 text-gray-500">
             Link an evaluated property to a new development project
           </p>
         </div>
 
         <form onSubmit={handleSubmit}>
-          <div className={styles.panel} style={{ marginBottom: '1.5rem' }}>
-            <h3 style={{ margin: '0 0 1.5rem', fontSize: '1.1rem', color: '#1f2937' }}>Property Selection</h3>
+          <div className="bg-white rounded-[1.75rem] p-7 shadow-[0_12px_32px_rgba(15,23,42,0.08)] border border-slate-200/20 mb-6">
+            <h3 className="m-0 mb-6 text-lg font-semibold text-gray-800">Property Selection</h3>
 
-            <div style={{ marginBottom: '1.5rem' }}>
-              <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 500 }}>
+            <div className="mb-6">
+              <label className="block mb-2 font-medium text-gray-700">
                 Select Evaluated Property *
               </label>
               <select
@@ -111,13 +110,7 @@ export default function NewDevelopmentProject() {
                 value={formData.propertyId}
                 onChange={handleChange}
                 required
-                style={{
-                  width: '100%',
-                  padding: '0.75rem',
-                  border: '1px solid #e5e7eb',
-                  borderRadius: '0.5rem',
-                  fontSize: '1rem'
-                }}
+                className="w-full p-3 border border-gray-200 rounded-lg text-base focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500"
               >
                 <option value="">-- Select a property --</option>
                 {properties.map(prop => (
@@ -127,19 +120,19 @@ export default function NewDevelopmentProject() {
                 ))}
               </select>
               {properties.length === 0 && (
-                <p style={{ fontSize: '0.875rem', color: '#d97706', marginTop: '0.5rem' }}>
+                <p className="text-sm text-amber-600 mt-2">
                   No evaluated properties found. Properties must be evaluated before creating a development project.
                 </p>
               )}
             </div>
           </div>
 
-          <div className={styles.panel} style={{ marginBottom: '1.5rem' }}>
-            <h3 style={{ margin: '0 0 1.5rem', fontSize: '1.1rem', color: '#1f2937' }}>Project Details</h3>
+          <div className="bg-white rounded-[1.75rem] p-7 shadow-[0_12px_32px_rgba(15,23,42,0.08)] border border-slate-200/20 mb-6">
+            <h3 className="m-0 mb-6 text-lg font-semibold text-gray-800">Project Details</h3>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-              <div style={{ gridColumn: '1 / -1' }}>
-                <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 500 }}>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="col-span-2">
+                <label className="block mb-2 font-medium text-gray-700">
                   Project Name *
                 </label>
                 <input
@@ -149,17 +142,12 @@ export default function NewDevelopmentProject() {
                   onChange={handleChange}
                   placeholder="e.g., Green Valley Residences"
                   required
-                  style={{
-                    width: '100%',
-                    padding: '0.75rem',
-                    border: '1px solid #e5e7eb',
-                    borderRadius: '0.5rem'
-                  }}
+                  className="w-full p-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500"
                 />
               </div>
 
               <div>
-                <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 500 }}>
+                <label className="block mb-2 font-medium text-gray-700">
                   Project Type *
                 </label>
                 <select
@@ -167,12 +155,7 @@ export default function NewDevelopmentProject() {
                   value={formData.projectType}
                   onChange={handleChange}
                   required
-                  style={{
-                    width: '100%',
-                    padding: '0.75rem',
-                    border: '1px solid #e5e7eb',
-                    borderRadius: '0.5rem'
-                  }}
+                  className="w-full p-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500"
                 >
                   <option value="residential">Residential</option>
                   <option value="commercial">Commercial</option>
@@ -182,7 +165,7 @@ export default function NewDevelopmentProject() {
               </div>
 
               <div>
-                <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 500 }}>
+                <label className="block mb-2 font-medium text-gray-700">
                   Development Type *
                 </label>
                 <select
@@ -190,12 +173,7 @@ export default function NewDevelopmentProject() {
                   value={formData.developmentType}
                   onChange={handleChange}
                   required
-                  style={{
-                    width: '100%',
-                    padding: '0.75rem',
-                    border: '1px solid #e5e7eb',
-                    borderRadius: '0.5rem'
-                  }}
+                  className="w-full p-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500"
                 >
                   <option value="new_construction">New Construction</option>
                   <option value="renovation">Renovation</option>
@@ -205,7 +183,7 @@ export default function NewDevelopmentProject() {
               </div>
 
               <div>
-                <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 500 }}>
+                <label className="block mb-2 font-medium text-gray-700">
                   Land Area (sq ft/marla)
                 </label>
                 <input
@@ -214,17 +192,12 @@ export default function NewDevelopmentProject() {
                   value={formData.landArea}
                   onChange={handleChange}
                   placeholder="e.g., 10 Marla or 2722 sq ft"
-                  style={{
-                    width: '100%',
-                    padding: '0.75rem',
-                    border: '1px solid #e5e7eb',
-                    borderRadius: '0.5rem'
-                  }}
+                  className="w-full p-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500"
                 />
               </div>
 
               <div>
-                <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 500 }}>
+                <label className="block mb-2 font-medium text-gray-700">
                   Proposed Units
                 </label>
                 <input
@@ -234,17 +207,12 @@ export default function NewDevelopmentProject() {
                   onChange={handleChange}
                   placeholder="e.g., 12"
                   min="0"
-                  style={{
-                    width: '100%',
-                    padding: '0.75rem',
-                    border: '1px solid #e5e7eb',
-                    borderRadius: '0.5rem'
-                  }}
+                  className="w-full p-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500"
                 />
               </div>
 
-              <div style={{ gridColumn: '1 / -1' }}>
-                <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 500 }}>
+              <div className="col-span-2">
+                <label className="block mb-2 font-medium text-gray-700">
                   Description
                 </label>
                 <textarea
@@ -253,24 +221,18 @@ export default function NewDevelopmentProject() {
                   onChange={handleChange}
                   rows={3}
                   placeholder="Brief description of the development project..."
-                  style={{
-                    width: '100%',
-                    padding: '0.75rem',
-                    border: '1px solid #e5e7eb',
-                    borderRadius: '0.5rem',
-                    resize: 'vertical'
-                  }}
+                  className="w-full p-3 border border-gray-200 rounded-lg resize-y focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500"
                 />
               </div>
             </div>
           </div>
 
-          <div className={styles.panel} style={{ marginBottom: '1.5rem' }}>
-            <h3 style={{ margin: '0 0 1.5rem', fontSize: '1.1rem', color: '#1f2937' }}>Financial Estimates</h3>
+          <div className="bg-white rounded-[1.75rem] p-7 shadow-[0_12px_32px_rgba(15,23,42,0.08)] border border-slate-200/20 mb-6">
+            <h3 className="m-0 mb-6 text-lg font-semibold text-gray-800">Financial Estimates</h3>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+            <div className="grid grid-cols-2 gap-4">
               <div>
-                <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 500 }}>
+                <label className="block mb-2 font-medium text-gray-700">
                   Estimated Capital Required (PKR)
                 </label>
                 <input
@@ -280,17 +242,12 @@ export default function NewDevelopmentProject() {
                   onChange={handleChange}
                   placeholder="e.g., 50000000"
                   min="0"
-                  style={{
-                    width: '100%',
-                    padding: '0.75rem',
-                    border: '1px solid #e5e7eb',
-                    borderRadius: '0.5rem'
-                  }}
+                  className="w-full p-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500"
                 />
               </div>
 
               <div>
-                <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 500 }}>
+                <label className="block mb-2 font-medium text-gray-700">
                   Target Completion Date
                 </label>
                 <input
@@ -298,17 +255,12 @@ export default function NewDevelopmentProject() {
                   name="targetCompletion"
                   value={formData.targetCompletion}
                   onChange={handleChange}
-                  style={{
-                    width: '100%',
-                    padding: '0.75rem',
-                    border: '1px solid #e5e7eb',
-                    borderRadius: '0.5rem'
-                  }}
+                  className="w-full p-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500"
                 />
               </div>
 
-              <div style={{ gridColumn: '1 / -1' }}>
-                <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 500 }}>
+              <div className="col-span-2">
+                <label className="block mb-2 font-medium text-gray-700">
                   Internal Notes
                 </label>
                 <textarea
@@ -317,45 +269,29 @@ export default function NewDevelopmentProject() {
                   onChange={handleChange}
                   rows={2}
                   placeholder="Internal notes for admin reference..."
-                  style={{
-                    width: '100%',
-                    padding: '0.75rem',
-                    border: '1px solid #e5e7eb',
-                    borderRadius: '0.5rem',
-                    resize: 'vertical'
-                  }}
+                  className="w-full p-3 border border-gray-200 rounded-lg resize-y focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500"
                 />
               </div>
             </div>
           </div>
 
           {/* Disclaimer */}
-          <div style={{
-            marginBottom: '1.5rem',
-            padding: '1rem',
-            background: 'rgba(249, 115, 22, 0.05)',
-            border: '1px solid rgba(249, 115, 22, 0.2)',
-            borderRadius: '0.75rem',
-            fontSize: '0.875rem',
-            color: '#92400e'
-          }}>
+          <div className="mb-6 p-4 bg-orange-500/5 border border-orange-500/20 rounded-xl text-sm text-amber-800">
             REMMIC is a management and structuring platform. Investments are project-based and subject to risk. Returns are indicative only and not guaranteed.
           </div>
 
           {/* Actions */}
-          <div style={{ display: 'flex', gap: '1rem' }}>
+          <div className="flex gap-4">
             <Link
               href="/admin-dashboard"
-              className={styles.actionButtonSecondary}
-              style={{ flex: 1, textAlign: 'center', textDecoration: 'none' }}
+              className="flex-1 text-center border border-slate-300/35 rounded-full px-4 py-2.5 text-sm font-semibold transition-all bg-slate-200/50 text-gray-800 hover:bg-slate-200 no-underline"
             >
               Cancel
             </Link>
             <button
               type="submit"
               disabled={loading || !formData.propertyId}
-              className={styles.actionButtonPrimary}
-              style={{ flex: 1 }}
+              className="flex-1 border-none rounded-full px-4 py-2.5 text-sm font-semibold cursor-pointer transition-all bg-gradient-to-br from-green-500 to-green-600 text-white shadow-[0_10px_18px_rgba(34,197,94,0.28)] hover:-translate-y-0.5 hover:shadow-[0_14px_24px_rgba(34,197,94,0.32)] disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none disabled:shadow-none"
             >
               {loading ? 'Creating...' : 'Create Project'}
             </button>

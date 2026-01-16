@@ -259,7 +259,7 @@ export function FiltersDrawer({ isOpen, onClose }) {
             <div className="flex gap-4">
               <button
                 onClick={onClose}
-                className="flex-1 px-6 py-3 border border-gray-200 text-gray-700 rounded-xl font-medium hover:bg-gray-100 transition-colors"
+                className="btn-outline flex-1"
               >
                 Clear All
               </button>

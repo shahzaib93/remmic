@@ -6,7 +6,6 @@ import Navbar from '../../components/Navbar'
 import Footer from '../../components/Footer'
 import { useFirebase } from '../../contexts/FirebaseContext'
 import { assignPropertyManager, removePropertyManager } from '../../lib/firebase'
-import styles from '../../styles/adminOverview.module.css'
 
 export default function PropertyManagersAdmin() {
   const router = useRouter()
@@ -180,23 +179,23 @@ export default function PropertyManagersAdmin() {
       </Head>
       <Navbar />
 
-      <main style={{ padding: '2rem', maxWidth: 1400, margin: '0 auto', minHeight: '70vh' }}>
+      <main className="p-8 max-w-[1400px] mx-auto min-h-[70vh]">
         {/* Header */}
-        <div style={{ marginBottom: '2rem' }}>
-          <Link href="/admin-dashboard" style={{ color: '#6b7280', fontSize: '0.875rem', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '0.25rem', marginBottom: '0.5rem' }}>
+        <div className="mb-8">
+          <Link href="/admin-dashboard" className="text-gray-500 text-sm no-underline flex items-center gap-1 mb-2 hover:text-gray-700">
             <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M15 19l-7-7 7-7"/></svg>
             Back to Admin Dashboard
           </Link>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
+          <div className="flex justify-between items-center flex-wrap gap-4">
             <div>
-              <h1 style={{ margin: 0, color: '#1f2937' }}>Property Managers</h1>
-              <p style={{ margin: '0.25rem 0 0', color: '#6b7280' }}>
+              <h1 className="m-0 text-gray-800 text-2xl font-bold">Property Managers</h1>
+              <p className="mt-1 mb-0 text-gray-500">
                 Manage property managers and their assignments
               </p>
             </div>
             <button
               onClick={() => setShowAddModal(true)}
-              className={styles.actionButtonPrimary}
+              className="border-none rounded-full px-5 py-2.5 text-sm font-semibold cursor-pointer transition-all bg-gradient-to-br from-green-500 to-green-600 text-white shadow-[0_10px_18px_rgba(34,197,94,0.28)] hover:-translate-y-0.5 hover:shadow-[0_14px_24px_rgba(34,197,94,0.32)]"
             >
               + Add Property Manager
             </button>
@@ -204,125 +203,99 @@ export default function PropertyManagersAdmin() {
         </div>
 
         {/* Stats */}
-        <div className={styles.metricGrid} style={{ marginBottom: '2rem' }}>
-          <div className={styles.metricCard}>
-            <h3>Total Managers</h3>
-            <div className={styles.metricValue}>{managers.length}</div>
+        <div className="grid grid-cols-[repeat(auto-fit,minmax(180px,1fr))] gap-5 mb-8">
+          <div className="bg-white rounded-2xl p-5 shadow-[0_12px_24px_rgba(15,23,42,0.08)] border border-slate-200/20">
+            <h3 className="text-gray-500 text-sm font-medium mb-2">Total Managers</h3>
+            <div className="text-2xl font-bold text-gray-900">{managers.length}</div>
           </div>
-          <div className={styles.metricCard}>
-            <h3>Active</h3>
-            <div className={styles.metricValue} style={{ color: '#059669' }}>
+          <div className="bg-white rounded-2xl p-5 shadow-[0_12px_24px_rgba(15,23,42,0.08)] border border-slate-200/20">
+            <h3 className="text-gray-500 text-sm font-medium mb-2">Active</h3>
+            <div className="text-2xl font-bold text-emerald-600">
               {managers.filter(m => m.status === 'active').length}
             </div>
           </div>
-          <div className={styles.metricCard}>
-            <h3>Assignments</h3>
-            <div className={styles.metricValue}>{assignments.length}</div>
+          <div className="bg-white rounded-2xl p-5 shadow-[0_12px_24px_rgba(15,23,42,0.08)] border border-slate-200/20">
+            <h3 className="text-gray-500 text-sm font-medium mb-2">Assignments</h3>
+            <div className="text-2xl font-bold text-gray-900">{assignments.length}</div>
           </div>
-          <div className={styles.metricCard}>
-            <h3>Unassigned Properties</h3>
-            <div className={styles.metricValue} style={{ color: '#d97706' }}>
+          <div className="bg-white rounded-2xl p-5 shadow-[0_12px_24px_rgba(15,23,42,0.08)] border border-slate-200/20">
+            <h3 className="text-gray-500 text-sm font-medium mb-2">Unassigned Properties</h3>
+            <div className="text-2xl font-bold text-amber-600">
               {getUnassignedProperties().length}
             </div>
           </div>
         </div>
 
         {loading ? (
-          <div style={{ textAlign: 'center', padding: '3rem' }}>
-            <p style={{ color: '#6b7280' }}>Loading...</p>
+          <div className="text-center py-12">
+            <p className="text-gray-500">Loading...</p>
           </div>
         ) : managers.length === 0 ? (
-          <div className={styles.panel} style={{ textAlign: 'center', padding: '3rem' }}>
-            <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>👤</div>
-            <h2>No Property Managers</h2>
-            <p style={{ color: '#6b7280', marginBottom: '1rem' }}>
+          <div className="bg-white rounded-[1.75rem] p-12 shadow-[0_12px_32px_rgba(15,23,42,0.08)] border border-slate-200/20 text-center">
+            <div className="text-5xl mb-4">👤</div>
+            <h2 className="text-xl font-semibold text-gray-800 mb-2">No Property Managers</h2>
+            <p className="text-gray-500 mb-4">
               Add property managers to assign them to properties.
             </p>
             <button
               onClick={() => setShowAddModal(true)}
-              className={styles.actionButtonPrimary}
+              className="border-none rounded-full px-5 py-2.5 text-sm font-semibold cursor-pointer transition-all bg-gradient-to-br from-green-500 to-green-600 text-white shadow-[0_10px_18px_rgba(34,197,94,0.28)] hover:-translate-y-0.5 hover:shadow-[0_14px_24px_rgba(34,197,94,0.32)]"
             >
               Add First Manager
             </button>
           </div>
         ) : (
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(350px, 1fr))', gap: '1.5rem' }}>
+          <div className="grid grid-cols-[repeat(auto-fill,minmax(350px,1fr))] gap-6">
             {managers.map(manager => {
               const managerAssignments = getManagerAssignments(manager.id)
               return (
-                <div key={manager.id} className={styles.panel} style={{
-                  opacity: manager.status === 'inactive' ? 0.6 : 1
-                }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1rem' }}>
-                    <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
-                      <div style={{
-                        width: 48,
-                        height: 48,
-                        borderRadius: '50%',
-                        background: '#f97316',
-                        color: 'white',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        fontWeight: 600,
-                        fontSize: '1.25rem'
-                      }}>
+                <div
+                  key={manager.id}
+                  className={`bg-white rounded-[1.75rem] p-6 shadow-[0_12px_32px_rgba(15,23,42,0.08)] border border-slate-200/20 ${manager.status === 'inactive' ? 'opacity-60' : ''}`}
+                >
+                  <div className="flex justify-between items-start mb-4">
+                    <div className="flex gap-4 items-center">
+                      <div className="w-12 h-12 rounded-full bg-orange-500 text-white flex items-center justify-center font-semibold text-xl">
                         {manager.name?.charAt(0).toUpperCase() || 'P'}
                       </div>
                       <div>
-                        <h3 style={{ margin: 0 }}>{manager.name}</h3>
-                        <p style={{ margin: 0, fontSize: '0.875rem', color: '#6b7280' }}>{manager.email}</p>
+                        <h3 className="m-0 text-gray-800 font-semibold">{manager.name}</h3>
+                        <p className="m-0 text-sm text-gray-500">{manager.email}</p>
                       </div>
                     </div>
-                    <span style={{
-                      padding: '0.25rem 0.5rem',
-                      borderRadius: '4px',
-                      fontSize: '0.7rem',
-                      fontWeight: 500,
-                      background: manager.status === 'active' ? '#d1fae5' : '#f3f4f6',
-                      color: manager.status === 'active' ? '#059669' : '#6b7280'
-                    }}>
+                    <span className={`px-2 py-1 rounded text-[0.7rem] font-medium ${
+                      manager.status === 'active'
+                        ? 'bg-emerald-100 text-emerald-600'
+                        : 'bg-gray-100 text-gray-500'
+                    }`}>
                       {manager.status?.toUpperCase()}
                     </span>
                   </div>
 
-                  <div style={{ marginBottom: '1rem', fontSize: '0.875rem', color: '#6b7280' }}>
+                  <div className="mb-4 text-sm text-gray-500">
                     <div>Phone: {manager.phone || 'N/A'}</div>
                     <div>Specialization: {manager.specialization || 'General'}</div>
                     <div>Added: {formatDate(manager.createdAt)}</div>
                   </div>
 
                   {/* Assigned Properties */}
-                  <div style={{ marginBottom: '1rem' }}>
-                    <div style={{ fontSize: '0.75rem', color: '#6b7280', marginBottom: '0.5rem' }}>
+                  <div className="mb-4">
+                    <div className="text-xs text-gray-500 mb-2">
                       Assigned Properties ({managerAssignments.length})
                     </div>
                     {managerAssignments.length === 0 ? (
-                      <p style={{ fontSize: '0.875rem', color: '#9ca3af' }}>No properties assigned</p>
+                      <p className="text-sm text-gray-400">No properties assigned</p>
                     ) : (
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+                      <div className="flex flex-col gap-1">
                         {managerAssignments.map(assignment => (
-                          <div key={assignment.id} style={{
-                            display: 'flex',
-                            justifyContent: 'space-between',
-                            alignItems: 'center',
-                            padding: '0.5rem',
-                            background: '#f8fafc',
-                            borderRadius: '0.25rem',
-                            fontSize: '0.875rem'
-                          }}>
+                          <div
+                            key={assignment.id}
+                            className="flex justify-between items-center p-2 bg-slate-50 rounded text-sm"
+                          >
                             <span>{assignment.propertyTitle}</span>
                             <button
                               onClick={() => handleRemoveAssignment(assignment.id, assignment.propertyId, manager.id)}
-                              style={{
-                                padding: '0.25rem 0.5rem',
-                                background: '#fee2e2',
-                                color: '#dc2626',
-                                border: 'none',
-                                borderRadius: '0.25rem',
-                                fontSize: '0.7rem',
-                                cursor: 'pointer'
-                              }}
+                              className="px-2 py-1 bg-red-100 text-red-600 border-none rounded text-[0.7rem] cursor-pointer hover:bg-red-200"
                             >
                               Remove
                             </button>
@@ -333,26 +306,18 @@ export default function PropertyManagersAdmin() {
                   </div>
 
                   {/* Actions */}
-                  <div style={{ display: 'flex', gap: '0.5rem' }}>
+                  <div className="flex gap-2">
                     <button
                       onClick={() => openAssignModal(manager)}
                       disabled={manager.status === 'inactive'}
-                      className={styles.actionButtonPrimary}
-                      style={{ flex: 1, padding: '0.5rem' }}
+                      className="flex-1 border-none rounded-full px-4 py-2 text-sm font-semibold cursor-pointer transition-all bg-gradient-to-br from-green-500 to-green-600 text-white shadow-[0_10px_18px_rgba(34,197,94,0.28)] hover:-translate-y-0.5 hover:shadow-[0_14px_24px_rgba(34,197,94,0.32)] disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none disabled:shadow-none"
                     >
                       Assign Property
                     </button>
                     {manager.status === 'active' && (
                       <button
                         onClick={() => handleDeactivateManager(manager.id)}
-                        style={{
-                          padding: '0.5rem 1rem',
-                          background: '#fee2e2',
-                          color: '#dc2626',
-                          border: 'none',
-                          borderRadius: '0.5rem',
-                          cursor: 'pointer'
-                        }}
+                        className="px-4 py-2 bg-red-100 text-red-600 border-none rounded-lg cursor-pointer hover:bg-red-200"
                       >
                         Deactivate
                       </button>
@@ -367,84 +332,49 @@ export default function PropertyManagersAdmin() {
 
       {/* Add Manager Modal */}
       {showAddModal && (
-        <div style={{
-          position: 'fixed',
-          inset: 0,
-          background: 'rgba(0,0,0,0.5)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          zIndex: 1000,
-          padding: '1rem'
-        }}>
-          <div style={{
-            background: 'white',
-            borderRadius: '1rem',
-            padding: '2rem',
-            maxWidth: 500,
-            width: '100%'
-          }}>
-            <h2 style={{ margin: '0 0 1.5rem' }}>Add Property Manager</h2>
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[1000] p-4">
+          <div className="bg-white rounded-2xl p-8 max-w-[500px] w-full">
+            <h2 className="m-0 mb-6 text-xl font-semibold text-gray-800">Add Property Manager</h2>
             <form onSubmit={handleAddManager}>
-              <div style={{ marginBottom: '1rem' }}>
-                <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 500 }}>Full Name *</label>
+              <div className="mb-4">
+                <label className="block mb-2 font-medium text-gray-700">Full Name *</label>
                 <input
                   type="text"
                   value={managerForm.name}
                   onChange={(e) => setManagerForm(prev => ({ ...prev, name: e.target.value }))}
                   placeholder="e.g., Ahmad Khan"
                   required
-                  style={{
-                    width: '100%',
-                    padding: '0.75rem',
-                    border: '1px solid #e5e7eb',
-                    borderRadius: '0.5rem'
-                  }}
+                  className="w-full p-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500"
                 />
               </div>
-              <div style={{ marginBottom: '1rem' }}>
-                <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 500 }}>Email *</label>
+              <div className="mb-4">
+                <label className="block mb-2 font-medium text-gray-700">Email *</label>
                 <input
                   type="email"
                   value={managerForm.email}
                   onChange={(e) => setManagerForm(prev => ({ ...prev, email: e.target.value }))}
                   placeholder="e.g., manager@remmic.pk"
                   required
-                  style={{
-                    width: '100%',
-                    padding: '0.75rem',
-                    border: '1px solid #e5e7eb',
-                    borderRadius: '0.5rem'
-                  }}
+                  className="w-full p-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500"
                 />
               </div>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1.5rem' }}>
+              <div className="grid grid-cols-2 gap-4 mb-6">
                 <div>
-                  <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 500 }}>Phone</label>
+                  <label className="block mb-2 font-medium text-gray-700">Phone</label>
                   <input
                     type="tel"
                     value={managerForm.phone}
                     onChange={(e) => setManagerForm(prev => ({ ...prev, phone: e.target.value }))}
                     placeholder="+92 300 1234567"
-                    style={{
-                      width: '100%',
-                      padding: '0.75rem',
-                      border: '1px solid #e5e7eb',
-                      borderRadius: '0.5rem'
-                    }}
+                    className="w-full p-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500"
                   />
                 </div>
                 <div>
-                  <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 500 }}>Specialization</label>
+                  <label className="block mb-2 font-medium text-gray-700">Specialization</label>
                   <select
                     value={managerForm.specialization}
                     onChange={(e) => setManagerForm(prev => ({ ...prev, specialization: e.target.value }))}
-                    style={{
-                      width: '100%',
-                      padding: '0.75rem',
-                      border: '1px solid #e5e7eb',
-                      borderRadius: '0.5rem'
-                    }}
+                    className="w-full p-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500"
                   >
                     <option value="">General</option>
                     <option value="residential">Residential</option>
@@ -453,23 +383,21 @@ export default function PropertyManagersAdmin() {
                   </select>
                 </div>
               </div>
-              <div style={{ display: 'flex', gap: '1rem' }}>
+              <div className="flex gap-4">
                 <button
                   type="button"
                   onClick={() => {
                     setShowAddModal(false)
                     setManagerForm({ name: '', email: '', phone: '', specialization: '' })
                   }}
-                  className={styles.actionButtonSecondary}
-                  style={{ flex: 1 }}
+                  className="flex-1 border border-slate-300/35 rounded-full px-4 py-2.5 text-sm font-semibold cursor-pointer transition-all bg-slate-200/50 text-gray-800 hover:bg-slate-200"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={saving}
-                  className={styles.actionButtonPrimary}
-                  style={{ flex: 1 }}
+                  className="flex-1 border-none rounded-full px-4 py-2.5 text-sm font-semibold cursor-pointer transition-all bg-gradient-to-br from-green-500 to-green-600 text-white shadow-[0_10px_18px_rgba(34,197,94,0.28)] hover:-translate-y-0.5 hover:shadow-[0_14px_24px_rgba(34,197,94,0.32)] disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {saving ? 'Adding...' : 'Add Manager'}
                 </button>
@@ -481,40 +409,20 @@ export default function PropertyManagersAdmin() {
 
       {/* Assign Property Modal */}
       {showAssignModal && selectedManager && (
-        <div style={{
-          position: 'fixed',
-          inset: 0,
-          background: 'rgba(0,0,0,0.5)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          zIndex: 1000,
-          padding: '1rem'
-        }}>
-          <div style={{
-            background: 'white',
-            borderRadius: '1rem',
-            padding: '2rem',
-            maxWidth: 500,
-            width: '100%'
-          }}>
-            <h2 style={{ margin: '0 0 0.5rem' }}>Assign Property</h2>
-            <p style={{ color: '#6b7280', marginBottom: '1.5rem' }}>
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[1000] p-4">
+          <div className="bg-white rounded-2xl p-8 max-w-[500px] w-full">
+            <h2 className="m-0 mb-2 text-xl font-semibold text-gray-800">Assign Property</h2>
+            <p className="text-gray-500 mb-6">
               Assigning to: <strong>{selectedManager.name}</strong>
             </p>
             <form onSubmit={handleAssignProperty}>
-              <div style={{ marginBottom: '1.5rem' }}>
-                <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 500 }}>Select Property *</label>
+              <div className="mb-6">
+                <label className="block mb-2 font-medium text-gray-700">Select Property *</label>
                 <select
                   value={assignForm.propertyId}
                   onChange={(e) => setAssignForm({ propertyId: e.target.value })}
                   required
-                  style={{
-                    width: '100%',
-                    padding: '0.75rem',
-                    border: '1px solid #e5e7eb',
-                    borderRadius: '0.5rem'
-                  }}
+                  className="w-full p-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500"
                 >
                   <option value="">-- Select a property --</option>
                   {properties.map(property => (
@@ -524,12 +432,12 @@ export default function PropertyManagersAdmin() {
                   ))}
                 </select>
                 {getUnassignedProperties().length === 0 && (
-                  <p style={{ fontSize: '0.75rem', color: '#d97706', marginTop: '0.5rem' }}>
+                  <p className="text-xs text-amber-600 mt-2">
                     All properties are already assigned. You can reassign if needed.
                   </p>
                 )}
               </div>
-              <div style={{ display: 'flex', gap: '1rem' }}>
+              <div className="flex gap-4">
                 <button
                   type="button"
                   onClick={() => {
@@ -537,16 +445,14 @@ export default function PropertyManagersAdmin() {
                     setSelectedManager(null)
                     setAssignForm({ propertyId: '' })
                   }}
-                  className={styles.actionButtonSecondary}
-                  style={{ flex: 1 }}
+                  className="flex-1 border border-slate-300/35 rounded-full px-4 py-2.5 text-sm font-semibold cursor-pointer transition-all bg-slate-200/50 text-gray-800 hover:bg-slate-200"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={saving || !assignForm.propertyId}
-                  className={styles.actionButtonPrimary}
-                  style={{ flex: 1 }}
+                  className="flex-1 border-none rounded-full px-4 py-2.5 text-sm font-semibold cursor-pointer transition-all bg-gradient-to-br from-green-500 to-green-600 text-white shadow-[0_10px_18px_rgba(34,197,94,0.28)] hover:-translate-y-0.5 hover:shadow-[0_14px_24px_rgba(34,197,94,0.32)] disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {saving ? 'Assigning...' : 'Assign'}
                 </button>

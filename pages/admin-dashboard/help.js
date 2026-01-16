@@ -1,5 +1,4 @@
 import AdminLayout from '../../components/admin/AdminLayout'
-import overviewStyles from '../../styles/adminOverview.module.css'
 
 export default function AdminHelpPage() {
   const faqs = [
@@ -13,7 +12,7 @@ export default function AdminHelpPage() {
     },
     {
       question: 'Where can I download monthly reports?',
-      answer: 'Head over to the Reports page and select “Export detailed ledger” to download a CSV snapshot of the current data.',
+      answer: 'Head over to the Reports page and select "Export detailed ledger" to download a CSV snapshot of the current data.',
     },
   ]
 
@@ -44,45 +43,49 @@ export default function AdminHelpPage() {
       description="Guides and contacts to support your admin operations."
       metaTitle="Admin Help"
     >
-      <div className={overviewStyles.section}>
-        <section className={overviewStyles.panel}>
-          <header className={overviewStyles.panelHeader}>
+      <div className="grid gap-7">
+        {/* FAQs Section */}
+        <section className="bg-white rounded-[1.75rem] p-7 shadow-[0_12px_32px_rgba(15,23,42,0.08)] border border-slate-200/20 flex flex-col gap-5 max-h-[450px] overflow-hidden">
+          <header className="flex justify-between items-center gap-4">
             <div>
-              <h2>Frequently asked questions</h2>
-              <span>Answers to the most common admin workflows</span>
+              <h2 className="m-0 text-lg font-semibold text-gray-900">Frequently asked questions</h2>
+              <span className="text-gray-400 text-sm">Answers to the most common admin workflows</span>
             </div>
           </header>
 
-          <div className={overviewStyles.list}>
+          <div className="grid gap-4 overflow-y-auto flex-1 pr-1 scrollbar-thin">
             {faqs.map((faq) => (
-              <div key={faq.question} className={overviewStyles.listItem}>
-                <span className={`${overviewStyles.badge} ${overviewStyles.badgeSuccess}`}>?</span>
+              <div key={faq.question} className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-2 items-start py-3.5 border-b border-slate-200/55 last:border-b-0">
+                <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-green-500/15 text-emerald-700 text-xs font-semibold uppercase tracking-wide border border-green-500/20">?</span>
                 <div>
-                  <strong>{faq.question}</strong>
-                  <div className={overviewStyles.smallMeta}>{faq.answer}</div>
+                  <strong className="font-semibold text-gray-800">{faq.question}</strong>
+                  <div className="text-gray-400 text-sm mt-1">{faq.answer}</div>
                 </div>
               </div>
             ))}
           </div>
         </section>
 
-        <section className={overviewStyles.panel}>
-          <header className={overviewStyles.panelHeader}>
+        {/* Contacts Section */}
+        <section className="bg-white rounded-[1.75rem] p-7 shadow-[0_12px_32px_rgba(15,23,42,0.08)] border border-slate-200/20 flex flex-col gap-5 max-h-[450px] overflow-hidden">
+          <header className="flex justify-between items-center gap-4">
             <div>
-              <h2>Contact the team</h2>
-              <span>Direct lines for quick assistance</span>
+              <h2 className="m-0 text-lg font-semibold text-gray-900">Contact the team</h2>
+              <span className="text-gray-400 text-sm">Direct lines for quick assistance</span>
             </div>
           </header>
 
-          <div className={overviewStyles.messageList}>
+          <div className="grid gap-4 overflow-y-auto flex-1 pr-1 scrollbar-thin">
             {contacts.map((contact) => (
-              <article key={contact.title} className={overviewStyles.messageCard}>
-                <div className={overviewStyles.messageHeader}>
-                  <strong>{contact.title}</strong>
-                  <span className={overviewStyles.badge}>{contact.email}</span>
+              <article key={contact.title} className="border border-slate-200/70 rounded-xl p-4 grid gap-2.5 bg-white shadow-[0_10px_24px_rgba(148,163,184,0.08)]">
+                <div className="flex justify-between items-center">
+                  <strong className="text-gray-800 text-[0.95rem]">{contact.title}</strong>
+                  <span className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-gradient-to-br from-[rgba(201,162,39,0.15)] to-[rgba(201,162,39,0.1)] text-[#92710c] text-xs font-semibold uppercase tracking-wide border border-[rgba(201,162,39,0.2)]">
+                    {contact.email}
+                  </span>
                 </div>
-                <div className={overviewStyles.messageBody}>{contact.description}</div>
-                <div className={overviewStyles.messageFooter}>
+                <div className="text-slate-600 text-sm">{contact.description}</div>
+                <div className="flex justify-between items-center text-slate-400 text-xs">
                   <span>{contact.phone}</span>
                   <span>Available 9am – 6pm IST</span>
                 </div>

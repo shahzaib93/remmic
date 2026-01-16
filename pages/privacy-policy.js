@@ -20,7 +20,7 @@ export default function PrivacyPolicy() {
       </Head>
       <div className="page-wrapper">
         <Navbar />
-        <main className="main-wrapper">
+        <main className="pt-24">
           <div className="section-privacy-policy">
             <div className="padding-global">
               <div className="container-large">
@@ -35,10 +35,8 @@ export default function PrivacyPolicy() {
                         Last updated: 10/08/2025
                       </div>
                     </div>
-                    <a href="#" className="button is-secondary w-inline-block">
-                      <div className="button-text">
+                    <a href="#" className="btn-outline btn-sm">
                         Download PDF
-                      </div>
                     </a>
                   </div>
                   <div className="privacy-policy-details w-richtext">
