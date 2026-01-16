@@ -40,7 +40,7 @@ export default function Investment() {
       <div className="page-wrapper">
         <Navbar />
 
-        <main className="main-wrapper">
+        <main className="pt-24">
           {/* Hero Section */}
           <section className="hero">
             <div className="hero__container" style={{

@@ -104,7 +104,7 @@ export default function Wallet() {
       </Head>
       <div className="page-wrapper">
         <Navbar />
-        <main className="main-wrapper">
+        <main className="pt-24">
           <section className="wallet-section">
             <div className="wallet-container">
               <h1 className="wallet-title">My Wallet</h1>

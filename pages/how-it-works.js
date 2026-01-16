@@ -58,7 +58,7 @@ export default function HowItWorks() {
       <div className="page-wrapper">
         <Navbar />
 
-        <main className="main-wrapper">
+        <main className="pt-24">
           <section className="hero">
             <div className={`hero__container ${isMounted ? 'is-visible' : ''}`}>
               <span className="hero__eyebrow">How REMMIC Works</span>

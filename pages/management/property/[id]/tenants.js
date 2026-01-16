@@ -15,7 +15,6 @@ import {
   updateRentPayment,
   RENT_STATUS
 } from '../../../../lib/firebase'
-import styles from '../../../../styles/adminOverview.module.css'
 
 const RENT_COLORS = {
   [RENT_STATUS.PAID]: { bg: '#d1fae5', color: '#059669' },
@@ -229,14 +228,14 @@ export default function TenantManagement() {
             <div style={{ display: 'flex', gap: '0.75rem' }}>
               <button
                 onClick={() => setShowAddTenantModal(true)}
-                className={styles.actionButtonPrimary}
+                className="border-none rounded-full px-4 py-1.5 text-[0.78rem] font-semibold cursor-pointer inline-flex items-center gap-1.5 bg-gradient-to-br from-green-500 to-green-600 text-white shadow-[0_10px_18px_rgba(34,197,94,0.28)] transition-all hover:-translate-y-0.5 hover:shadow-[0_14px_24px_rgba(34,197,94,0.32)] disabled:opacity-55 disabled:cursor-not-allowed disabled:transform-none disabled:shadow-none"
                 style={{ padding: '0.75rem 1.25rem' }}
               >
                 + Add Tenant
               </button>
               <button
                 onClick={() => setShowAddRentModal(true)}
-                className={styles.actionButtonSecondary}
+                className="border border-slate-300/35 rounded-full px-4 py-1.5 text-[0.78rem] font-semibold cursor-pointer inline-flex items-center gap-1.5 bg-slate-300/[0.18] text-gray-800 transition-colors hover:bg-slate-300/[0.28]"
                 style={{ padding: '0.75rem 1.25rem' }}
               >
                 + Add Rent Record
@@ -247,7 +246,7 @@ export default function TenantManagement() {
 
         {/* Action Notice */}
         {actionNotice && (
-          <div className={actionNotice.type === 'success' ? styles.actionNoticeSuccess : styles.actionNoticeError} style={{ marginBottom: '1.5rem' }}>
+          <div className={actionNotice.type === 'success' ? 'mt-4 px-4 py-2.5 rounded-[0.9rem] text-[0.82rem] font-medium flex items-center gap-2 bg-green-500/[0.12] text-emerald-700 border border-green-500/[0.18] mb-6' : 'mt-4 px-4 py-2.5 rounded-[0.9rem] text-[0.82rem] font-medium flex items-center gap-2 bg-red-300/[0.12] text-red-700 border border-red-300/20 mb-6'}>
             {actionNotice.message}
           </div>
         )}
@@ -292,32 +291,32 @@ export default function TenantManagement() {
           /* Tenants View */
           <div>
             {/* Active Tenants */}
-            <div className={styles.panel} style={{ marginBottom: '1.5rem' }}>
-              <div className={styles.panelHeader}>
+            <div className="flex flex-col gap-5 bg-white rounded-[1.75rem] p-7 shadow-[0_12px_32px_rgba(15,23,42,0.08)] border border-slate-300/[0.18]" style={{ marginBottom: '1.5rem' }}>
+              <div className="flex justify-between items-center gap-4">
                 <h2>Active Tenants ({activeTenants.length})</h2>
               </div>
-              <div className={styles.list}>
+              <div className="grid gap-4 overflow-y-auto flex-1 pr-1">
                 {activeTenants.length === 0 ? (
-                  <div className={styles.emptyState}>No active tenants</div>
+                  <div className="border border-dashed border-slate-300/40 rounded-3xl py-10 px-6 text-center text-slate-400 text-[0.95rem]">No active tenants</div>
                 ) : (
                   activeTenants.map(tenant => (
-                    <div key={tenant.id} className={styles.listItem}>
-                      <span className={styles.badgeActive}>Active</span>
+                    <div key={tenant.id} className="grid grid-cols-[auto_1fr_minmax(150px,220px)] gap-x-4 gap-y-2 items-start py-3.5 border-b border-slate-200/55 last:border-b-0 max-md:grid-cols-1 max-md:gap-y-3">
+                      <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-lg bg-emerald-500/[0.14] text-emerald-600 text-[clamp(0.6rem,2vw,0.72rem)] font-semibold whitespace-nowrap flex-shrink-0 max-w-[85px] overflow-hidden text-ellipsis">Active</span>
                       <div style={{ flex: 1 }}>
                         <strong>{tenant.tenantName}</strong>
-                        <div className={styles.smallMeta}>
+                        <div className="text-gray-400 text-[0.82rem] break-words leading-tight">
                           {tenant.contactPhone} | {tenant.contactEmail}
                         </div>
-                        <div className={styles.smallMeta}>
+                        <div className="text-gray-400 text-[0.82rem] break-words leading-tight">
                           Lease: {formatDate(tenant.leaseStartDate)} - {formatDate(tenant.leaseEndDate)}
                         </div>
                       </div>
-                      <div className={styles.listItemMeta}>
+                      <div className="flex flex-col items-end justify-center gap-1.5 min-w-[170px] w-full max-md:items-start max-md:min-w-0">
                         <strong style={{ color: '#f97316' }}>{formatCurrency(tenant.monthlyRent)}/mo</strong>
-                        <div className={styles.listActions}>
+                        <div className="inline-flex gap-1.5 flex-wrap justify-end w-full max-w-full max-md:justify-start">
                           <button
                             onClick={() => handleDeactivateTenant(tenant.id)}
-                            className={styles.actionButtonDanger}
+                            className="border border-red-300/40 rounded-full px-4 py-1.5 text-[0.78rem] font-semibold cursor-pointer inline-flex items-center gap-1.5 bg-red-500/[0.12] text-red-600 transition-colors hover:bg-red-500/[0.18]"
                           >
                             Deactivate
                           </button>
@@ -331,17 +330,17 @@ export default function TenantManagement() {
 
             {/* Inactive Tenants */}
             {inactiveTenants.length > 0 && (
-              <div className={styles.panel}>
-                <div className={styles.panelHeader}>
+              <div className="flex flex-col gap-5 bg-white rounded-[1.75rem] p-7 shadow-[0_12px_32px_rgba(15,23,42,0.08)] border border-slate-300/[0.18]">
+                <div className="flex justify-between items-center gap-4">
                   <h2>Past Tenants ({inactiveTenants.length})</h2>
                 </div>
-                <div className={styles.list}>
+                <div className="grid gap-4 overflow-y-auto flex-1 pr-1">
                   {inactiveTenants.map(tenant => (
-                    <div key={tenant.id} className={styles.listItem} style={{ opacity: 0.7 }}>
-                      <span className={styles.badge}>Inactive</span>
+                    <div key={tenant.id} className="grid grid-cols-[auto_1fr_minmax(150px,220px)] gap-x-4 gap-y-2 items-start py-3.5 border-b border-slate-200/55 last:border-b-0 max-md:grid-cols-1 max-md:gap-y-3" style={{ opacity: 0.7 }}>
+                      <span className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-gradient-to-br from-[rgba(201,162,39,0.15)] to-[rgba(201,162,39,0.1)] text-[#92710c] text-[clamp(0.65rem,2vw,0.75rem)] font-semibold tracking-wide whitespace-nowrap flex-shrink-0 max-w-[120px] overflow-hidden text-ellipsis uppercase border border-[rgba(201,162,39,0.2)]">Inactive</span>
                       <div style={{ flex: 1 }}>
                         <strong>{tenant.tenantName}</strong>
-                        <div className={styles.smallMeta}>
+                        <div className="text-gray-400 text-[0.82rem] break-words leading-tight">
                           {tenant.contactPhone} | Deactivated: {formatDate(tenant.deactivatedAt)}
                         </div>
                       </div>
@@ -353,8 +352,8 @@ export default function TenantManagement() {
           </div>
         ) : (
           /* Rent Records View */
-          <div className={styles.panel}>
-            <div className={styles.panelHeader}>
+          <div className="flex flex-col gap-5 bg-white rounded-[1.75rem] p-7 shadow-[0_12px_32px_rgba(15,23,42,0.08)] border border-slate-300/[0.18]">
+            <div className="flex justify-between items-center gap-4">
               <h2>Rent Records</h2>
             </div>
             <div style={{ overflowX: 'auto' }}>
@@ -414,7 +413,7 @@ export default function TenantManagement() {
                                   setSelectedRecord(record)
                                   setShowPaymentModal(true)
                                 }}
-                                className={styles.actionButtonPrimary}
+                                className="border-none rounded-full px-4 py-1.5 text-[0.78rem] font-semibold cursor-pointer inline-flex items-center gap-1.5 bg-gradient-to-br from-green-500 to-green-600 text-white shadow-[0_10px_18px_rgba(34,197,94,0.28)] transition-all hover:-translate-y-0.5 hover:shadow-[0_14px_24px_rgba(34,197,94,0.32)] disabled:opacity-55 disabled:cursor-not-allowed disabled:transform-none disabled:shadow-none"
                                 style={{ padding: '0.5rem 1rem', fontSize: '0.75rem' }}
                               >
                                 Record Payment
@@ -433,111 +432,111 @@ export default function TenantManagement() {
 
         {/* Add Tenant Modal */}
         {showAddTenantModal && (
-          <div className={styles.modalBackdrop}>
-            <div className={styles.modal}>
-              <div className={styles.modalHeader}>
+          <div className="fixed inset-0 bg-slate-900/65 flex items-center justify-center p-6 z-[1000]">
+            <div className="bg-white rounded-3xl w-[min(640px,100%)] max-h-[90vh] flex flex-col shadow-[0_30px_60px_rgba(15,23,42,0.35)] max-sm:w-full max-sm:max-h-[95vh] max-sm:rounded-2xl">
+              <div className="p-5 border-b border-slate-300/20 flex justify-between gap-4 items-start">
                 <div>
                   <h2>Add New Tenant</h2>
                   <span>Fill in tenant details</span>
                 </div>
-                <button className={styles.modalClose} onClick={() => setShowAddTenantModal(false)}>Close</button>
+                <button className="border-none bg-transparent text-slate-600 text-[0.85rem] font-semibold cursor-pointer" onClick={() => setShowAddTenantModal(false)}>Close</button>
               </div>
               <form onSubmit={handleAddTenant}>
-                <div className={styles.modalBody}>
-                  <div className={styles.modalGrid}>
-                    <div className={styles.modalField}>
+                <div className="p-6 overflow-y-auto flex flex-col gap-4 max-sm:p-4">
+                  <div className="grid grid-cols-[repeat(auto-fit,minmax(180px,1fr))] gap-3.5">
+                    <div className="flex flex-col gap-1.5 text-[0.85rem] text-slate-600">
                       <label>Tenant Name *</label>
                       <input
                         type="text"
-                        className={styles.modalInput}
+                        className="border border-slate-300/40 rounded-xl px-3.5 py-2.5 text-[0.92rem] w-full font-inherit transition-all focus:outline-none focus:border-orange-500 focus:shadow-[0_0_0_2px_rgba(249,115,22,0.12)]"
                         value={tenantForm.tenantName}
                         onChange={(e) => setTenantForm({ ...tenantForm, tenantName: e.target.value })}
                         required
                       />
                     </div>
-                    <div className={styles.modalField}>
+                    <div className="flex flex-col gap-1.5 text-[0.85rem] text-slate-600">
                       <label>Phone *</label>
                       <input
                         type="tel"
-                        className={styles.modalInput}
+                        className="border border-slate-300/40 rounded-xl px-3.5 py-2.5 text-[0.92rem] w-full font-inherit transition-all focus:outline-none focus:border-orange-500 focus:shadow-[0_0_0_2px_rgba(249,115,22,0.12)]"
                         value={tenantForm.contactPhone}
                         onChange={(e) => setTenantForm({ ...tenantForm, contactPhone: e.target.value })}
                         required
                       />
                     </div>
-                    <div className={styles.modalField}>
+                    <div className="flex flex-col gap-1.5 text-[0.85rem] text-slate-600">
                       <label>Email</label>
                       <input
                         type="email"
-                        className={styles.modalInput}
+                        className="border border-slate-300/40 rounded-xl px-3.5 py-2.5 text-[0.92rem] w-full font-inherit transition-all focus:outline-none focus:border-orange-500 focus:shadow-[0_0_0_2px_rgba(249,115,22,0.12)]"
                         value={tenantForm.contactEmail}
                         onChange={(e) => setTenantForm({ ...tenantForm, contactEmail: e.target.value })}
                       />
                     </div>
-                    <div className={styles.modalField}>
+                    <div className="flex flex-col gap-1.5 text-[0.85rem] text-slate-600">
                       <label>ID Number (CNIC/Passport)</label>
                       <input
                         type="text"
-                        className={styles.modalInput}
+                        className="border border-slate-300/40 rounded-xl px-3.5 py-2.5 text-[0.92rem] w-full font-inherit transition-all focus:outline-none focus:border-orange-500 focus:shadow-[0_0_0_2px_rgba(249,115,22,0.12)]"
                         value={tenantForm.identificationNumber}
                         onChange={(e) => setTenantForm({ ...tenantForm, identificationNumber: e.target.value })}
                       />
                     </div>
-                    <div className={styles.modalField}>
+                    <div className="flex flex-col gap-1.5 text-[0.85rem] text-slate-600">
                       <label>Lease Start Date *</label>
                       <input
                         type="date"
-                        className={styles.modalInput}
+                        className="border border-slate-300/40 rounded-xl px-3.5 py-2.5 text-[0.92rem] w-full font-inherit transition-all focus:outline-none focus:border-orange-500 focus:shadow-[0_0_0_2px_rgba(249,115,22,0.12)]"
                         value={tenantForm.leaseStartDate}
                         onChange={(e) => setTenantForm({ ...tenantForm, leaseStartDate: e.target.value })}
                         required
                       />
                     </div>
-                    <div className={styles.modalField}>
+                    <div className="flex flex-col gap-1.5 text-[0.85rem] text-slate-600">
                       <label>Lease End Date *</label>
                       <input
                         type="date"
-                        className={styles.modalInput}
+                        className="border border-slate-300/40 rounded-xl px-3.5 py-2.5 text-[0.92rem] w-full font-inherit transition-all focus:outline-none focus:border-orange-500 focus:shadow-[0_0_0_2px_rgba(249,115,22,0.12)]"
                         value={tenantForm.leaseEndDate}
                         onChange={(e) => setTenantForm({ ...tenantForm, leaseEndDate: e.target.value })}
                         required
                       />
                     </div>
-                    <div className={styles.modalField}>
+                    <div className="flex flex-col gap-1.5 text-[0.85rem] text-slate-600">
                       <label>Monthly Rent (PKR) *</label>
                       <input
                         type="number"
-                        className={styles.modalInput}
+                        className="border border-slate-300/40 rounded-xl px-3.5 py-2.5 text-[0.92rem] w-full font-inherit transition-all focus:outline-none focus:border-orange-500 focus:shadow-[0_0_0_2px_rgba(249,115,22,0.12)]"
                         value={tenantForm.monthlyRent}
                         onChange={(e) => setTenantForm({ ...tenantForm, monthlyRent: e.target.value })}
                         required
                       />
                     </div>
-                    <div className={styles.modalField}>
+                    <div className="flex flex-col gap-1.5 text-[0.85rem] text-slate-600">
                       <label>Security Deposit (PKR)</label>
                       <input
                         type="number"
-                        className={styles.modalInput}
+                        className="border border-slate-300/40 rounded-xl px-3.5 py-2.5 text-[0.92rem] w-full font-inherit transition-all focus:outline-none focus:border-orange-500 focus:shadow-[0_0_0_2px_rgba(249,115,22,0.12)]"
                         value={tenantForm.securityDeposit}
                         onChange={(e) => setTenantForm({ ...tenantForm, securityDeposit: e.target.value })}
                       />
                     </div>
                   </div>
-                  <div className={styles.modalField}>
+                  <div className="flex flex-col gap-1.5 text-[0.85rem] text-slate-600">
                     <label>Notes</label>
                     <textarea
-                      className={styles.modalTextarea}
+                      className="border border-slate-300/40 rounded-xl px-3.5 py-2.5 text-[0.92rem] w-full font-inherit transition-all resize-y min-h-24 focus:outline-none focus:border-orange-500 focus:shadow-[0_0_0_2px_rgba(249,115,22,0.12)]"
                       value={tenantForm.notes}
                       onChange={(e) => setTenantForm({ ...tenantForm, notes: e.target.value })}
                       placeholder="Additional notes about the tenant..."
                     />
                   </div>
                 </div>
-                <div className={styles.modalActions}>
-                  <button type="button" className={styles.actionButtonSecondary} onClick={() => setShowAddTenantModal(false)}>
+                <div className="flex justify-end gap-3 px-6 py-4 border-t border-slate-300/20 bg-slate-50 max-sm:flex-col max-sm:items-stretch">
+                  <button type="button" className="border border-slate-300/35 rounded-full px-4 py-1.5 text-[0.78rem] font-semibold cursor-pointer inline-flex items-center gap-1.5 bg-slate-300/[0.18] text-gray-800 transition-colors hover:bg-slate-300/[0.28]" onClick={() => setShowAddTenantModal(false)}>
                     Cancel
                   </button>
-                  <button type="submit" className={styles.actionButtonPrimary}>
+                  <button type="submit" className="border-none rounded-full px-4 py-1.5 text-[0.78rem] font-semibold cursor-pointer inline-flex items-center gap-1.5 bg-gradient-to-br from-green-500 to-green-600 text-white shadow-[0_10px_18px_rgba(34,197,94,0.28)] transition-all hover:-translate-y-0.5 hover:shadow-[0_14px_24px_rgba(34,197,94,0.32)] disabled:opacity-55 disabled:cursor-not-allowed disabled:transform-none disabled:shadow-none">
                     Add Tenant
                   </button>
                 </div>
@@ -548,22 +547,22 @@ export default function TenantManagement() {
 
         {/* Add Rent Record Modal */}
         {showAddRentModal && (
-          <div className={styles.modalBackdrop}>
-            <div className={styles.modal}>
-              <div className={styles.modalHeader}>
+          <div className="fixed inset-0 bg-slate-900/65 flex items-center justify-center p-6 z-[1000]">
+            <div className="bg-white rounded-3xl w-[min(640px,100%)] max-h-[90vh] flex flex-col shadow-[0_30px_60px_rgba(15,23,42,0.35)] max-sm:w-full max-sm:max-h-[95vh] max-sm:rounded-2xl">
+              <div className="p-5 border-b border-slate-300/20 flex justify-between gap-4 items-start">
                 <div>
                   <h2>Add Rent Record</h2>
                   <span>Create a new rent entry</span>
                 </div>
-                <button className={styles.modalClose} onClick={() => setShowAddRentModal(false)}>Close</button>
+                <button className="border-none bg-transparent text-slate-600 text-[0.85rem] font-semibold cursor-pointer" onClick={() => setShowAddRentModal(false)}>Close</button>
               </div>
               <form onSubmit={handleAddRentRecord}>
-                <div className={styles.modalBody}>
-                  <div className={styles.modalGrid}>
-                    <div className={styles.modalField}>
+                <div className="p-6 overflow-y-auto flex flex-col gap-4 max-sm:p-4">
+                  <div className="grid grid-cols-[repeat(auto-fit,minmax(180px,1fr))] gap-3.5">
+                    <div className="flex flex-col gap-1.5 text-[0.85rem] text-slate-600">
                       <label>Tenant *</label>
                       <select
-                        className={styles.modalInput}
+                        className="border border-slate-300/40 rounded-xl px-3.5 py-2.5 text-[0.92rem] w-full font-inherit transition-all focus:outline-none focus:border-orange-500 focus:shadow-[0_0_0_2px_rgba(249,115,22,0.12)]"
                         value={rentForm.tenantId}
                         onChange={(e) => {
                           const tenant = activeTenants.find(t => t.id === e.target.value)
@@ -581,51 +580,51 @@ export default function TenantManagement() {
                         ))}
                       </select>
                     </div>
-                    <div className={styles.modalField}>
+                    <div className="flex flex-col gap-1.5 text-[0.85rem] text-slate-600">
                       <label>Month *</label>
                       <input
                         type="month"
-                        className={styles.modalInput}
+                        className="border border-slate-300/40 rounded-xl px-3.5 py-2.5 text-[0.92rem] w-full font-inherit transition-all focus:outline-none focus:border-orange-500 focus:shadow-[0_0_0_2px_rgba(249,115,22,0.12)]"
                         value={rentForm.month}
                         onChange={(e) => setRentForm({ ...rentForm, month: e.target.value })}
                         required
                       />
                     </div>
-                    <div className={styles.modalField}>
+                    <div className="flex flex-col gap-1.5 text-[0.85rem] text-slate-600">
                       <label>Amount Due (PKR) *</label>
                       <input
                         type="number"
-                        className={styles.modalInput}
+                        className="border border-slate-300/40 rounded-xl px-3.5 py-2.5 text-[0.92rem] w-full font-inherit transition-all focus:outline-none focus:border-orange-500 focus:shadow-[0_0_0_2px_rgba(249,115,22,0.12)]"
                         value={rentForm.amountDue}
                         onChange={(e) => setRentForm({ ...rentForm, amountDue: e.target.value })}
                         required
                       />
                     </div>
-                    <div className={styles.modalField}>
+                    <div className="flex flex-col gap-1.5 text-[0.85rem] text-slate-600">
                       <label>Due Date *</label>
                       <input
                         type="date"
-                        className={styles.modalInput}
+                        className="border border-slate-300/40 rounded-xl px-3.5 py-2.5 text-[0.92rem] w-full font-inherit transition-all focus:outline-none focus:border-orange-500 focus:shadow-[0_0_0_2px_rgba(249,115,22,0.12)]"
                         value={rentForm.dueDate}
                         onChange={(e) => setRentForm({ ...rentForm, dueDate: e.target.value })}
                         required
                       />
                     </div>
                   </div>
-                  <div className={styles.modalField}>
+                  <div className="flex flex-col gap-1.5 text-[0.85rem] text-slate-600">
                     <label>Remarks</label>
                     <textarea
-                      className={styles.modalTextarea}
+                      className="border border-slate-300/40 rounded-xl px-3.5 py-2.5 text-[0.92rem] w-full font-inherit transition-all resize-y min-h-24 focus:outline-none focus:border-orange-500 focus:shadow-[0_0_0_2px_rgba(249,115,22,0.12)]"
                       value={rentForm.remarks}
                       onChange={(e) => setRentForm({ ...rentForm, remarks: e.target.value })}
                     />
                   </div>
                 </div>
-                <div className={styles.modalActions}>
-                  <button type="button" className={styles.actionButtonSecondary} onClick={() => setShowAddRentModal(false)}>
+                <div className="flex justify-end gap-3 px-6 py-4 border-t border-slate-300/20 bg-slate-50 max-sm:flex-col max-sm:items-stretch">
+                  <button type="button" className="border border-slate-300/35 rounded-full px-4 py-1.5 text-[0.78rem] font-semibold cursor-pointer inline-flex items-center gap-1.5 bg-slate-300/[0.18] text-gray-800 transition-colors hover:bg-slate-300/[0.28]" onClick={() => setShowAddRentModal(false)}>
                     Cancel
                   </button>
-                  <button type="submit" className={styles.actionButtonPrimary}>
+                  <button type="submit" className="border-none rounded-full px-4 py-1.5 text-[0.78rem] font-semibold cursor-pointer inline-flex items-center gap-1.5 bg-gradient-to-br from-green-500 to-green-600 text-white shadow-[0_10px_18px_rgba(34,197,94,0.28)] transition-all hover:-translate-y-0.5 hover:shadow-[0_14px_24px_rgba(34,197,94,0.32)] disabled:opacity-55 disabled:cursor-not-allowed disabled:transform-none disabled:shadow-none">
                     Add Record
                   </button>
                 </div>
@@ -636,23 +635,23 @@ export default function TenantManagement() {
 
         {/* Record Payment Modal */}
         {showPaymentModal && selectedRecord && (
-          <div className={styles.modalBackdrop}>
-            <div className={styles.modal}>
-              <div className={styles.modalHeader}>
+          <div className="fixed inset-0 bg-slate-900/65 flex items-center justify-center p-6 z-[1000]">
+            <div className="bg-white rounded-3xl w-[min(640px,100%)] max-h-[90vh] flex flex-col shadow-[0_30px_60px_rgba(15,23,42,0.35)] max-sm:w-full max-sm:max-h-[95vh] max-sm:rounded-2xl">
+              <div className="p-5 border-b border-slate-300/20 flex justify-between gap-4 items-start">
                 <div>
                   <h2>Record Payment</h2>
                   <span>For {selectedRecord.month} - Due: {formatCurrency(selectedRecord.amountDue)}</span>
                 </div>
-                <button className={styles.modalClose} onClick={() => { setShowPaymentModal(false); setSelectedRecord(null) }}>Close</button>
+                <button className="border-none bg-transparent text-slate-600 text-[0.85rem] font-semibold cursor-pointer" onClick={() => { setShowPaymentModal(false); setSelectedRecord(null) }}>Close</button>
               </div>
               <form onSubmit={handleUpdatePayment}>
-                <div className={styles.modalBody}>
-                  <div className={styles.modalGrid}>
-                    <div className={styles.modalField}>
+                <div className="p-6 overflow-y-auto flex flex-col gap-4 max-sm:p-4">
+                  <div className="grid grid-cols-[repeat(auto-fit,minmax(180px,1fr))] gap-3.5">
+                    <div className="flex flex-col gap-1.5 text-[0.85rem] text-slate-600">
                       <label>Amount Received (PKR) *</label>
                       <input
                         type="number"
-                        className={styles.modalInput}
+                        className="border border-slate-300/40 rounded-xl px-3.5 py-2.5 text-[0.92rem] w-full font-inherit transition-all focus:outline-none focus:border-orange-500 focus:shadow-[0_0_0_2px_rgba(249,115,22,0.12)]"
                         value={paymentForm.amountReceived}
                         onChange={(e) => setPaymentForm({ ...paymentForm, amountReceived: e.target.value })}
                         required
@@ -662,20 +661,20 @@ export default function TenantManagement() {
                         Remaining: {formatCurrency(selectedRecord.amountDue - (selectedRecord.amountReceived || 0))}
                       </span>
                     </div>
-                    <div className={styles.modalField}>
+                    <div className="flex flex-col gap-1.5 text-[0.85rem] text-slate-600">
                       <label>Payment Date *</label>
                       <input
                         type="date"
-                        className={styles.modalInput}
+                        className="border border-slate-300/40 rounded-xl px-3.5 py-2.5 text-[0.92rem] w-full font-inherit transition-all focus:outline-none focus:border-orange-500 focus:shadow-[0_0_0_2px_rgba(249,115,22,0.12)]"
                         value={paymentForm.paymentDate}
                         onChange={(e) => setPaymentForm({ ...paymentForm, paymentDate: e.target.value })}
                         required
                       />
                     </div>
-                    <div className={styles.modalField}>
+                    <div className="flex flex-col gap-1.5 text-[0.85rem] text-slate-600">
                       <label>Payment Method</label>
                       <select
-                        className={styles.modalInput}
+                        className="border border-slate-300/40 rounded-xl px-3.5 py-2.5 text-[0.92rem] w-full font-inherit transition-all focus:outline-none focus:border-orange-500 focus:shadow-[0_0_0_2px_rgba(249,115,22,0.12)]"
                         value={paymentForm.paymentMethod}
                         onChange={(e) => setPaymentForm({ ...paymentForm, paymentMethod: e.target.value })}
                       >
@@ -686,21 +685,21 @@ export default function TenantManagement() {
                       </select>
                     </div>
                   </div>
-                  <div className={styles.modalField}>
+                  <div className="flex flex-col gap-1.5 text-[0.85rem] text-slate-600">
                     <label>Remarks</label>
                     <textarea
-                      className={styles.modalTextarea}
+                      className="border border-slate-300/40 rounded-xl px-3.5 py-2.5 text-[0.92rem] w-full font-inherit transition-all resize-y min-h-24 focus:outline-none focus:border-orange-500 focus:shadow-[0_0_0_2px_rgba(249,115,22,0.12)]"
                       value={paymentForm.remarks}
                       onChange={(e) => setPaymentForm({ ...paymentForm, remarks: e.target.value })}
                       placeholder="Transaction reference or notes..."
                     />
                   </div>
                 </div>
-                <div className={styles.modalActions}>
-                  <button type="button" className={styles.actionButtonSecondary} onClick={() => { setShowPaymentModal(false); setSelectedRecord(null) }}>
+                <div className="flex justify-end gap-3 px-6 py-4 border-t border-slate-300/20 bg-slate-50 max-sm:flex-col max-sm:items-stretch">
+                  <button type="button" className="border border-slate-300/35 rounded-full px-4 py-1.5 text-[0.78rem] font-semibold cursor-pointer inline-flex items-center gap-1.5 bg-slate-300/[0.18] text-gray-800 transition-colors hover:bg-slate-300/[0.28]" onClick={() => { setShowPaymentModal(false); setSelectedRecord(null) }}>
                     Cancel
                   </button>
-                  <button type="submit" className={styles.actionButtonPrimary}>
+                  <button type="submit" className="border-none rounded-full px-4 py-1.5 text-[0.78rem] font-semibold cursor-pointer inline-flex items-center gap-1.5 bg-gradient-to-br from-green-500 to-green-600 text-white shadow-[0_10px_18px_rgba(34,197,94,0.28)] transition-all hover:-translate-y-0.5 hover:shadow-[0_14px_24px_rgba(34,197,94,0.32)] disabled:opacity-55 disabled:cursor-not-allowed disabled:transform-none disabled:shadow-none">
                     Record Payment
                   </button>
                 </div>

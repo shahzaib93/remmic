@@ -13,7 +13,6 @@ import {
   MAINTENANCE_STATUS,
   RENT_STATUS
 } from '../../../lib/firebase'
-import styles from '../../../styles/adminOverview.module.css'
 
 const STATUS_COLORS = {
   [PROPERTY_MANAGEMENT_STATUS.VACANT]: { bg: '#fef3c7', color: '#d97706' },
@@ -261,74 +260,74 @@ export default function PropertyManagementDashboard() {
         </div>
 
         {/* Stats Cards */}
-        <div className={styles.metricGrid} style={{ marginBottom: '2rem' }}>
-          <div className={styles.metricCard}>
-            <h3>Active Tenants</h3>
-            <div className={styles.metricValue}>{activeTenants.length}</div>
-            <div className={styles.metricMeta}>
+        <div className="grid grid-cols-[repeat(auto-fit,minmax(220px,1fr))] gap-6 mb-8">
+          <div className="relative overflow-hidden grid gap-2.5 bg-gradient-to-br from-white to-[#fafafa] rounded-[1.25rem] p-6 shadow-[0_10px_24px_rgba(15,23,42,0.08)] border border-slate-300/[0.16] transition-all before:content-[''] before:absolute before:top-0 before:left-0 before:right-0 before:h-1 before:bg-gradient-to-r before:from-[#c9a227] before:via-[#d4b13d] before:to-[#c9a227] hover:-translate-y-0.5 hover:shadow-[0_15px_30px_rgba(15,23,42,0.12)]">
+            <h3 className="m-0 text-[0.85rem] font-semibold text-slate-500 uppercase tracking-wide">Active Tenants</h3>
+            <div className="text-[clamp(1.6rem,2.8vw,2rem)] font-bold text-slate-900">{activeTenants.length}</div>
+            <div className="flex justify-between items-center text-[0.78rem] text-slate-400">
               <span>Total: {managementData?.tenants?.length || 0}</span>
             </div>
           </div>
 
-          <div className={styles.metricCard}>
-            <h3>Monthly Rent Due</h3>
-            <div className={styles.metricValue}>
+          <div className="relative overflow-hidden grid gap-2.5 bg-gradient-to-br from-white to-[#fafafa] rounded-[1.25rem] p-6 shadow-[0_10px_24px_rgba(15,23,42,0.08)] border border-slate-300/[0.16] transition-all before:content-[''] before:absolute before:top-0 before:left-0 before:right-0 before:h-1 before:bg-gradient-to-r before:from-[#c9a227] before:via-[#d4b13d] before:to-[#c9a227] hover:-translate-y-0.5 hover:shadow-[0_15px_30px_rgba(15,23,42,0.12)]">
+            <h3 className="m-0 text-[0.85rem] font-semibold text-slate-500 uppercase tracking-wide">Monthly Rent Due</h3>
+            <div className="text-[clamp(1.6rem,2.8vw,2rem)] font-bold text-slate-900">
               {formatCurrency(financialSummary?.totalRentDue || 0)}
             </div>
-            <div className={styles.metricMeta}>
+            <div className="flex justify-between items-center text-[0.78rem] text-slate-400">
               <span>Collected: {formatCurrency(financialSummary?.totalRentCollected || 0)}</span>
             </div>
           </div>
 
-          <div className={styles.metricCard}>
-            <h3>Open Maintenance</h3>
-            <div className={styles.metricValue}>{openMaintenance.length}</div>
-            <div className={styles.metricMeta}>
+          <div className="relative overflow-hidden grid gap-2.5 bg-gradient-to-br from-white to-[#fafafa] rounded-[1.25rem] p-6 shadow-[0_10px_24px_rgba(15,23,42,0.08)] border border-slate-300/[0.16] transition-all before:content-[''] before:absolute before:top-0 before:left-0 before:right-0 before:h-1 before:bg-gradient-to-r before:from-[#c9a227] before:via-[#d4b13d] before:to-[#c9a227] hover:-translate-y-0.5 hover:shadow-[0_15px_30px_rgba(15,23,42,0.12)]">
+            <h3 className="m-0 text-[0.85rem] font-semibold text-slate-500 uppercase tracking-wide">Open Maintenance</h3>
+            <div className="text-[clamp(1.6rem,2.8vw,2rem)] font-bold text-slate-900">{openMaintenance.length}</div>
+            <div className="flex justify-between items-center text-[0.78rem] text-slate-400">
               <span>Total: {managementData?.maintenanceRequests?.length || 0}</span>
             </div>
           </div>
 
-          <div className={styles.metricCard}>
-            <h3>Net Amount</h3>
-            <div className={styles.metricValue} style={{ color: (financialSummary?.netAmount || 0) >= 0 ? '#059669' : '#dc2626' }}>
+          <div className="relative overflow-hidden grid gap-2.5 bg-gradient-to-br from-white to-[#fafafa] rounded-[1.25rem] p-6 shadow-[0_10px_24px_rgba(15,23,42,0.08)] border border-slate-300/[0.16] transition-all before:content-[''] before:absolute before:top-0 before:left-0 before:right-0 before:h-1 before:bg-gradient-to-r before:from-[#c9a227] before:via-[#d4b13d] before:to-[#c9a227] hover:-translate-y-0.5 hover:shadow-[0_15px_30px_rgba(15,23,42,0.12)]">
+            <h3 className="m-0 text-[0.85rem] font-semibold text-slate-500 uppercase tracking-wide">Net Amount</h3>
+            <div className="text-[clamp(1.6rem,2.8vw,2rem)] font-bold" style={{ color: (financialSummary?.netAmount || 0) >= 0 ? '#059669' : '#dc2626' }}>
               {formatCurrency(financialSummary?.netAmount || 0)}
             </div>
-            <div className={styles.metricMeta}>
+            <div className="flex justify-between items-center text-[0.78rem] text-slate-400">
               <span>After expenses</span>
             </div>
           </div>
         </div>
 
         {/* Main Content Grid */}
-        <div className={styles.colTwo}>
+        <div className="grid grid-cols-[repeat(auto-fit,minmax(300px,1fr))] gap-5 max-lg:grid-cols-1">
           {/* Recent Rent Records */}
-          <div className={styles.panel}>
-            <div className={styles.panelHeader}>
-              <h2>Recent Rent Records</h2>
+          <div className="flex flex-col gap-5 max-h-[450px] overflow-hidden bg-white rounded-[1.75rem] p-7 shadow-[0_12px_32px_rgba(15,23,42,0.08)] border border-slate-300/[0.18]">
+            <div className="flex justify-between items-center gap-4">
+              <h2 className="m-0 text-[1.1rem]">Recent Rent Records</h2>
               <Link href={`/management/property/${propertyId}/tenants`} style={{ color: '#f97316', fontSize: '0.875rem', textDecoration: 'none' }}>
                 View All
               </Link>
             </div>
-            <div className={styles.list}>
+            <div className="grid gap-4 overflow-y-auto flex-1 pr-1">
               {recentRentRecords.length === 0 ? (
-                <div className={styles.emptyState}>No rent records yet</div>
+                <div className="border border-dashed border-slate-300/40 rounded-3xl py-10 px-6 text-center text-slate-400 text-[0.95rem]">No rent records yet</div>
               ) : (
                 recentRentRecords.map(record => (
-                  <div key={record.id} className={styles.listItem}>
+                  <div key={record.id} className="grid grid-cols-[auto_1fr_minmax(150px,220px)] gap-x-4 gap-y-2 items-start py-3.5 border-b border-slate-200/55 last:border-b-0 max-md:grid-cols-1 max-md:gap-y-3">
                     <span
-                      className={styles.badge}
+                      className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-[clamp(0.65rem,2vw,0.75rem)] font-semibold tracking-wide whitespace-nowrap flex-shrink-0 max-w-[120px] overflow-hidden text-ellipsis uppercase"
                       style={RENT_COLORS[record.paymentStatus] || RENT_COLORS[RENT_STATUS.DUE]}
                     >
                       {record.paymentStatus?.toUpperCase() || 'DUE'}
                     </span>
                     <div>
-                      <strong>{record.month}</strong>
-                      <div className={styles.smallMeta}>
+                      <strong className="font-semibold text-gray-800">{record.month}</strong>
+                      <div className="text-gray-400 text-[0.82rem] break-words leading-tight">
                         Due: {formatCurrency(record.amountDue)} | Received: {formatCurrency(record.amountReceived || 0)}
                       </div>
                     </div>
-                    <div className={styles.listItemMeta}>
-                      <span className={styles.smallMeta}>{formatDate(record.paymentDate || record.createdAt)}</span>
+                    <div className="flex flex-col items-end justify-center gap-1.5 min-w-[170px] w-full max-md:items-start max-md:min-w-0">
+                      <span className="text-gray-400 text-[0.82rem] break-words leading-tight">{formatDate(record.paymentDate || record.createdAt)}</span>
                     </div>
                   </div>
                 ))
@@ -337,28 +336,28 @@ export default function PropertyManagementDashboard() {
           </div>
 
           {/* Active Tenants */}
-          <div className={styles.panel}>
-            <div className={styles.panelHeader}>
-              <h2>Active Tenants</h2>
+          <div className="flex flex-col gap-5 max-h-[450px] overflow-hidden bg-white rounded-[1.75rem] p-7 shadow-[0_12px_32px_rgba(15,23,42,0.08)] border border-slate-300/[0.18]">
+            <div className="flex justify-between items-center gap-4">
+              <h2 className="m-0 text-[1.1rem]">Active Tenants</h2>
               <Link href={`/management/property/${propertyId}/tenants`} style={{ color: '#f97316', fontSize: '0.875rem', textDecoration: 'none' }}>
                 Manage
               </Link>
             </div>
-            <div className={styles.list}>
+            <div className="grid gap-4 overflow-y-auto flex-1 pr-1">
               {activeTenants.length === 0 ? (
-                <div className={styles.emptyState}>No active tenants</div>
+                <div className="border border-dashed border-slate-300/40 rounded-3xl py-10 px-6 text-center text-slate-400 text-[0.95rem]">No active tenants</div>
               ) : (
                 activeTenants.map(tenant => (
-                  <div key={tenant.id} className={styles.listItem}>
-                    <span className={styles.badgeActive}>Active</span>
+                  <div key={tenant.id} className="grid grid-cols-[auto_1fr_minmax(150px,220px)] gap-x-4 gap-y-2 items-start py-3.5 border-b border-slate-200/55 last:border-b-0 max-md:grid-cols-1 max-md:gap-y-3">
+                    <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-lg bg-emerald-500/[0.14] text-emerald-600 text-[clamp(0.6rem,2vw,0.72rem)] font-semibold whitespace-nowrap flex-shrink-0 max-w-[85px] overflow-hidden text-ellipsis">Active</span>
                     <div>
-                      <strong>{tenant.tenantName}</strong>
-                      <div className={styles.smallMeta}>
+                      <strong className="font-semibold text-gray-800">{tenant.tenantName}</strong>
+                      <div className="text-gray-400 text-[0.82rem] break-words leading-tight">
                         {tenant.contactPhone} | {formatCurrency(tenant.monthlyRent)}/month
                       </div>
                     </div>
-                    <div className={styles.listItemMeta}>
-                      <span className={styles.smallMeta}>
+                    <div className="flex flex-col items-end justify-center gap-1.5 min-w-[170px] w-full max-md:items-start max-md:min-w-0">
+                      <span className="text-gray-400 text-[0.82rem] break-words leading-tight">
                         Lease ends: {formatDate(tenant.leaseEndDate)}
                       </span>
                     </div>
@@ -370,38 +369,38 @@ export default function PropertyManagementDashboard() {
         </div>
 
         {/* Maintenance Requests */}
-        <div className={styles.panel} style={{ marginTop: '1.5rem' }}>
-          <div className={styles.panelHeader}>
-            <h2>Open Maintenance Requests</h2>
+        <div className="flex flex-col gap-5 max-h-[450px] overflow-hidden bg-white rounded-[1.75rem] p-7 shadow-[0_12px_32px_rgba(15,23,42,0.08)] border border-slate-300/[0.18] mt-6">
+          <div className="flex justify-between items-center gap-4">
+            <h2 className="m-0 text-[1.1rem]">Open Maintenance Requests</h2>
             <Link href={`/management/property/${propertyId}/maintenance`} style={{ color: '#f97316', fontSize: '0.875rem', textDecoration: 'none' }}>
               View All
             </Link>
           </div>
-          <div className={styles.list}>
+          <div className="grid gap-4 overflow-y-auto flex-1 pr-1">
             {openMaintenance.length === 0 ? (
-              <div className={styles.emptyState}>No open maintenance requests</div>
+              <div className="border border-dashed border-slate-300/40 rounded-3xl py-10 px-6 text-center text-slate-400 text-[0.95rem]">No open maintenance requests</div>
             ) : (
               openMaintenance.slice(0, 5).map(request => (
-                <div key={request.id} className={styles.listItem}>
+                <div key={request.id} className="grid grid-cols-[auto_1fr_minmax(150px,220px)] gap-x-4 gap-y-2 items-start py-3.5 border-b border-slate-200/55 last:border-b-0 max-md:grid-cols-1 max-md:gap-y-3">
                   <span
-                    className={styles.badge}
+                    className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-[clamp(0.65rem,2vw,0.75rem)] font-semibold tracking-wide whitespace-nowrap flex-shrink-0 max-w-[120px] overflow-hidden text-ellipsis uppercase"
                     style={MAINTENANCE_COLORS[request.status] || MAINTENANCE_COLORS[MAINTENANCE_STATUS.SUBMITTED]}
                   >
                     {request.status?.replace('_', ' ').toUpperCase() || 'SUBMITTED'}
                   </span>
                   <div>
-                    <strong>{request.requestType}</strong>
-                    <div className={styles.smallMeta}>
+                    <strong className="font-semibold text-gray-800">{request.requestType}</strong>
+                    <div className="text-gray-400 text-[0.82rem] break-words leading-tight">
                       {request.description?.slice(0, 100)}...
                     </div>
                   </div>
-                  <div className={styles.listItemMeta}>
-                    <span className={styles.smallMeta}>
+                  <div className="flex flex-col items-end justify-center gap-1.5 min-w-[170px] w-full max-md:items-start max-md:min-w-0">
+                    <span className="text-gray-400 text-[0.82rem] break-words leading-tight">
                       Urgency: <strong style={{ color: request.urgency === 'high' ? '#dc2626' : request.urgency === 'medium' ? '#d97706' : '#059669' }}>
                         {request.urgency?.toUpperCase() || 'MEDIUM'}
                       </strong>
                     </span>
-                    <span className={styles.smallMeta}>{formatDate(request.createdAt)}</span>
+                    <span className="text-gray-400 text-[0.82rem] break-words leading-tight">{formatDate(request.createdAt)}</span>
                   </div>
                 </div>
               ))
@@ -410,28 +409,28 @@ export default function PropertyManagementDashboard() {
         </div>
 
         {/* Activity Log Preview */}
-        <div className={styles.panel} style={{ marginTop: '1.5rem' }}>
-          <div className={styles.panelHeader}>
-            <h2>Recent Activity</h2>
+        <div className="flex flex-col gap-5 max-h-[450px] overflow-hidden bg-white rounded-[1.75rem] p-7 shadow-[0_12px_32px_rgba(15,23,42,0.08)] border border-slate-300/[0.18] mt-6">
+          <div className="flex justify-between items-center gap-4">
+            <h2 className="m-0 text-[1.1rem]">Recent Activity</h2>
             <Link href={`/management/property/${propertyId}/activity`} style={{ color: '#f97316', fontSize: '0.875rem', textDecoration: 'none' }}>
               View All
             </Link>
           </div>
-          <div className={styles.list}>
+          <div className="grid gap-4 overflow-y-auto flex-1 pr-1">
             {(managementData?.activityLogs?.length === 0 || !managementData?.activityLogs) ? (
-              <div className={styles.emptyState}>No activity logged yet</div>
+              <div className="border border-dashed border-slate-300/40 rounded-3xl py-10 px-6 text-center text-slate-400 text-[0.95rem]">No activity logged yet</div>
             ) : (
               managementData.activityLogs.slice(0, 5).map(log => (
-                <div key={log.id} className={styles.listItem}>
-                  <span className={styles.badge}>{log.action?.replace('_', ' ')}</span>
+                <div key={log.id} className="grid grid-cols-[auto_1fr_minmax(150px,220px)] gap-x-4 gap-y-2 items-start py-3.5 border-b border-slate-200/55 last:border-b-0 max-md:grid-cols-1 max-md:gap-y-3">
+                  <span className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-gradient-to-br from-[rgba(201,162,39,0.15)] to-[rgba(201,162,39,0.1)] text-[#92710c] text-[clamp(0.65rem,2vw,0.75rem)] font-semibold tracking-wide whitespace-nowrap flex-shrink-0 max-w-[120px] overflow-hidden text-ellipsis uppercase border border-[rgba(201,162,39,0.2)]">{log.action?.replace('_', ' ')}</span>
                   <div>
-                    <strong>{log.entityType}</strong>
-                    <div className={styles.smallMeta}>
+                    <strong className="font-semibold text-gray-800">{log.entityType}</strong>
+                    <div className="text-gray-400 text-[0.82rem] break-words leading-tight">
                       By {log.changedByName || 'System'}
                     </div>
                   </div>
-                  <div className={styles.listItemMeta}>
-                    <span className={styles.smallMeta}>{formatDate(log.timestamp)}</span>
+                  <div className="flex flex-col items-end justify-center gap-1.5 min-w-[170px] w-full max-md:items-start max-md:min-w-0">
+                    <span className="text-gray-400 text-[0.82rem] break-words leading-tight">{formatDate(log.timestamp)}</span>
                   </div>
                 </div>
               ))
@@ -440,16 +439,16 @@ export default function PropertyManagementDashboard() {
         </div>
 
         {/* Documents Preview */}
-        <div className={styles.panel} style={{ marginTop: '1.5rem' }}>
-          <div className={styles.panelHeader}>
-            <h2>Documents ({managementData?.documents?.length || 0})</h2>
+        <div className="flex flex-col gap-5 max-h-[450px] overflow-hidden bg-white rounded-[1.75rem] p-7 shadow-[0_12px_32px_rgba(15,23,42,0.08)] border border-slate-300/[0.18] mt-6">
+          <div className="flex justify-between items-center gap-4">
+            <h2 className="m-0 text-[1.1rem]">Documents ({managementData?.documents?.length || 0})</h2>
             <Link href={`/management/property/${propertyId}/documents`} style={{ color: '#f97316', fontSize: '0.875rem', textDecoration: 'none' }}>
               Manage Documents
             </Link>
           </div>
           <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
             {(managementData?.documents?.length === 0 || !managementData?.documents) ? (
-              <div className={styles.emptyState} style={{ width: '100%' }}>No documents uploaded yet</div>
+              <div className="border border-dashed border-slate-300/40 rounded-3xl py-10 px-6 text-center text-slate-400 text-[0.95rem] w-full">No documents uploaded yet</div>
             ) : (
               managementData.documents.slice(0, 6).map(doc => (
                 <div

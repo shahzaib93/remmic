@@ -109,7 +109,7 @@ export default function MarketplaceToolbar({
           {/* Filters Button */}
           <button
             onClick={onOpenFilters}
-            className="flex items-center gap-2 px-5 py-3 bg-gray-900 text-white rounded-xl font-medium hover:bg-gray-800 transition-colors whitespace-nowrap"
+            className="btn-dark whitespace-nowrap"
           >
             <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
@@ -259,13 +259,13 @@ export function FiltersDrawer({ isOpen, onClose }) {
             <div className="flex gap-4">
               <button
                 onClick={onClose}
-                className="flex-1 px-6 py-3 border border-gray-200 text-gray-700 rounded-xl font-medium hover:bg-gray-100 transition-colors"
+                className="btn-outline flex-1"
               >
                 Clear All
               </button>
               <button
                 onClick={onClose}
-                className="flex-1 px-6 py-3 bg-gray-900 text-white rounded-xl font-medium hover:bg-gray-800 transition-colors"
+                className="btn-dark flex-1"
               >
                 Apply Filters
               </button>

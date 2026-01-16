@@ -6,7 +6,6 @@ import Navbar from '../../../../components/Navbar'
 import Footer from '../../../../components/Footer'
 import { useFirebase } from '../../../../contexts/FirebaseContext'
 import { getActivityLogs, logActivity } from '../../../../lib/firebase'
-import styles from '../../../../styles/adminOverview.module.css'
 
 const ACTION_TYPES = {
   TENANT_ADDED: 'tenant_added',
@@ -238,7 +237,7 @@ export default function ActivityLogs() {
             </div>
             <button
               onClick={() => setShowAddNoteModal(true)}
-              className={styles.actionButtonPrimary}
+              className="border-none rounded-full px-4 py-1.5 text-[0.78rem] font-semibold cursor-pointer inline-flex items-center gap-1.5 bg-gradient-to-br from-green-500 to-green-600 text-white shadow-[0_10px_18px_rgba(34,197,94,0.28)] transition-all hover:-translate-y-0.5 hover:shadow-[0_14px_24px_rgba(34,197,94,0.32)] disabled:opacity-55 disabled:cursor-not-allowed disabled:transform-none disabled:shadow-none"
               style={{ padding: '0.75rem 1.25rem' }}
             >
               + Add Note
@@ -247,7 +246,7 @@ export default function ActivityLogs() {
         </div>
 
         {/* Filters */}
-        <div className={styles.panel} style={{ marginBottom: '2rem' }}>
+        <div className="flex flex-col gap-5 bg-white rounded-[1.75rem] p-7 shadow-[0_12px_32px_rgba(15,23,42,0.08)] border border-slate-300/[0.18]" style={{ marginBottom: '2rem' }}>
           <h3 style={{ margin: '0 0 1rem', fontSize: '1rem' }}>Filters</h3>
           <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', alignItems: 'flex-end' }}>
             <div>
@@ -288,7 +287,7 @@ export default function ActivityLogs() {
                 setSelectedAction('all')
                 setDateFilter({ start: '', end: '' })
               }}
-              className={styles.actionButtonSecondary}
+              className="border border-slate-300/35 rounded-full px-4 py-1.5 text-[0.78rem] font-semibold cursor-pointer inline-flex items-center gap-1.5 bg-slate-300/[0.18] text-gray-800 transition-colors hover:bg-slate-300/[0.28]"
               style={{ padding: '0.5rem 1rem' }}
             >
               Clear Filters
@@ -301,7 +300,7 @@ export default function ActivityLogs() {
             <p style={{ color: '#6b7280' }}>Loading activity logs...</p>
           </div>
         ) : filteredLogs.length === 0 ? (
-          <div className={styles.panel} style={{ textAlign: 'center', padding: '3rem' }}>
+          <div className="flex flex-col gap-5 bg-white rounded-[1.75rem] p-7 shadow-[0_12px_32px_rgba(15,23,42,0.08)] border border-slate-300/[0.18]" style={{ textAlign: 'center', padding: '3rem' }}>
             <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>📋</div>
             <p style={{ color: '#6b7280', marginBottom: '1rem' }}>
               {logs.length === 0 ? 'No activity recorded yet' : 'No activities match your filters'}
@@ -312,14 +311,14 @@ export default function ActivityLogs() {
                   setSelectedAction('all')
                   setDateFilter({ start: '', end: '' })
                 }}
-                className={styles.actionButtonSecondary}
+                className="border border-slate-300/35 rounded-full px-4 py-1.5 text-[0.78rem] font-semibold cursor-pointer inline-flex items-center gap-1.5 bg-slate-300/[0.18] text-gray-800 transition-colors hover:bg-slate-300/[0.28]"
               >
                 Clear Filters
               </button>
             )}
           </div>
         ) : (
-          <div className={styles.panel}>
+          <div className="flex flex-col gap-5 bg-white rounded-[1.75rem] p-7 shadow-[0_12px_32px_rgba(15,23,42,0.08)] border border-slate-300/[0.18]">
             {Object.entries(groupedLogs).map(([date, dayLogs]) => (
               <div key={date} style={{ marginBottom: '1.5rem' }}>
                 <h4 style={{
@@ -463,7 +462,7 @@ export default function ActivityLogs() {
                     setShowAddNoteModal(false)
                     setNoteText('')
                   }}
-                  className={styles.actionButtonSecondary}
+                  className="border border-slate-300/35 rounded-full px-4 py-1.5 text-[0.78rem] font-semibold cursor-pointer inline-flex items-center gap-1.5 bg-slate-300/[0.18] text-gray-800 transition-colors hover:bg-slate-300/[0.28]"
                   style={{ flex: 1 }}
                 >
                   Cancel
@@ -471,7 +470,7 @@ export default function ActivityLogs() {
                 <button
                   type="submit"
                   disabled={adding || !noteText.trim()}
-                  className={styles.actionButtonPrimary}
+                  className="border-none rounded-full px-4 py-1.5 text-[0.78rem] font-semibold cursor-pointer inline-flex items-center gap-1.5 bg-gradient-to-br from-green-500 to-green-600 text-white shadow-[0_10px_18px_rgba(34,197,94,0.28)] transition-all hover:-translate-y-0.5 hover:shadow-[0_14px_24px_rgba(34,197,94,0.32)] disabled:opacity-55 disabled:cursor-not-allowed disabled:transform-none disabled:shadow-none"
                   style={{ flex: 1 }}
                 >
                   {adding ? 'Adding...' : 'Add Note'}

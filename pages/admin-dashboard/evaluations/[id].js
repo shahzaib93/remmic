@@ -7,7 +7,6 @@ import Footer from '../../../components/Footer'
 import { useFirebase } from '../../../contexts/FirebaseContext'
 import { updateEvaluationInternalReview, logActivity } from '../../../lib/firebase'
 import { generateEvaluationPdf } from '../../../utils/pdf'
-import styles from '../../../styles/adminOverview.module.css'
 
 const EVALUATION_STATUS = {
   PENDING: 'pending',
@@ -191,7 +190,7 @@ export default function EvaluationReview() {
         <main style={{ padding: '2rem', textAlign: 'center', minHeight: '70vh' }}>
           <h1>Evaluation Not Found</h1>
           <p style={{ color: '#6b7280' }}>The evaluation could not be found.</p>
-          <Link href="/admin-dashboard" className={styles.actionButtonPrimary} style={{ marginTop: '1rem', display: 'inline-block' }}>
+          <Link href="/admin-dashboard" className="border-none rounded-full px-5 py-2.5 text-sm font-semibold cursor-pointer bg-gradient-to-br from-green-500 to-green-600 text-white shadow-[0_10px_18px_rgba(34,197,94,0.28)] transition-all hover:-translate-y-0.5 hover:shadow-[0_14px_24px_rgba(34,197,94,0.35)]" style={{ marginTop: '1rem', display: 'inline-block' }}>
             Back to Dashboard
           </Link>
         </main>
@@ -234,7 +233,7 @@ export default function EvaluationReview() {
               </span>
               <button
                 onClick={handleGeneratePDF}
-                className={styles.actionButtonSecondary}
+                className="border border-slate-300/35 rounded-full px-4 py-2 text-sm font-semibold bg-slate-200/50 text-gray-800 transition-colors hover:bg-slate-300/50"
               >
                 Download PDF
               </button>
@@ -246,7 +245,7 @@ export default function EvaluationReview() {
           {/* Evaluation Details */}
           <div>
             {/* Client Information */}
-            <div className={styles.panel} style={{ marginBottom: '1.5rem' }}>
+            <div className="bg-white rounded-[1.75rem] p-7 shadow-[0_12px_32px_rgba(15,23,42,0.08)] border border-slate-200/20" style={{ marginBottom: '1.5rem' }}>
               <h3 style={{ margin: '0 0 1rem', borderBottom: '1px solid #e5e7eb', paddingBottom: '0.5rem' }}>
                 Section A: Client Information
               </h3>
@@ -271,7 +270,7 @@ export default function EvaluationReview() {
             </div>
 
             {/* Property Information */}
-            <div className={styles.panel} style={{ marginBottom: '1.5rem' }}>
+            <div className="bg-white rounded-[1.75rem] p-7 shadow-[0_12px_32px_rgba(15,23,42,0.08)] border border-slate-200/20" style={{ marginBottom: '1.5rem' }}>
               <h3 style={{ margin: '0 0 1rem', borderBottom: '1px solid #e5e7eb', paddingBottom: '0.5rem' }}>
                 Section B: Property Information
               </h3>
@@ -296,7 +295,7 @@ export default function EvaluationReview() {
             </div>
 
             {/* Ownership & Legal */}
-            <div className={styles.panel} style={{ marginBottom: '1.5rem' }}>
+            <div className="bg-white rounded-[1.75rem] p-7 shadow-[0_12px_32px_rgba(15,23,42,0.08)] border border-slate-200/20" style={{ marginBottom: '1.5rem' }}>
               <h3 style={{ margin: '0 0 1rem', borderBottom: '1px solid #e5e7eb', paddingBottom: '0.5rem' }}>
                 Section C: Ownership & Legal Status
               </h3>
@@ -321,7 +320,7 @@ export default function EvaluationReview() {
             </div>
 
             {/* Financial */}
-            <div className={styles.panel} style={{ marginBottom: '1.5rem' }}>
+            <div className="bg-white rounded-[1.75rem] p-7 shadow-[0_12px_32px_rgba(15,23,42,0.08)] border border-slate-200/20" style={{ marginBottom: '1.5rem' }}>
               <h3 style={{ margin: '0 0 1rem', borderBottom: '1px solid #e5e7eb', paddingBottom: '0.5rem' }}>
                 Section E: Financial Expectations
               </h3>
@@ -346,7 +345,7 @@ export default function EvaluationReview() {
             </div>
 
             {/* Media & Documents */}
-            <div className={styles.panel}>
+            <div className="bg-white rounded-[1.75rem] p-7 shadow-[0_12px_32px_rgba(15,23,42,0.08)] border border-slate-200/20">
               <h3 style={{ margin: '0 0 1rem', borderBottom: '1px solid #e5e7eb', paddingBottom: '0.5rem' }}>
                 Section G: Media & Documents
               </h3>
@@ -395,7 +394,7 @@ export default function EvaluationReview() {
 
           {/* Internal Review Panel (Section I) */}
           <div>
-            <div className={styles.panel} style={{
+            <div className="bg-white rounded-[1.75rem] p-7 shadow-[0_12px_32px_rgba(15,23,42,0.08)] border border-slate-200/20" style={{
               position: 'sticky',
               top: '1rem',
               border: '2px solid #f97316',
@@ -571,7 +570,7 @@ export default function EvaluationReview() {
               <button
                 onClick={handleSave}
                 disabled={saving}
-                className={styles.actionButtonPrimary}
+                className="border-none rounded-full px-5 py-2.5 text-sm font-semibold cursor-pointer bg-gradient-to-br from-green-500 to-green-600 text-white shadow-[0_10px_18px_rgba(34,197,94,0.28)] transition-all hover:-translate-y-0.5 hover:shadow-[0_14px_24px_rgba(34,197,94,0.35)]"
                 style={{ width: '100%' }}
               >
                 {saving ? 'Saving...' : 'Save Review'}

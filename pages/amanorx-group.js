@@ -67,7 +67,7 @@ export default function AmanorxGroup() {
       </Head>
       <div className="page-wrapper">
         <Navbar />
-        <main className="main-wrapper">
+        <main className="pt-24">
           {/* Hero Section */}
           <section className="ag-hero">
             <div className="ag-hero__container">

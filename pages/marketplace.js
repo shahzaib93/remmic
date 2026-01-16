@@ -156,7 +156,7 @@ export default function Marketplace() {
                 </p>
                 <button
                   onClick={handleReset}
-                  className="px-6 py-3 bg-gray-900 text-white rounded-xl font-medium hover:bg-gray-800 transition-colors"
+                  className="btn-dark"
                 >
                   Clear Filters
                 </button>

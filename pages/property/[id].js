@@ -277,7 +277,7 @@ export default function PropertyDetail() {
     return (
       <div className="page-wrapper">
         <Navbar />
-        <main className="main-wrapper not-found">
+        <main className="pt-24">
           <h1>Asset not found</h1>
           <p>
             The asset you are looking for is unavailable. Return to the <a href="/marketplace">Marketplace</a>.
@@ -623,7 +623,7 @@ export default function PropertyDetail() {
 
       <div className="page-wrapper">
         <Navbar />
-        <main className="main-wrapper">
+        <main className="pt-24">
           <section className="hero">
             <div className={`hero__content ${mounted ? 'is-visible' : ''}`}>
               <div className="hero__badge-row">

@@ -3,7 +3,6 @@ import { useRouter } from 'next/router'
 import AdminLayout from '../../components/admin/AdminLayout'
 import { useAdminDashboardData } from '../../hooks/useAdminDashboardData'
 import { useFirebase } from '../../contexts/FirebaseContext'
-import overviewStyles from '../../styles/adminOverview.module.css'
 import { ensurePropertyImage } from '../../utils/propertyStorage'
 
 const formatCurrency = (value) =>
@@ -262,28 +261,18 @@ export default function AdminPropertiesPage() {
       metaTitle='Admin Properties'
       onRefresh={refresh}
     >
-      <div className={overviewStyles.section}>
-        <section className={overviewStyles.panel}>
-          <header className={overviewStyles.panelHeader}>
+      <div className="grid gap-7">
+        {/* Summary Section */}
+        <section className="bg-white rounded-[1.75rem] p-7 shadow-[0_12px_32px_rgba(15,23,42,0.08)] border border-slate-200/20 flex flex-col gap-5 max-h-[450px] overflow-hidden">
+          <header className="flex justify-between items-center gap-4">
             <div>
-              <h2>Submission summary</h2>
-              <span>{pendingProperties.length} pending approvals - {allProperties.length} total submissions</span>
+              <h2 className="m-0 text-lg font-semibold text-gray-900">Submission summary</h2>
+              <span className="text-gray-400 text-sm">{pendingProperties.length} pending approvals - {allProperties.length} total submissions</span>
             </div>
             <button
               type="button"
               onClick={() => router.push('/add-property')}
-              style={{
-                background: 'linear-gradient(135deg, #c9a227 0%, #d4b13d 100%)',
-                color: '#0a0a0a',
-                border: 'none',
-                padding: '10px 20px',
-                borderRadius: '8px',
-                fontWeight: '600',
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '8px',
-              }}
+              className="bg-gradient-to-br from-[#c9a227] to-[#d4b13d] text-[#0a0a0a] border-none px-5 py-2.5 rounded-lg font-semibold cursor-pointer flex items-center gap-2 hover:shadow-lg transition-all"
             >
               <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
                 <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/>
@@ -291,36 +280,37 @@ export default function AdminPropertiesPage() {
               Add Property
             </button>
           </header>
-          <div className={overviewStyles.quickGrid}>
-            <article className={overviewStyles.quickCard}>
-              <h3>Pending</h3>
-              <p>{pendingProperties.length} properties waiting for review</p>
+          <div className="grid grid-cols-[repeat(auto-fit,minmax(220px,1fr))] gap-5 max-h-[300px] overflow-y-auto pr-1">
+            <article className="rounded-3xl p-5 bg-white border border-slate-200/20 grid gap-3 shadow-[0_12px_24px_rgba(148,163,184,0.08)] transition-all hover:border-slate-300/30 hover:shadow-[0_16px_30px_rgba(148,163,184,0.12)] hover:-translate-y-0.5">
+              <h3 className="m-0 text-base text-gray-800">Pending</h3>
+              <p className="m-0 text-slate-500 text-sm">{pendingProperties.length} properties waiting for review</p>
             </article>
-            <article className={overviewStyles.quickCard}>
-              <h3>Approved / Active</h3>
-              <p>{approvedCount} ready to list</p>
+            <article className="rounded-3xl p-5 bg-white border border-slate-200/20 grid gap-3 shadow-[0_12px_24px_rgba(148,163,184,0.08)] transition-all hover:border-slate-300/30 hover:shadow-[0_16px_30px_rgba(148,163,184,0.12)] hover:-translate-y-0.5">
+              <h3 className="m-0 text-base text-gray-800">Approved / Active</h3>
+              <p className="m-0 text-slate-500 text-sm">{approvedCount} ready to list</p>
             </article>
-            <article className={overviewStyles.quickCard}>
-              <h3>Rejected / Archived</h3>
-              <p>{archivedCount} filtered out</p>
+            <article className="rounded-3xl p-5 bg-white border border-slate-200/20 grid gap-3 shadow-[0_12px_24px_rgba(148,163,184,0.08)] transition-all hover:border-slate-300/30 hover:shadow-[0_16px_30px_rgba(148,163,184,0.12)] hover:-translate-y-0.5">
+              <h3 className="m-0 text-base text-gray-800">Rejected / Archived</h3>
+              <p className="m-0 text-slate-500 text-sm">{archivedCount} filtered out</p>
             </article>
           </div>
         </section>
 
-        <section className={overviewStyles.panel}>
-          <header className={overviewStyles.panelHeader}>
+        {/* Property Catalogue Section */}
+        <section className="bg-white rounded-[1.75rem] p-7 shadow-[0_12px_32px_rgba(15,23,42,0.08)] border border-slate-200/20 flex flex-col gap-5 max-h-[450px] overflow-hidden">
+          <header className="flex justify-between items-center gap-4">
             <div>
-              <h2>Property catalogue</h2>
-              <span>{allProperties.length ? `${allProperties.length} entries` : 'No records yet'}</span>
+              <h2 className="m-0 text-lg font-semibold text-gray-900">Property catalogue</h2>
+              <span className="text-gray-400 text-sm">{allProperties.length ? `${allProperties.length} entries` : 'No records yet'}</span>
             </div>
           </header>
 
           {notice && (
             <div
-              className={`${overviewStyles.actionNotice} ${
+              className={`mt-4 p-3 rounded-xl text-sm font-medium flex items-center gap-2 ${
                 notice.type === 'error'
-                  ? overviewStyles.actionNoticeError
-                  : overviewStyles.actionNoticeSuccess
+                  ? 'bg-red-100/50 text-red-700 border border-red-200/50'
+                  : 'bg-green-100/50 text-emerald-700 border border-green-200/50'
               }`}
             >
               {notice.message}
@@ -328,9 +318,9 @@ export default function AdminPropertiesPage() {
           )}
 
           {loading ? (
-            <div className={overviewStyles.emptyState}>Loading properties...</div>
+            <div className="border border-dashed border-slate-300/40 rounded-3xl py-10 px-6 text-center text-slate-400 text-[0.95rem]">Loading properties...</div>
           ) : allProperties.length ? (
-            <div className={overviewStyles.list}>
+            <div className="grid gap-4 overflow-y-auto flex-1 pr-1">
               {allProperties.map((property) => {
                 const statusValue = resolveStatus(property)
                 const priceLabel = formatPriceLabel(property)
@@ -346,110 +336,110 @@ export default function AdminPropertiesPage() {
                     : null
 
                 return (
-                  <div key={property.id} className={overviewStyles.listItem} style={{ alignItems: 'flex-start', gap: '1.25rem' }}>
+                  <div key={property.id} className="grid grid-cols-[auto_1fr_minmax(150px,220px)] gap-5 items-start py-3.5 border-b border-slate-200/55 last:border-b-0">
                     <img
                       src={imageUrl}
                       alt={property.title || property.name || 'Property'}
-                      style={{ width: '88px', height: '88px', objectFit: 'cover', borderRadius: '12px', border: '1px solid #e5e7eb' }}
+                      className="w-[88px] h-[88px] object-cover rounded-xl border border-gray-200"
                       onError={(event) => {
                         event.currentTarget.src = 'https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=640&auto=format&fit=crop&q=80'
                       }}
                     />
-                    <div style={{ flex: 1 }}>
-                      <strong>{property.title || property.name || 'Untitled property'}</strong>
-                      <div className={overviewStyles.smallMeta}>
+                    <div className="flex-1">
+                      <strong className="font-semibold text-gray-800">{property.title || property.name || 'Untitled property'}</strong>
+                      <div className="text-gray-400 text-sm">
                         {property.location || property.address || 'Location unavailable'} - {propertyType}
                       </div>
-                      <div className={overviewStyles.smallMeta}>
+                      <div className="text-gray-400 text-sm">
                         Listing ID: {property.id || property.propertyId || 'N/A'} - Submitted {formatDate(property.createdAt || property.submittedAt)}
                       </div>
-                      <div className={overviewStyles.smallMeta}>
+                      <div className="text-gray-400 text-sm">
                         Owner: {ownerName} ({ownerPhone})
                       </div>
-                      <div className={overviewStyles.smallMeta}>
+                      <div className="text-gray-400 text-sm">
                         Original Price: {priceLabel}
                       </div>
-                      <div className={overviewStyles.smallMeta}>
+                      <div className="text-gray-400 text-sm">
                         <strong>Condition Score: {calculateConditionScore(property)}%</strong>
                         {calculateConditionScore(property) < 100 && (
-                          <span style={{ color: '#ef4444', marginLeft: '0.5rem' }}>
+                          <span className="text-red-500 ml-2">
                             (Adjusted Value: {formatCurrency(calculateAdjustedValue(property))})
                           </span>
                         )}
                       </div>
                       {property.maintenanceCosts && property.maintenanceCosts.length > 0 && (
-                        <div className={overviewStyles.smallMeta}>
+                        <div className="text-gray-400 text-sm">
                           <strong>Maintenance Issues:</strong>
                           {property.maintenanceCosts.map((cost, index) => (
-                            <div key={index} style={{ marginLeft: '1rem', fontSize: '0.8rem', color: '#6b7280' }}>
+                            <div key={index} className="ml-4 text-xs text-gray-500">
                               • {cost.description} - Impact: {cost.impact}% - Cost: {formatCurrency(cost.amount)}
                             </div>
                           ))}
                         </div>
                       )}
                       {property.description && (
-                        <div className={overviewStyles.smallMeta} style={{ marginTop: '0.5rem' }}>
+                        <div className="text-gray-400 text-sm mt-2">
                           {property.description}
                         </div>
                       )}
 
                       {isEditing && editDraft.mode && (
-                        <div style={{ marginTop: '0.85rem', padding: '0.85rem', borderRadius: '12px', border: '1px solid #e5e7eb', background: '#fff' }}>
-                          <strong style={{ display: 'block', marginBottom: '0.5rem', color: '#0f172a' }}>{modeLabel}</strong>
+                        <div className="mt-3 p-3 rounded-xl border border-gray-200 bg-white">
+                          <strong className="block mb-2 text-slate-900">{modeLabel}</strong>
                           {editDraft.mode === 'bidding' && (
-                            <div style={{ display: 'grid', gap: '0.5rem', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))' }}>
-                              <label style={{ display: 'flex', flexDirection: 'column', fontSize: '0.85rem', color: '#475467' }}>
+                            <div className="grid gap-2 grid-cols-[repeat(auto-fit,minmax(200px,1fr))]">
+                              <label className="flex flex-col text-sm text-slate-600">
                                 Start date
                                 <input
                                   type='date'
                                   value={editDraft.startDate || ''}
                                   onChange={(event) => handleEditChange('startDate', event.target.value)}
-                                  className={overviewStyles.inlineInput}
+                                  className="border border-slate-300/60 rounded-xl px-3 py-2 text-sm transition-all focus:border-orange-500 focus:ring-2 focus:ring-orange-500/15 focus:outline-none"
                                 />
                               </label>
-                              <label style={{ display: 'flex', flexDirection: 'column', fontSize: '0.85rem', color: '#475467' }}>
+                              <label className="flex flex-col text-sm text-slate-600">
                                 Start time
                                 <input
                                   type='time'
                                   value={editDraft.startTime || ''}
                                   onChange={(event) => handleEditChange('startTime', event.target.value)}
-                                  className={overviewStyles.inlineInput}
+                                  className="border border-slate-300/60 rounded-xl px-3 py-2 text-sm transition-all focus:border-orange-500 focus:ring-2 focus:ring-orange-500/15 focus:outline-none"
                                 />
                               </label>
-                              <label style={{ display: 'flex', flexDirection: 'column', fontSize: '0.85rem', color: '#475467' }}>
+                              <label className="flex flex-col text-sm text-slate-600">
                                 End date
                                 <input
                                   type='date'
                                   value={editDraft.endDate || ''}
                                   onChange={(event) => handleEditChange('endDate', event.target.value)}
-                                  className={overviewStyles.inlineInput}
+                                  className="border border-slate-300/60 rounded-xl px-3 py-2 text-sm transition-all focus:border-orange-500 focus:ring-2 focus:ring-orange-500/15 focus:outline-none"
                                 />
                               </label>
-                              <label style={{ display: 'flex', flexDirection: 'column', fontSize: '0.85rem', color: '#475467' }}>
+                              <label className="flex flex-col text-sm text-slate-600">
                                 End time
                                 <input
                                   type='time'
                                   value={editDraft.endTime || ''}
                                   onChange={(event) => handleEditChange('endTime', event.target.value)}
-                                  className={overviewStyles.inlineInput}
+                                  className="border border-slate-300/60 rounded-xl px-3 py-2 text-sm transition-all focus:border-orange-500 focus:ring-2 focus:ring-orange-500/15 focus:outline-none"
                                 />
                               </label>
                             </div>
                           )}
 
                           {editDraft.mode === 'evaluation' && (
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-                              <label style={{ fontSize: '0.85rem', color: '#475467' }}>
+                            <div className="flex flex-col gap-3">
+                              <label className="text-sm text-slate-600">
                                 Evaluation value (PKR)
                                 <input
                                   type='text'
                                   value={editDraft.evaluationValue || ''}
                                   onChange={(event) => handleEditChange('evaluationValue', event.target.value)}
-                                  className={overviewStyles.inlineInput}
+                                  className="border border-slate-300/60 rounded-xl px-3 py-2 text-sm w-full transition-all focus:border-orange-500 focus:ring-2 focus:ring-orange-500/15 focus:outline-none"
                                   placeholder='PKR 25,000,000'
                                 />
                               </label>
-                              <label style={{ fontSize: '0.85rem', color: '#475467' }}>
+                              <label className="text-sm text-slate-600">
                                 Property Condition Score (%)
                                 <input
                                   type='number'
@@ -457,27 +447,27 @@ export default function AdminPropertiesPage() {
                                   max='100'
                                   value={editDraft.conditionScore || 100}
                                   onChange={(event) => handleEditChange('conditionScore', event.target.value)}
-                                  className={overviewStyles.inlineInput}
+                                  className="border border-slate-300/60 rounded-xl px-3 py-2 text-sm w-full transition-all focus:border-orange-500 focus:ring-2 focus:ring-orange-500/15 focus:outline-none"
                                   placeholder='100'
                                 />
                               </label>
-                              <label style={{ fontSize: '0.85rem', color: '#475467' }}>
+                              <label className="text-sm text-slate-600">
                                 Admin comment
                                 <textarea
                                   rows={3}
                                   value={editDraft.adminComment || ''}
                                   onChange={(event) => handleEditChange('adminComment', event.target.value)}
-                                  className={overviewStyles.inlineTextarea}
+                                  className="border border-slate-300/60 rounded-xl px-3 py-2 text-sm w-full resize-y min-h-[70px] transition-all focus:border-orange-500 focus:ring-2 focus:ring-orange-500/15 focus:outline-none"
                                   placeholder='Notes that should appear on the evaluation PDF'
                                 />
                               </label>
                             </div>
                           )}
 
-                          <div style={{ marginTop: '0.75rem', display: 'flex', gap: '0.5rem' }}>
+                          <div className="mt-3 flex gap-2">
                             <button
                               type='button'
-                              className={`${overviewStyles.actionButton} ${overviewStyles.actionButtonPrimary}`}
+                              className="border-none rounded-full px-3.5 py-1.5 text-xs font-semibold cursor-pointer transition-all inline-flex items-center gap-1 bg-gradient-to-br from-green-500 to-green-600 text-white shadow-[0_10px_18px_rgba(34,197,94,0.28)] hover:-translate-y-0.5 hover:shadow-[0_14px_24px_rgba(34,197,94,0.32)] disabled:opacity-55 disabled:cursor-not-allowed disabled:transform-none disabled:shadow-none"
                               onClick={() => saveEdit(property)}
                               disabled={savingEdit}
                             >
@@ -485,7 +475,7 @@ export default function AdminPropertiesPage() {
                             </button>
                             <button
                               type='button'
-                              className={`${overviewStyles.actionButton} ${overviewStyles.actionButtonSecondary}`}
+                              className="border border-slate-300/35 rounded-full px-3.5 py-1.5 text-xs font-semibold cursor-pointer transition-all inline-flex items-center gap-1 bg-slate-200/50 text-gray-800 hover:bg-slate-200"
                               onClick={cancelEdit}
                             >
                               Cancel
@@ -494,11 +484,11 @@ export default function AdminPropertiesPage() {
                         </div>
                       )}
                     </div>
-                    <div className={overviewStyles.listItemMeta}>
-                      <div className={overviewStyles.listActions}>
+                    <div className="flex flex-col items-end justify-center gap-1.5 min-w-[170px]">
+                      <div className="inline-flex gap-1.5 flex-wrap justify-end w-full">
                         <button
                           type='button'
-                          className={overviewStyles.actionButton}
+                          className="border-none rounded-full px-3.5 py-1.5 text-xs font-semibold cursor-pointer transition-all inline-flex items-center gap-1 bg-slate-200/50 text-gray-800 border border-slate-300/35 hover:bg-slate-200 disabled:opacity-55 disabled:cursor-not-allowed"
                           onClick={() => openEdit(property)}
                           disabled={editingId && editingId !== property.id}
                         >
@@ -506,16 +496,15 @@ export default function AdminPropertiesPage() {
                         </button>
                         <button
                           type='button'
-                          className={`${overviewStyles.actionButton} ${overviewStyles.actionButtonSecondary}`}
+                          className="border-none rounded-full px-3.5 py-1.5 text-xs font-semibold cursor-pointer transition-all inline-flex items-center gap-1 bg-[#ff5e01] text-white hover:bg-[#e55500]"
                           onClick={() => router.push(`/property-maintenance?propertyId=${property.id}`)}
-                          style={{ background: '#ff5e01', color: 'white' }}
                         >
                           Manage Repairs
                         </button>
                         {statusValue !== 'approved' && (
                           <button
                             type='button'
-                            className={`${overviewStyles.actionButton} ${overviewStyles.actionButtonPrimary}`}
+                            className="border-none rounded-full px-3.5 py-1.5 text-xs font-semibold cursor-pointer transition-all inline-flex items-center gap-1 bg-gradient-to-br from-green-500 to-green-600 text-white shadow-[0_10px_18px_rgba(34,197,94,0.28)] hover:-translate-y-0.5 hover:shadow-[0_14px_24px_rgba(34,197,94,0.32)] disabled:opacity-55 disabled:cursor-not-allowed disabled:transform-none disabled:shadow-none"
                             onClick={() => handleApprove(property)}
                             disabled={approvingId === property.id || deletingId === property.id}
                           >
@@ -524,7 +513,7 @@ export default function AdminPropertiesPage() {
                         )}
                         <button
                           type='button'
-                          className={`${overviewStyles.actionButton} ${overviewStyles.actionButtonDanger}`}
+                          className="border border-red-300/40 rounded-full px-3.5 py-1.5 text-xs font-semibold cursor-pointer transition-all inline-flex items-center gap-1 bg-red-500/10 text-red-600 hover:bg-red-500/20 disabled:opacity-55 disabled:cursor-not-allowed"
                           onClick={() => handleDelete(property)}
                           disabled={deletingId === property.id || approvingId === property.id}
                         >
@@ -537,11 +526,10 @@ export default function AdminPropertiesPage() {
               })}
             </div>
           ) : (
-            <div className={overviewStyles.emptyState}>No property submissions available.</div>
+            <div className="border border-dashed border-slate-300/40 rounded-3xl py-10 px-6 text-center text-slate-400 text-[0.95rem]">No property submissions available.</div>
           )}
         </section>
       </div>
     </AdminLayout>
   )
 }
-

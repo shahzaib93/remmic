@@ -118,7 +118,7 @@ export default function Payment() {
       </Head>
       <div className="page-wrapper">
         <Navbar />
-        <main className="main-wrapper">
+        <main className="pt-24">
           <section className="payment-section">
             <div className="payment-container">
               {/* Progress Steps */}

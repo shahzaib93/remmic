@@ -106,10 +106,10 @@ export default function PropertyCard({ property, viewMode = 'grid' }) {
 
             {/* CTA Buttons */}
             <div className="flex gap-3">
-              <button className="flex-1 px-4 py-2.5 bg-gray-900 text-white rounded-xl font-medium hover:bg-gray-800 transition-colors">
+              <button className="btn-dark btn-sm flex-1">
                 View Details
               </button>
-              <button className="px-4 py-2.5 border border-gray-200 text-gray-700 rounded-xl font-medium hover:bg-gray-50 transition-colors">
+              <button className="btn-outline btn-sm">
                 Contact
               </button>
             </div>
@@ -199,10 +199,10 @@ export default function PropertyCard({ property, viewMode = 'grid' }) {
 
           {/* CTA Buttons */}
           <div className="flex gap-2">
-            <button className="flex-1 px-3 py-2 bg-gray-900 text-white rounded-xl text-sm font-medium hover:bg-gray-800 transition-colors">
+            <button className="btn-dark btn-sm flex-1">
               View Details
             </button>
-            <button className="px-3 py-2 border border-gray-200 text-gray-700 rounded-xl text-sm font-medium hover:bg-gray-50 transition-colors">
+            <button className="btn-outline btn-sm">
               Contact
             </button>
           </div>

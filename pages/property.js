@@ -986,8 +986,9 @@ const getTypeBadgePresentation = (type) => {
         }
 
         .btn--primary {
-          background: linear-gradient(135deg, #c9a227, #ff8732);
-          color: #fff;
+          background: linear-gradient(135deg, #c9a227 0%, #d4b13d 100%);
+          color: #0a0a0a;
+          box-shadow: 0 4px 15px rgba(201, 162, 39, 0.3);
         }
 
         .btn--ghost {

@@ -14,7 +14,6 @@ import {
   addProjectExpense,
   approveExpense
 } from '../../../../lib/firebase'
-import styles from '../../../../styles/adminOverview.module.css'
 
 export default function DevelopmentManagement() {
   const router = useRouter()
@@ -247,34 +246,34 @@ export default function DevelopmentManagement() {
         </div>
 
         {/* Stats */}
-        <div className={styles.metricGrid} style={{ marginBottom: '2rem' }}>
-          <div className={styles.metricCard}>
-            <h3>Overall Progress</h3>
-            <div className={styles.metricValue} style={{ color: '#059669' }}>{overallProgress}%</div>
+        <div className="grid grid-cols-4 max-lg:grid-cols-2 max-md:grid-cols-1 gap-6" style={{ marginBottom: '2rem' }}>
+          <div className="bg-white rounded-2xl p-6 shadow-[0_4px_16px_rgba(15,23,42,0.05)] border border-slate-100 text-center">
+            <h3 className="text-xs uppercase tracking-wider text-gray-500 mb-2 font-semibold">Overall Progress</h3>
+            <div className="text-[2.25rem] font-bold mb-1" style={{ color: '#059669' }}>{overallProgress}%</div>
             <div style={{ marginTop: '0.5rem', height: 6, background: '#e5e7eb', borderRadius: 3, overflow: 'hidden' }}>
               <div style={{ width: `${overallProgress}%`, height: '100%', background: '#059669' }} />
             </div>
           </div>
-          <div className={styles.metricCard}>
-            <h3>Milestones</h3>
-            <div className={styles.metricValue}>{completedMilestones}/{milestones.length}</div>
-            <div className={styles.metricMeta}>
+          <div className="bg-white rounded-2xl p-6 shadow-[0_4px_16px_rgba(15,23,42,0.05)] border border-slate-100 text-center">
+            <h3 className="text-xs uppercase tracking-wider text-gray-500 mb-2 font-semibold">Milestones</h3>
+            <div className="text-[2.25rem] font-bold text-gray-900 mb-1">{completedMilestones}/{milestones.length}</div>
+            <div className="text-xs text-gray-500">
               <span>Completed</span>
             </div>
           </div>
-          <div className={styles.metricCard}>
-            <h3>Total Expenses</h3>
-            <div className={styles.metricValue} style={{ color: '#dc2626' }}>
+          <div className="bg-white rounded-2xl p-6 shadow-[0_4px_16px_rgba(15,23,42,0.05)] border border-slate-100 text-center">
+            <h3 className="text-xs uppercase tracking-wider text-gray-500 mb-2 font-semibold">Total Expenses</h3>
+            <div className="text-[2.25rem] font-bold mb-1" style={{ color: '#dc2626' }}>
               {formatCurrency(totalExpenses)}
             </div>
-            <div className={styles.metricMeta}>
+            <div className="text-xs text-gray-500">
               <span>{expenses.length} records</span>
             </div>
           </div>
-          <div className={styles.metricCard}>
-            <h3>Approved Expenses</h3>
-            <div className={styles.metricValue}>{formatCurrency(approvedExpenses)}</div>
-            <div className={styles.metricMeta}>
+          <div className="bg-white rounded-2xl p-6 shadow-[0_4px_16px_rgba(15,23,42,0.05)] border border-slate-100 text-center">
+            <h3 className="text-xs uppercase tracking-wider text-gray-500 mb-2 font-semibold">Approved Expenses</h3>
+            <div className="text-[2.25rem] font-bold text-gray-900 mb-1">{formatCurrency(approvedExpenses)}</div>
+            <div className="text-xs text-gray-500">
               <span>{expenses.filter(e => e.status === 'approved').length} approved</span>
             </div>
           </div>
@@ -314,12 +313,12 @@ export default function DevelopmentManagement() {
 
         {/* Milestones Tab */}
         {activeTab === 'milestones' && (
-          <div className={styles.panel}>
+          <div className="bg-white rounded-[1.75rem] p-7 shadow-[0_12px_32px_rgba(15,23,42,0.08)] border border-slate-200/20">
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
               <h3 style={{ margin: 0 }}>Project Milestones</h3>
               <button
                 onClick={() => setShowMilestoneModal(true)}
-                className={styles.actionButtonPrimary}
+                className="border-none rounded-full px-5 py-2.5 text-sm font-semibold cursor-pointer bg-gradient-to-br from-green-500 to-green-600 text-white shadow-[0_10px_18px_rgba(34,197,94,0.28)] transition-all hover:-translate-y-0.5 hover:shadow-[0_14px_24px_rgba(34,197,94,0.35)]"
               >
                 + Add Milestone
               </button>
@@ -348,7 +347,7 @@ export default function DevelopmentManagement() {
                       </div>
                       <button
                         onClick={() => openUpdateModal(milestone)}
-                        className={styles.actionButtonSecondary}
+                        className="border border-slate-300/35 rounded-full px-4 py-2 text-sm font-semibold bg-slate-200/50 text-gray-800 transition-colors hover:bg-slate-300/50"
                         style={{ padding: '0.5rem 1rem', fontSize: '0.875rem' }}
                       >
                         Update
@@ -397,12 +396,12 @@ export default function DevelopmentManagement() {
 
         {/* Expenses Tab */}
         {activeTab === 'expenses' && (
-          <div className={styles.panel}>
+          <div className="bg-white rounded-[1.75rem] p-7 shadow-[0_12px_32px_rgba(15,23,42,0.08)] border border-slate-200/20">
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
               <h3 style={{ margin: 0 }}>Project Expenses</h3>
               <button
                 onClick={() => setShowExpenseModal(true)}
-                className={styles.actionButtonPrimary}
+                className="border-none rounded-full px-5 py-2.5 text-sm font-semibold cursor-pointer bg-gradient-to-br from-green-500 to-green-600 text-white shadow-[0_10px_18px_rgba(34,197,94,0.28)] transition-all hover:-translate-y-0.5 hover:shadow-[0_14px_24px_rgba(34,197,94,0.35)]"
               >
                 + Add Expense
               </button>
@@ -463,7 +462,7 @@ export default function DevelopmentManagement() {
                           {expense.status === 'pending' && (
                             <button
                               onClick={() => handleApproveExpense(expense.id)}
-                              className={styles.actionButtonPrimary}
+                              className="border-none rounded-full px-5 py-2.5 text-sm font-semibold cursor-pointer bg-gradient-to-br from-green-500 to-green-600 text-white shadow-[0_10px_18px_rgba(34,197,94,0.28)] transition-all hover:-translate-y-0.5 hover:shadow-[0_14px_24px_rgba(34,197,94,0.35)]"
                               style={{ padding: '0.25rem 0.75rem', fontSize: '0.75rem' }}
                             >
                               Approve
@@ -582,7 +581,7 @@ export default function DevelopmentManagement() {
                 <button
                   type="button"
                   onClick={() => setShowMilestoneModal(false)}
-                  className={styles.actionButtonSecondary}
+                  className="border border-slate-300/35 rounded-full px-4 py-2 text-sm font-semibold bg-slate-200/50 text-gray-800 transition-colors hover:bg-slate-300/50"
                   style={{ flex: 1 }}
                 >
                   Cancel
@@ -590,7 +589,7 @@ export default function DevelopmentManagement() {
                 <button
                   type="submit"
                   disabled={saving}
-                  className={styles.actionButtonPrimary}
+                  className="border-none rounded-full px-5 py-2.5 text-sm font-semibold cursor-pointer bg-gradient-to-br from-green-500 to-green-600 text-white shadow-[0_10px_18px_rgba(34,197,94,0.28)] transition-all hover:-translate-y-0.5 hover:shadow-[0_14px_24px_rgba(34,197,94,0.35)]"
                   style={{ flex: 1 }}
                 >
                   {saving ? 'Adding...' : 'Add Milestone'}
@@ -681,7 +680,7 @@ export default function DevelopmentManagement() {
                     setShowUpdateModal(false)
                     setSelectedMilestone(null)
                   }}
-                  className={styles.actionButtonSecondary}
+                  className="border border-slate-300/35 rounded-full px-4 py-2 text-sm font-semibold bg-slate-200/50 text-gray-800 transition-colors hover:bg-slate-300/50"
                   style={{ flex: 1 }}
                 >
                   Cancel
@@ -689,7 +688,7 @@ export default function DevelopmentManagement() {
                 <button
                   type="submit"
                   disabled={saving}
-                  className={styles.actionButtonPrimary}
+                  className="border-none rounded-full px-5 py-2.5 text-sm font-semibold cursor-pointer bg-gradient-to-br from-green-500 to-green-600 text-white shadow-[0_10px_18px_rgba(34,197,94,0.28)] transition-all hover:-translate-y-0.5 hover:shadow-[0_14px_24px_rgba(34,197,94,0.35)]"
                   style={{ flex: 1 }}
                 >
                   {saving ? 'Updating...' : 'Update'}
@@ -811,7 +810,7 @@ export default function DevelopmentManagement() {
                 <button
                   type="button"
                   onClick={() => setShowExpenseModal(false)}
-                  className={styles.actionButtonSecondary}
+                  className="border border-slate-300/35 rounded-full px-4 py-2 text-sm font-semibold bg-slate-200/50 text-gray-800 transition-colors hover:bg-slate-300/50"
                   style={{ flex: 1 }}
                 >
                   Cancel
@@ -819,7 +818,7 @@ export default function DevelopmentManagement() {
                 <button
                   type="submit"
                   disabled={saving}
-                  className={styles.actionButtonPrimary}
+                  className="border-none rounded-full px-5 py-2.5 text-sm font-semibold cursor-pointer bg-gradient-to-br from-green-500 to-green-600 text-white shadow-[0_10px_18px_rgba(34,197,94,0.28)] transition-all hover:-translate-y-0.5 hover:shadow-[0_14px_24px_rgba(34,197,94,0.35)]"
                   style={{ flex: 1 }}
                 >
                   {saving ? 'Adding...' : 'Add Expense'}

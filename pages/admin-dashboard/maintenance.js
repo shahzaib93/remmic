@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react'
 import AdminLayout from '../../components/admin/AdminLayout'
 import { useFirebase } from '../../contexts/FirebaseContext'
-import overviewStyles from '../../styles/adminOverview.module.css'
 
 const formatCurrency = (value) =>
   `PKR ${new Intl.NumberFormat('en-US', {
@@ -118,28 +117,28 @@ const MOCK_MAINTENANCE_REQUESTS = [
 const getStatusBadgeClass = (status) => {
   switch (status?.toLowerCase()) {
     case 'completed':
-      return overviewStyles.badgeSuccess
+      return 'bg-green-500/15 text-emerald-700 border-green-500/20'
     case 'in progress':
-      return overviewStyles.badgeActive
+      return 'bg-emerald-500/15 text-emerald-600 border-emerald-500/20'
     case 'pending':
-      return overviewStyles.badgePending
+      return 'bg-indigo-500/15 text-indigo-700 border-indigo-500/20'
     case 'quoted':
-      return overviewStyles.badge
+      return 'bg-gradient-to-br from-[rgba(201,162,39,0.15)] to-[rgba(201,162,39,0.1)] text-[#92710c] border-[rgba(201,162,39,0.2)]'
     default:
-      return overviewStyles.badge
+      return 'bg-gradient-to-br from-[rgba(201,162,39,0.15)] to-[rgba(201,162,39,0.1)] text-[#92710c] border-[rgba(201,162,39,0.2)]'
   }
 }
 
 const getUrgencyBadgeClass = (urgency) => {
   switch (urgency?.toLowerCase()) {
     case 'emergency':
-      return overviewStyles.badgeWarning
+      return 'bg-orange-500/15 text-orange-700 border-orange-500/20'
     case 'urgent':
-      return overviewStyles.badgeActive
+      return 'bg-emerald-500/15 text-emerald-600 border-emerald-500/20'
     case 'standard':
-      return overviewStyles.badge
+      return 'bg-gradient-to-br from-[rgba(201,162,39,0.15)] to-[rgba(201,162,39,0.1)] text-[#92710c] border-[rgba(201,162,39,0.2)]'
     default:
-      return overviewStyles.badge
+      return 'bg-gradient-to-br from-[rgba(201,162,39,0.15)] to-[rgba(201,162,39,0.1)] text-[#92710c] border-[rgba(201,162,39,0.2)]'
   }
 }
 
@@ -209,45 +208,47 @@ export default function AdminMaintenancePage() {
 
   return (
     <AdminLayout>
-      <div className={overviewStyles.pageHeader}>
-        <h1>Property Maintenance Management</h1>
-        <div className={overviewStyles.headerStats}>
-          <div className={overviewStyles.statCard}>
-            <div className={overviewStyles.statValue}>{stats.total}</div>
-            <div className={overviewStyles.statLabel}>Total Requests</div>
+      {/* Page Header */}
+      <div className="mb-8">
+        <h1 className="text-2xl font-bold text-gray-900 mb-4">Property Maintenance Management</h1>
+        <div className="grid grid-cols-[repeat(auto-fit,minmax(150px,1fr))] gap-4">
+          <div className="bg-white p-5 rounded-xl shadow-[0_4px_12px_rgba(0,0,0,0.1)] text-center border border-gray-200">
+            <div className="text-2xl font-bold text-gray-800 mb-1">{stats.total}</div>
+            <div className="text-sm text-gray-500 uppercase tracking-wide">Total Requests</div>
           </div>
-          <div className={overviewStyles.statCard}>
-            <div className={overviewStyles.statValue}>{stats.pending}</div>
-            <div className={overviewStyles.statLabel}>Pending</div>
+          <div className="bg-white p-5 rounded-xl shadow-[0_4px_12px_rgba(0,0,0,0.1)] text-center border border-gray-200">
+            <div className="text-2xl font-bold text-gray-800 mb-1">{stats.pending}</div>
+            <div className="text-sm text-gray-500 uppercase tracking-wide">Pending</div>
           </div>
-          <div className={overviewStyles.statCard}>
-            <div className={overviewStyles.statValue}>{stats.inProgress}</div>
-            <div className={overviewStyles.statLabel}>In Progress</div>
+          <div className="bg-white p-5 rounded-xl shadow-[0_4px_12px_rgba(0,0,0,0.1)] text-center border border-gray-200">
+            <div className="text-2xl font-bold text-gray-800 mb-1">{stats.inProgress}</div>
+            <div className="text-sm text-gray-500 uppercase tracking-wide">In Progress</div>
           </div>
-          <div className={overviewStyles.statCard}>
-            <div className={overviewStyles.statValue}>{stats.completed}</div>
-            <div className={overviewStyles.statLabel}>Completed</div>
+          <div className="bg-white p-5 rounded-xl shadow-[0_4px_12px_rgba(0,0,0,0.1)] text-center border border-gray-200">
+            <div className="text-2xl font-bold text-gray-800 mb-1">{stats.completed}</div>
+            <div className="text-sm text-gray-500 uppercase tracking-wide">Completed</div>
           </div>
-          <div className={overviewStyles.statCard}>
-            <div className={overviewStyles.statValue}>{formatCurrency(stats.totalValue)}</div>
-            <div className={overviewStyles.statLabel}>Total Value</div>
+          <div className="bg-white p-5 rounded-xl shadow-[0_4px_12px_rgba(0,0,0,0.1)] text-center border border-gray-200">
+            <div className="text-2xl font-bold text-gray-800 mb-1">{formatCurrency(stats.totalValue)}</div>
+            <div className="text-sm text-gray-500 uppercase tracking-wide">Total Value</div>
           </div>
         </div>
       </div>
 
-      <div className={overviewStyles.filtersContainer}>
-        <div className={overviewStyles.filters}>
+      {/* Filters */}
+      <div className="mb-6">
+        <div className="flex gap-4 flex-wrap items-center">
           <input
             type="text"
             placeholder="Search by property, client, or contractor..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className={overviewStyles.searchInput}
+            className="min-w-[300px] flex-1 px-4 py-3 border border-gray-300 rounded-lg bg-white text-gray-800 outline-none text-sm focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500"
           />
           <select
             value={filterStatus}
             onChange={(e) => setFilterStatus(e.target.value)}
-            className={overviewStyles.filterSelect}
+            className="min-w-[150px] px-4 py-3 border border-gray-300 rounded-lg bg-white text-gray-800 outline-none text-sm"
           >
             <option value="all">All Status</option>
             <option value="pending">Pending</option>
@@ -258,7 +259,7 @@ export default function AdminMaintenancePage() {
           <select
             value={filterUrgency}
             onChange={(e) => setFilterUrgency(e.target.value)}
-            className={overviewStyles.filterSelect}
+            className="min-w-[150px] px-4 py-3 border border-gray-300 rounded-lg bg-white text-gray-800 outline-none text-sm"
           >
             <option value="all">All Priority</option>
             <option value="emergency">Emergency</option>
@@ -268,70 +269,76 @@ export default function AdminMaintenancePage() {
         </div>
       </div>
 
-      <div className={overviewStyles.tableContainer}>
+      {/* Requests Grid */}
+      <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
         {loading ? (
-          <div className={overviewStyles.emptyState}>Loading maintenance requests...</div>
+          <div className="border border-dashed border-slate-300/40 rounded-3xl py-10 px-6 text-center text-slate-400 text-[0.95rem]">Loading maintenance requests...</div>
         ) : filteredRequests.length > 0 ? (
-          <div className={overviewStyles.requestsGrid}>
+          <div className="grid gap-6 p-6 grid-cols-[repeat(auto-fill,minmax(400px,1fr))]">
             {filteredRequests.map((request) => (
-              <div key={request.id} className={overviewStyles.requestCard}>
-                <div className={overviewStyles.requestHeader}>
-                  <h3>{request.propertyName}</h3>
-                  <div className={overviewStyles.requestBadges}>
-                    <span className={getUrgencyBadgeClass(request.urgency)}>
+              <div key={request.id} className="bg-white border border-gray-200 rounded-xl p-6 shadow-[0_4px_12px_rgba(0,0,0,0.08)] transition-all hover:-translate-y-0.5 hover:shadow-[0_8px_24px_rgba(0,0,0,0.12)]">
+                {/* Card Header */}
+                <div className="flex justify-between items-start mb-4">
+                  <h3 className="text-gray-800 m-0 text-lg font-semibold">{request.propertyName}</h3>
+                  <div className="flex gap-2">
+                    <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-lg text-[0.72rem] font-semibold uppercase tracking-wide border ${getUrgencyBadgeClass(request.urgency)}`}>
                       {request.urgency}
                     </span>
-                    <span className={getStatusBadgeClass(request.status)}>
+                    <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-lg text-[0.72rem] font-semibold uppercase tracking-wide border ${getStatusBadgeClass(request.status)}`}>
                       {request.status}
                     </span>
                   </div>
                 </div>
 
-                <div className={overviewStyles.requestDetails}>
-                  <div className={overviewStyles.requestField}>
-                    <strong>Type:</strong> {request.requestType}
+                {/* Card Details */}
+                <div className="grid gap-2 mb-4">
+                  <div className="text-sm text-gray-500">
+                    <strong className="text-gray-600">Type:</strong> {request.requestType}
                   </div>
-                  <div className={overviewStyles.requestField}>
-                    <strong>Client:</strong> {request.clientName} ({request.clientPhone})
+                  <div className="text-sm text-gray-500">
+                    <strong className="text-gray-600">Client:</strong> {request.clientName} ({request.clientPhone})
                   </div>
-                  <div className={overviewStyles.requestField}>
-                    <strong>Contractor:</strong> {request.contractorName}
+                  <div className="text-sm text-gray-500">
+                    <strong className="text-gray-600">Contractor:</strong> {request.contractorName}
                   </div>
-                  <div className={overviewStyles.requestField}>
-                    <strong>Estimated Cost:</strong> {formatCurrency(request.estimatedCost)}
+                  <div className="text-sm text-gray-500">
+                    <strong className="text-gray-600">Estimated Cost:</strong> {formatCurrency(request.estimatedCost)}
                   </div>
                   {request.actualCost && (
-                    <div className={overviewStyles.requestField}>
-                      <strong>Actual Cost:</strong> {formatCurrency(request.actualCost)}
+                    <div className="text-sm text-gray-500">
+                      <strong className="text-gray-600">Actual Cost:</strong> {formatCurrency(request.actualCost)}
                     </div>
                   )}
                 </div>
 
-                <div className={overviewStyles.requestDescription}>
+                {/* Description */}
+                <div className="bg-gray-50 p-3 rounded-md text-sm text-gray-600 mb-4 border border-gray-200">
                   <strong>Issue:</strong> {request.description}
                 </div>
 
+                {/* Progress Bar */}
                 {request.progress > 0 && (
-                  <div className={overviewStyles.progressContainer}>
-                    <div className={overviewStyles.progressLabel}>
+                  <div className="mb-4">
+                    <div className="text-xs text-gray-500 mb-1 font-medium">
                       Progress: {request.progress}%
                     </div>
-                    <div className={overviewStyles.progressBar}>
+                    <div className="bg-gray-200 rounded-lg h-1.5 overflow-hidden">
                       <div
-                        className={overviewStyles.progressFill}
+                        className="bg-gradient-to-r from-[#ff5e01] to-[#ff7a32] h-full transition-all duration-300"
                         style={{ width: `${request.progress}%` }}
                       />
                     </div>
                   </div>
                 )}
 
-                <div className={overviewStyles.requestActions}>
+                {/* Actions */}
+                <div className="flex gap-3 mb-4">
                   <button
                     onClick={() => {
                       setSelectedRequest(request)
                       setShowDetails(true)
                     }}
-                    className={overviewStyles.actionButton}
+                    className="border-none rounded-full px-4 py-2 text-[0.78rem] font-semibold cursor-pointer transition-all bg-slate-200/50 text-gray-800 border border-slate-300/30 hover:bg-slate-200"
                   >
                     View Details
                   </button>
@@ -343,7 +350,7 @@ export default function AdminMaintenancePage() {
                           e.target.value = ''
                         }
                       }}
-                      className={overviewStyles.statusSelect}
+                      className="min-w-[150px] px-4 py-2 border border-gray-300 rounded-lg bg-white text-gray-800 outline-none text-sm"
                     >
                       <option value="">Update Status</option>
                       <option value="Pending">Pending</option>
@@ -354,7 +361,8 @@ export default function AdminMaintenancePage() {
                   )}
                 </div>
 
-                <div className={overviewStyles.requestMeta}>
+                {/* Meta */}
+                <div className="flex flex-wrap gap-4 text-xs text-gray-400 border-t border-gray-100 pt-3">
                   <span>Submitted: {formatDate(request.submittedAt)}</span>
                   {request.startDate && (
                     <span>Started: {formatDate(request.startDate)}</span>
@@ -367,7 +375,7 @@ export default function AdminMaintenancePage() {
             ))}
           </div>
         ) : (
-          <div className={overviewStyles.emptyState}>
+          <div className="border border-dashed border-slate-300/40 rounded-3xl py-10 px-6 text-center text-slate-400 text-[0.95rem] m-6">
             No maintenance requests match your current filters.
           </div>
         )}
@@ -375,86 +383,89 @@ export default function AdminMaintenancePage() {
 
       {/* Request Details Modal */}
       {showDetails && selectedRequest && (
-        <div className={overviewStyles.modalOverlay}>
-          <div className={overviewStyles.modalContent}>
-            <div className={overviewStyles.modalHeader}>
-              <h2>Maintenance Request Details</h2>
+        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-[1000] p-8">
+          <div className="bg-white rounded-2xl w-full max-w-[900px] max-h-[90vh] overflow-auto">
+            {/* Modal Header */}
+            <div className="flex justify-between items-center p-6 border-b border-gray-200">
+              <h2 className="m-0 text-gray-800 text-xl font-semibold">Maintenance Request Details</h2>
               <button
                 onClick={() => setShowDetails(false)}
-                className={overviewStyles.modalClose}
+                className="bg-none border-none text-2xl text-gray-500 cursor-pointer p-1 rounded hover:bg-gray-100 hover:text-gray-700"
               >
                 ×
               </button>
             </div>
 
-            <div className={overviewStyles.modalBody}>
-              <div className={overviewStyles.detailsGrid}>
-                <div className={overviewStyles.detailsSection}>
-                  <h3>Property Information</h3>
-                  <div><strong>Name:</strong> {selectedRequest.propertyName}</div>
-                  <div><strong>Address:</strong> {selectedRequest.propertyAddress}</div>
-                  <div><strong>ID:</strong> {selectedRequest.propertyId}</div>
+            {/* Modal Body */}
+            <div className="p-6">
+              <div className="grid grid-cols-[repeat(auto-fit,minmax(250px,1fr))] gap-6 mb-6">
+                <div>
+                  <h3 className="text-gray-800 mb-3 text-[0.95rem] border-b border-gray-200 pb-2">Property Information</h3>
+                  <div className="mb-2 text-sm text-gray-500"><strong className="text-gray-600">Name:</strong> {selectedRequest.propertyName}</div>
+                  <div className="mb-2 text-sm text-gray-500"><strong className="text-gray-600">Address:</strong> {selectedRequest.propertyAddress}</div>
+                  <div className="mb-2 text-sm text-gray-500"><strong className="text-gray-600">ID:</strong> {selectedRequest.propertyId}</div>
                 </div>
 
-                <div className={overviewStyles.detailsSection}>
-                  <h3>Client Information</h3>
-                  <div><strong>Name:</strong> {selectedRequest.clientName}</div>
-                  <div><strong>Phone:</strong> {selectedRequest.clientPhone}</div>
-                  <div><strong>Email:</strong> {selectedRequest.clientEmail}</div>
+                <div>
+                  <h3 className="text-gray-800 mb-3 text-[0.95rem] border-b border-gray-200 pb-2">Client Information</h3>
+                  <div className="mb-2 text-sm text-gray-500"><strong className="text-gray-600">Name:</strong> {selectedRequest.clientName}</div>
+                  <div className="mb-2 text-sm text-gray-500"><strong className="text-gray-600">Phone:</strong> {selectedRequest.clientPhone}</div>
+                  <div className="mb-2 text-sm text-gray-500"><strong className="text-gray-600">Email:</strong> {selectedRequest.clientEmail}</div>
                 </div>
 
-                <div className={overviewStyles.detailsSection}>
-                  <h3>Contractor Information</h3>
-                  <div><strong>Name:</strong> {selectedRequest.contractorName}</div>
-                  <div><strong>Phone:</strong> {selectedRequest.contractorPhone}</div>
-                  <div><strong>Email:</strong> {selectedRequest.contractorEmail}</div>
+                <div>
+                  <h3 className="text-gray-800 mb-3 text-[0.95rem] border-b border-gray-200 pb-2">Contractor Information</h3>
+                  <div className="mb-2 text-sm text-gray-500"><strong className="text-gray-600">Name:</strong> {selectedRequest.contractorName}</div>
+                  <div className="mb-2 text-sm text-gray-500"><strong className="text-gray-600">Phone:</strong> {selectedRequest.contractorPhone}</div>
+                  <div className="mb-2 text-sm text-gray-500"><strong className="text-gray-600">Email:</strong> {selectedRequest.contractorEmail}</div>
                 </div>
 
-                <div className={overviewStyles.detailsSection}>
-                  <h3>Request Details</h3>
-                  <div><strong>Type:</strong> {selectedRequest.requestType}</div>
-                  <div><strong>Urgency:</strong> {selectedRequest.urgency}</div>
-                  <div><strong>Status:</strong> {selectedRequest.status}</div>
-                  <div><strong>Progress:</strong> {selectedRequest.progress}%</div>
+                <div>
+                  <h3 className="text-gray-800 mb-3 text-[0.95rem] border-b border-gray-200 pb-2">Request Details</h3>
+                  <div className="mb-2 text-sm text-gray-500"><strong className="text-gray-600">Type:</strong> {selectedRequest.requestType}</div>
+                  <div className="mb-2 text-sm text-gray-500"><strong className="text-gray-600">Urgency:</strong> {selectedRequest.urgency}</div>
+                  <div className="mb-2 text-sm text-gray-500"><strong className="text-gray-600">Status:</strong> {selectedRequest.status}</div>
+                  <div className="mb-2 text-sm text-gray-500"><strong className="text-gray-600">Progress:</strong> {selectedRequest.progress}%</div>
                 </div>
 
-                <div className={overviewStyles.detailsSection}>
-                  <h3>Cost Information</h3>
-                  <div><strong>Estimated:</strong> {formatCurrency(selectedRequest.estimatedCost)}</div>
+                <div>
+                  <h3 className="text-gray-800 mb-3 text-[0.95rem] border-b border-gray-200 pb-2">Cost Information</h3>
+                  <div className="mb-2 text-sm text-gray-500"><strong className="text-gray-600">Estimated:</strong> {formatCurrency(selectedRequest.estimatedCost)}</div>
                   {selectedRequest.actualCost && (
-                    <div><strong>Actual:</strong> {formatCurrency(selectedRequest.actualCost)}</div>
+                    <div className="mb-2 text-sm text-gray-500"><strong className="text-gray-600">Actual:</strong> {formatCurrency(selectedRequest.actualCost)}</div>
                   )}
                 </div>
 
-                <div className={overviewStyles.detailsSection}>
-                  <h3>Timeline</h3>
-                  <div><strong>Submitted:</strong> {formatDate(selectedRequest.submittedAt)}</div>
+                <div>
+                  <h3 className="text-gray-800 mb-3 text-[0.95rem] border-b border-gray-200 pb-2">Timeline</h3>
+                  <div className="mb-2 text-sm text-gray-500"><strong className="text-gray-600">Submitted:</strong> {formatDate(selectedRequest.submittedAt)}</div>
                   {selectedRequest.startDate && (
-                    <div><strong>Started:</strong> {formatDate(selectedRequest.startDate)}</div>
+                    <div className="mb-2 text-sm text-gray-500"><strong className="text-gray-600">Started:</strong> {formatDate(selectedRequest.startDate)}</div>
                   )}
                   {selectedRequest.completionDate && (
-                    <div><strong>Completed:</strong> {formatDate(selectedRequest.completionDate)}</div>
+                    <div className="mb-2 text-sm text-gray-500"><strong className="text-gray-600">Completed:</strong> {formatDate(selectedRequest.completionDate)}</div>
                   )}
                 </div>
               </div>
 
-              <div className={overviewStyles.descriptionSection}>
-                <h3>Problem Description</h3>
-                <p>{selectedRequest.description}</p>
+              <div className="bg-gray-50 p-4 rounded-lg border border-gray-200 mb-4">
+                <h3 className="text-gray-800 mb-2 text-[0.95rem]">Problem Description</h3>
+                <p className="text-gray-600 m-0 leading-relaxed">{selectedRequest.description}</p>
               </div>
 
               {selectedRequest.notes && (
-                <div className={overviewStyles.notesSection}>
-                  <h3>Notes</h3>
-                  <p>{selectedRequest.notes}</p>
+                <div className="bg-gray-50 p-4 rounded-lg border border-gray-200 mb-4">
+                  <h3 className="text-gray-800 mb-2 text-[0.95rem]">Notes</h3>
+                  <p className="text-gray-600 m-0 leading-relaxed">{selectedRequest.notes}</p>
                 </div>
               )}
             </div>
 
-            <div className={overviewStyles.modalActions}>
+            {/* Modal Actions */}
+            <div className="p-4 px-6 border-t border-gray-200 flex justify-end">
               <button
                 onClick={() => setShowDetails(false)}
-                className={overviewStyles.actionButton}
+                className="border-none rounded-full px-4 py-2 text-[0.78rem] font-semibold cursor-pointer transition-all bg-slate-200/50 text-gray-800 border border-slate-300/30 hover:bg-slate-200"
               >
                 Close
               </button>

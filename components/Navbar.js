@@ -124,7 +124,7 @@ export default function Navbar() {
               </div>
             ) : (
               <a href="/login" className="modern-button gold-cta">
-                <span className="button-text">Get Started</span>
+                <span>Get Started</span>
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
                   <path d="M12 4l-1.41 1.41L16.17 11H4v2h12.17l-5.58 5.59L12 20l8-8z"/>
                 </svg>
@@ -748,8 +748,9 @@ export default function Navbar() {
         .desktop-menu {
           display: flex;
           align-items: center;
+          gap: 20px;
           margin-left: auto;
-          margin-right: 24px;
+          margin-right: 40px;
         }
 
         /* Media Queries */
