@@ -33,7 +33,10 @@
       "Bash(npm install:*)",
       "Bash(npm uninstall:*)",
       "Bash(git checkout:*)",
-      "Bash(lsof:*)"
+      "Bash(lsof:*)",
+      "Bash(git fetch:*)",
+      "Bash(fuser:*)",
+      "Bash(unzip:*)"
     ],
     "additionalDirectories": [
       "/home/aicoder/Documents/Remmic"

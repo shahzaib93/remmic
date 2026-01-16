@@ -155,3 +155,13 @@ body {
   color: var(--text-primary);
   background-color: var(--bg-primary);
 }
+
+/* Scrollbar hide utility */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
