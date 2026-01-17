@@ -1,0 +1,1841 @@
+import { initializeApp, getApps, getApp } from 'firebase/app'
+import { getAnalytics } from 'firebase/analytics'
+import {
+  getAuth,
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
+  signOut,
+  updateProfile,
+  onAuthStateChanged,
+  signInAnonymously,
+  setPersistence,
+  browserLocalPersistence,
+} from 'firebase/auth'
+import {
+  getFirestore,
+  doc,
+  getDoc,
+  setDoc,
+  addDoc,
+  collection,
+  query,
+  where,
+  orderBy,
+  getDocs,
+  updateDoc,
+  deleteDoc,
+  serverTimestamp,
+  arrayUnion,
+  increment,
+} from 'firebase/firestore'
+
+const firebaseConfig = {
+  apiKey: 'AIzaSyCrku5ctul_dVNoL3uqEOdZgg08oKpcMgU',
+  authDomain: 'remmic-9686c.firebaseapp.com',
+  projectId: 'remmic-9686c',
+  storageBucket: 'remmic-9686c.firebasestorage.app',
+  messagingSenderId: '30926209769',
+  appId: '1:30926209769:web:acb85d3da1166f051b2678',
+  measurementId: 'G-0NC0E0FS0E',
+}
+
+const app = getApps().length ? getApp() : initializeApp(firebaseConfig)
+let analytics = null
+if (typeof window !== 'undefined') {
+  try {
+    analytics = getAnalytics(app)
+  } catch (error) {
+    console.warn('Analytics init failed:', error)
+  }
+}
+
+const auth = getAuth(app)
+const db = getFirestore(app)
+
+if (typeof window !== 'undefined') {
+  setPersistence(auth, browserLocalPersistence).catch((error) => {
+    console.warn('Auth persistence setup failed:', error)
+  })
+}
+
+const sanitizeForFirestore = (value) => {
+  if (value == null) return value
+
+  if (typeof File !== 'undefined' && value instanceof File) {
+    return {
+      name: value.name,
+      type: value.type,
+      size: value.size,
+      note: 'File reference stored. Upload to storage in production.'
+    }
+  }
+
+  if (typeof Blob !== 'undefined' && value instanceof Blob) {
+    return {
+      type: value.type,
+      size: value.size,
+      note: 'Blob stripped for Firestore write. Upload to storage in production.'
+    }
+  }
+
+  if (typeof value === 'string' && value.startsWith('data:') && value.length > 50000) {
+    return 'data-url-removed'
+  }
+
+  if (Array.isArray(value)) {
+    return value
+      .map((item) => sanitizeForFirestore(item))
+      .filter((item) => item !== undefined)
+  }
+
+  if (typeof value === 'object') {
+    const clone = {}
+    Object.keys(value).forEach((key) => {
+      const sanitized = sanitizeForFirestore(value[key])
+      if (sanitized !== undefined) {
+        clone[key] = sanitized
+      }
+    })
+    return clone
+  }
+
+  if (typeof value === 'function') {
+    return undefined
+  }
+
+  return value
+}
+
+const persistSession = async (user, role = 'buyer', extra = {}) => {
+  if (!user) return null
+
+  const userData = {
+    id: user.uid,
+    uid: user.uid,
+    name: extra.fullName || user.displayName || (user.email ? user.email.split('@')[0] : 'User'),
+    email: user.email || extra.email || '',
+    role,
+    phone: extra.phone || '',
+    memberSince: extra.memberSince || new Date(user.metadata?.creationTime || Date.now()).toISOString().split('T')[0],
+  }
+
+  if (typeof window !== 'undefined') {
+    window.localStorage.setItem('currentUser', JSON.stringify({ uid: user.uid, email: user.email }))
+    window.localStorage.setItem('userData', JSON.stringify(userData))
+    window.localStorage.setItem('userToken', user.accessToken || `firebase-token-${Date.now()}`)
+  }
+
+  return userData
+}
+
+const ensureAuthUser = async (role = 'guest') => {
+  if (auth.currentUser) {
+    return auth.currentUser
+  }
+
+  if (typeof window === 'undefined') {
+    return null
+  }
+
+  try {
+    const credential = await signInAnonymously(auth)
+    return credential.user
+  } catch (error) {
+    console.warn('Anonymous authentication failed:', error)
+    return null
+  }
+}
+
+const fetchUserProfile = async (uid) => {
+  try {
+    const snap = await getDoc(doc(db, 'users', uid))
+    if (snap.exists()) {
+      return snap.data()
+    }
+    
+    // If document doesn't exist, return null so we can create it
+    return null
+  } catch (error) {
+    console.warn('Failed to load user profile from Firestore:', error)
+    
+    // Check if it's a permissions error
+    if (error.code === 'permission-denied') {
+      // For now, return a default profile based on localStorage
+      const storedUserData = typeof window !== 'undefined' 
+        ? JSON.parse(localStorage.getItem('userData') || '{}')
+        : {}
+      
+      return {
+        fullName: storedUserData.name || '',
+        email: storedUserData.email || '',
+        role: storedUserData.role || 'buyer',
+        phone: storedUserData.phone || '',
+        memberSince: storedUserData.memberSince || new Date().toISOString().split('T')[0]
+      }
+    }
+    
+    // For other errors, return a default profile
+    return {
+      fullName: '',
+      email: '',
+      role: 'buyer',
+      phone: '',
+      memberSince: new Date().toISOString().split('T')[0]
+    }
+  }
+}
+
+export const getUserProfile = fetchUserProfile
+
+export const updateUserProfile = async (uid, updates = {}) => {
+  if (!uid) {
+    return { success: false, error: 'Missing user id' }
+  }
+
+  try {
+    await setDoc(doc(db, 'users', uid), {
+      ...updates,
+      updatedAt: serverTimestamp(),
+    }, { merge: true })
+
+    return { success: true }
+  } catch (error) {
+    console.error('Update user profile error:', error)
+    return { success: false, error: error.message }
+  }
+}
+
+export const signUpUser = async (email, password, fullName, role = 'buyer') => {
+  try {
+    const credential = await createUserWithEmailAndPassword(auth, email, password)
+    const user = credential.user
+
+    try {
+      await updateProfile(user, { displayName: fullName })
+    } catch (error) {
+      console.warn('Failed to update profile:', error)
+    }
+
+    try {
+      await setDoc(doc(db, 'users', user.uid), {
+        fullName,
+        email,
+        role,
+        phone: '',
+        memberSince: new Date().toISOString().split('T')[0],
+        createdAt: serverTimestamp(),
+      })
+      console.log('User profile saved to Firestore successfully')
+    } catch (firestoreError) {
+      console.warn('Failed to save user profile to Firestore (will use localStorage):', firestoreError)
+      // Continue with signup even if Firestore write fails - data will be stored in localStorage
+    }
+
+    const userData = await persistSession(user, role, { fullName })
+
+    return { success: true, user, userData }
+  } catch (error) {
+    let errorMessage = 'Failed to create account'
+    if (error.code === 'auth/email-already-in-use') errorMessage = 'This email is already registered'
+    else if (error.code === 'auth/weak-password') errorMessage = 'Password should be at least 6 characters'
+    else if (error.code === 'auth/invalid-email') errorMessage = 'Invalid email address'
+
+    return { success: false, error: errorMessage }
+  }
+}
+
+export const loginUser = async (email, password, requiredRole = null) => {
+  try {
+    const credential = await signInWithEmailAndPassword(auth, email, password)
+    const user = credential.user
+
+    let profile = await fetchUserProfile(user.uid)
+    
+    // If profile doesn't exist in Firestore, create it based on email domain or default
+    if (!profile) {
+      const defaultRole = email.includes('admin') ? 'admin' : (requiredRole || 'buyer')
+      profile = {
+        fullName: user.displayName || email.split('@')[0],
+        email: user.email,
+        role: defaultRole,
+        phone: '',
+        memberSince: new Date().toISOString().split('T')[0]
+      }
+      
+      // Try to save to Firestore, but don't fail if it doesn't work
+      try {
+        await setDoc(doc(db, 'users', user.uid), {
+          ...profile,
+          createdAt: serverTimestamp(),
+        })
+        console.log('Created user profile in Firestore')
+      } catch (firestoreError) {
+        console.warn('Could not save to Firestore, using localStorage only:', firestoreError)
+      }
+    }
+
+    const role = profile?.role || requiredRole || 'buyer'
+
+    // Special handling for admin login
+    if (requiredRole === 'admin') {
+      // Check if this is a known admin email or if user has admin role
+      const adminEmails = ['admin@remmic.com', 'admin@example.com'] // Add your admin emails here
+      if (!adminEmails.includes(email) && role !== 'admin') {
+        // For demo purposes, allow certain emails to become admin
+        if (email.includes('admin') || email === 'test@admin.com') {
+          profile.role = 'admin'
+          console.log('Promoting user to admin role')
+        } else {
+          await signOut(auth)
+          return { success: false, error: `This account is registered as ${role}, not ${requiredRole}` }
+        }
+      }
+    } else if (requiredRole && role !== requiredRole) {
+      await signOut(auth)
+      return { success: false, error: `This account is registered as ${role}, not ${requiredRole}` }
+    }
+
+    const userData = await persistSession(user, profile.role, {
+      fullName: profile?.fullName,
+      phone: profile?.phone,
+      memberSince: profile?.memberSince,
+    })
+
+    return { success: true, user, userData }
+  } catch (error) {
+    let errorMessage = 'Failed to login'
+    if (error.code === 'auth/user-not-found') errorMessage = 'No account found with this email'
+    else if (error.code === 'auth/wrong-password') errorMessage = 'Incorrect password'
+    else if (error.code === 'auth/invalid-email') errorMessage = 'Invalid email address'
+    else if (error.code === 'auth/too-many-requests') errorMessage = 'Too many failed attempts. Please try again later'
+    else if (error.code === 'auth/invalid-credential') errorMessage = 'Invalid email or password'
+
+    return { success: false, error: errorMessage }
+  }
+}
+
+export const logoutUser = async () => {
+  try {
+    await signOut(auth)
+    if (typeof window !== 'undefined') {
+      window.localStorage.removeItem('currentUser')
+      window.localStorage.removeItem('userData')
+      window.localStorage.removeItem('userToken')
+    }
+    return { success: true }
+  } catch (error) {
+    return { success: false, error: error.message }
+  }
+}
+
+export const getCurrentUser = () => auth.currentUser
+
+export const onAuthChange = (callback) => onAuthStateChanged(auth, callback)
+export const ensureAuthenticated = ensureAuthUser
+
+// Helper function to handle Firestore permissions gracefully
+const handleFirestoreOperation = async (operation, fallbackData = null) => {
+  try {
+    return await operation()
+  } catch (error) {
+    if (error.code === 'permission-denied') {
+      console.warn('Firestore permission denied, using localStorage fallback')
+      return fallbackData
+    }
+    throw error
+  }
+}
+
+// Property management functions
+export const addProperty = async (propertyData) => {
+  try {
+    let user = getCurrentUser()
+    if (!user) {
+      user = await ensureAuthUser()
+    }
+    const userData = typeof window !== 'undefined'
+      ? JSON.parse(window.localStorage.getItem('userData') || '{}')
+      : {}
+    
+    // Allow property registration from forms even without authentication
+    // For land registration forms, we can create entries with form owner data
+
+    const sanitizedPropertyData = sanitizeForFirestore(propertyData)
+
+    const propertyWithMeta = {
+      ...sanitizedPropertyData,
+      userId: userData.id || user?.uid || propertyData.ownerCNIC || `form_${Date.now()}`,
+      userEmail: userData.email || user?.email || propertyData.ownerEmail || 'form-submission',
+      createdAt: serverTimestamp(),
+      status: 'pending', // All properties need admin approval
+    }
+
+    // Try to save to Firestore with permission handling
+    let firestoreResult = null
+    try {
+      const docRef = await addDoc(collection(db, 'properties'), propertyWithMeta)
+      firestoreResult = { id: docRef.id, success: true }
+      console.log('Property saved to Firestore successfully')
+    } catch (firestoreError) {
+      console.warn('Failed to save to Firestore, using localStorage only:', firestoreError)
+    }
+    
+    // Always save to localStorage as backup/primary storage
+    const localProperties = typeof window !== 'undefined'
+      ? JSON.parse(window.localStorage.getItem('userProperties') || '[]')
+      : []
+    
+    const propertyId = firestoreResult?.id || Date.now().toString()
+    const propertyWithId = {
+      ...sanitizedPropertyData,
+      id: propertyId,
+      createdAt: new Date().toISOString(),
+      status: propertyWithMeta.status,
+      userId: propertyWithMeta.userId,
+      userEmail: propertyWithMeta.userEmail,
+    }
+    localProperties.push(propertyWithId)
+    
+    if (typeof window !== 'undefined') {
+      window.localStorage.setItem('userProperties', JSON.stringify(localProperties))
+      try {
+        window.dispatchEvent(new StorageEvent('storage', { key: 'userProperties' }))
+      } catch (err) {
+        window.dispatchEvent(new Event('userPropertiesUpdated'))
+      }
+    }
+
+    return { 
+      success: true, 
+      id: propertyId, 
+      property: propertyWithId,
+      savedToFirestore: !!firestoreResult
+    }
+  } catch (error) {
+    console.error('Add property error:', error)
+    return { success: false, error: error.message }
+  }
+}
+
+export const getProperties = async (filters = {}) => {
+  try {
+    let q = collection(db, 'properties')
+    
+    // Apply filters
+    if (filters.userId) {
+      q = query(q, where('userId', '==', filters.userId))
+    }
+    if (filters.status) {
+      q = query(q, where('status', '==', filters.status))
+    }
+    if (filters.type) {
+      q = query(q, where('type', '==', filters.type))
+    }
+    
+    // Order by creation date
+    q = query(q, orderBy('createdAt', 'desc'))
+    
+    const querySnapshot = await getDocs(q)
+    const properties = []
+    
+    querySnapshot.forEach((doc) => {
+      const data = doc.data()
+      properties.push({
+        id: doc.id,
+        ...data,
+        createdAt: data.createdAt?.toDate?.()?.toISOString() || new Date().toISOString()
+      })
+    })
+
+    return { success: true, properties }
+  } catch (error) {
+    console.error('Get properties error:', error)
+    // Fallback to localStorage
+    const localProperties = typeof window !== 'undefined'
+      ? JSON.parse(window.localStorage.getItem('userProperties') || '[]')
+      : []
+    return { success: true, properties: localProperties }
+  }
+}
+
+export const updatePropertyStatus = async (propertyId, status) => {
+  try {
+    await updateDoc(doc(db, 'properties', propertyId), {
+      status,
+      updatedAt: serverTimestamp()
+    })
+
+    // Also update localStorage
+    if (typeof window !== 'undefined') {
+      const properties = JSON.parse(window.localStorage.getItem('userProperties') || '[]')
+      const index = properties.findIndex(p => p.id === propertyId)
+      if (index >= 0) {
+        properties[index].status = status
+        properties[index].updatedAt = new Date().toISOString()
+        window.localStorage.setItem('userProperties', JSON.stringify(properties))
+      }
+    }
+
+    return { success: true }
+  } catch (error) {
+    console.error('Update property status error:', error)
+    return { success: false, error: error.message }
+  }
+}
+
+export const addEvaluation = async (evaluationData) => {
+  try {
+    let user = getCurrentUser()
+    if (!user) {
+      user = await ensureAuthUser()
+    }
+    const sanitizedEvaluation = sanitizeForFirestore(evaluationData)
+    const evaluationWithMeta = {
+      ...sanitizedEvaluation,
+      userId: sanitizedEvaluation.userId || user?.uid || 'anonymous',
+      status: sanitizedEvaluation.status || 'pending',
+      createdAt: serverTimestamp(),
+    }
+
+    let firestoreId = null
+    try {
+      const docRef = await addDoc(collection(db, 'evaluations'), evaluationWithMeta)
+      firestoreId = docRef.id
+      console.log('Evaluation saved to Firestore successfully')
+    } catch (firestoreError) {
+      console.warn('Failed to save evaluation to Firestore, using localStorage only:', firestoreError)
+    }
+
+    const evaluationId = firestoreId || `eval_${Date.now()}`
+    const evaluationRecord = {
+      ...sanitizedEvaluation,
+      id: evaluationId,
+      userId: evaluationWithMeta.userId,
+      status: evaluationWithMeta.status,
+      createdAt: new Date().toISOString(),
+    }
+
+    if (typeof window !== 'undefined') {
+      const evaluations = JSON.parse(window.localStorage.getItem('evaluationProperties') || '[]')
+      const filtered = evaluations.filter((evaluation) => evaluation.id !== evaluationId)
+      filtered.unshift(evaluationRecord)
+      window.localStorage.setItem('evaluationProperties', JSON.stringify(filtered))
+      try {
+        window.dispatchEvent(new StorageEvent('storage', { key: 'evaluationProperties' }))
+      } catch (err) {
+        window.dispatchEvent(new Event('evaluationPropertiesUpdated'))
+      }
+    }
+
+    return { success: true, id: evaluationId, evaluation: evaluationRecord }
+  } catch (error) {
+    console.error('Add evaluation error:', error)
+    return { success: false, error: error.message }
+  }
+}
+
+export const updateEvaluationStatus = async (evaluationId, updates = {}) => {
+  let firestoreSuccess = false
+  try {
+    const sanitizedUpdates = sanitizeForFirestore(updates)
+    await updateDoc(doc(db, 'evaluations', evaluationId), {
+      ...sanitizedUpdates,
+      updatedAt: serverTimestamp(),
+    })
+    firestoreSuccess = true
+    console.log('Evaluation updated in Firestore')
+  } catch (error) {
+    console.warn('Failed to update evaluation in Firestore:', error)
+  }
+
+  let updatedEvaluation = null
+  if (typeof window !== 'undefined') {
+    const evaluations = JSON.parse(window.localStorage.getItem('evaluationProperties') || '[]')
+    const index = evaluations.findIndex((evaluation) => evaluation.id === evaluationId)
+    if (index >= 0) {
+      evaluations[index] = {
+        ...evaluations[index],
+        ...updates,
+        updatedAt: new Date().toISOString(),
+      }
+      window.localStorage.setItem('evaluationProperties', JSON.stringify(evaluations))
+      updatedEvaluation = evaluations[index]
+      try {
+        window.dispatchEvent(new StorageEvent('storage', { key: 'evaluationProperties' }))
+      } catch (err) {
+        window.dispatchEvent(new Event('evaluationPropertiesUpdated'))
+      }
+    }
+  }
+
+  return { success: firestoreSuccess || !!updatedEvaluation, evaluation: updatedEvaluation }
+}
+
+export const deleteEvaluation = async (evaluationId) => {
+  try {
+    try {
+      await deleteDoc(doc(db, 'evaluations', evaluationId))
+      console.log('Evaluation deleted from Firestore')
+    } catch (error) {
+      console.warn('Failed to delete evaluation from Firestore:', error)
+    }
+
+    if (typeof window !== 'undefined') {
+      const evaluations = JSON.parse(window.localStorage.getItem('evaluationProperties') || '[]')
+      const filtered = evaluations.filter((evaluation) => evaluation.id !== evaluationId)
+      window.localStorage.setItem('evaluationProperties', JSON.stringify(filtered))
+      try {
+        window.dispatchEvent(new StorageEvent('storage', { key: 'evaluationProperties' }))
+      } catch (err) {
+        window.dispatchEvent(new Event('evaluationPropertiesUpdated'))
+      }
+    }
+
+    return { success: true }
+  } catch (error) {
+    console.error('Delete evaluation error:', error)
+    return { success: false, error: error.message }
+  }
+}
+
+export const addInvestment = async (investmentData) => {
+  try {
+    const user = getCurrentUser()
+    const userData = typeof window !== 'undefined'
+      ? JSON.parse(window.localStorage.getItem('userData') || '{}')
+      : {}
+    
+    if (!user && !userData.id) {
+      throw new Error('User not authenticated')
+    }
+
+    const sharesPurchased = Number(investmentData.shares) || 0
+    const amountInvested = Number(investmentData.amount) || 0
+    const shareSnapshot = investmentData.shareSnapshot || {}
+    const sharesAvailableBefore = Number(shareSnapshot.sharesAvailableBefore)
+    const sharesAvailableAfter = Number(shareSnapshot.sharesAvailableAfter)
+    const totalSharesSnapshot = Number(shareSnapshot.totalShares)
+    const normalizedSharePrice = Number(investmentData.sharePrice) || Number(shareSnapshot.sharePrice) || 0
+    const currentValue = sharesPurchased > 0 && normalizedSharePrice > 0
+      ? sharesPurchased * normalizedSharePrice
+      : amountInvested
+
+    const investmentWithMeta = {
+      ...investmentData,
+      userId: userData.id || user?.uid || 'anonymous',
+      userEmail: userData.email || user?.email || 'unknown',
+      createdAt: new Date().toISOString(), // Use regular timestamp for localStorage
+      investmentDate: new Date().toISOString(),
+      status: 'completed', // For demo purposes, mark as completed immediately
+      currentValue,
+      profitLoss: 0,
+      returnPercentage: 0,
+      escrowStatus: investmentData.paymentMethod === 'escrow' ? 'pending_verification' : 'direct_payment',
+      ownershipPercentage: investmentData.ownershipPercentage || 0,
+      shareSnapshot: {
+        totalShares: Number.isFinite(totalSharesSnapshot) ? totalSharesSnapshot : null,
+        sharesAvailableBefore: Number.isFinite(sharesAvailableBefore) ? sharesAvailableBefore : null,
+        sharesAvailableAfter: Number.isFinite(sharesAvailableAfter) ? sharesAvailableAfter : null,
+        sharePrice: normalizedSharePrice,
+        minSharesPerInvestor: Number.isFinite(Number(shareSnapshot.minSharesPerInvestor))
+          ? Number(shareSnapshot.minSharesPerInvestor)
+          : null,
+      },
+    }
+
+    let firestoreResult = null
+    let investmentId = `inv_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+
+    // Try to save to Firestore with permission handling
+    try {
+      const firestoreData = {
+        ...investmentWithMeta,
+        createdAt: serverTimestamp(),
+        investmentDate: serverTimestamp(),
+      }
+      const docRef = await addDoc(collection(db, 'investments'), firestoreData)
+      firestoreResult = { id: docRef.id, success: true }
+      investmentId = docRef.id
+      console.log('Investment saved to Firestore successfully')
+    } catch (firestoreError) {
+      console.warn('Failed to save investment to Firestore, using localStorage only:', firestoreError)
+      // Continue with localStorage-only approach
+    }
+    
+    // Always save to localStorage as primary storage when Firestore fails
+    const localInvestments = typeof window !== 'undefined'
+      ? JSON.parse(window.localStorage.getItem('userInvestments') || '[]')
+      : []
+    
+    const investmentWithId = { 
+      ...investmentWithMeta, 
+      id: investmentId,
+      savedToFirestore: !!firestoreResult
+    }
+    localInvestments.push(investmentWithId)
+    
+    if (typeof window !== 'undefined') {
+      window.localStorage.setItem('userInvestments', JSON.stringify(localInvestments))
+    }
+
+    const inferredSharesRemaining = Number.isFinite(sharesAvailableAfter)
+      ? Math.max(sharesAvailableAfter, 0)
+      : Number.isFinite(sharesAvailableBefore)
+        ? Math.max(sharesAvailableBefore - sharesPurchased, 0)
+        : null
+
+    const updateLocalPropertyShareAllocation = () => {
+      if (typeof window === 'undefined' || !investmentData.propertyId) return
+      try {
+        const stored = JSON.parse(window.localStorage.getItem('userProperties') || '[]')
+        const index = stored.findIndex((prop) => {
+          const identifier = prop?.id || prop?.propertyId
+          return identifier && identifier.toString() === investmentData.propertyId.toString()
+        })
+        if (index === -1) return
+
+        const propertyRecord = { ...stored[index] }
+        const offering = { ...(propertyRecord.shareOffering || {}) }
+        const baselineAvailable = Number.isFinite(offering.sharesAvailable)
+          ? offering.sharesAvailable
+          : Number.isFinite(offering.totalShares)
+            ? offering.totalShares
+            : Number.isFinite(totalSharesSnapshot)
+              ? totalSharesSnapshot
+              : sharesPurchased
+
+        const remaining = inferredSharesRemaining != null
+          ? inferredSharesRemaining
+          : Math.max(baselineAvailable - sharesPurchased, 0)
+
+        offering.sharesAvailable = remaining
+        offering.totalShares = Number.isFinite(offering.totalShares)
+          ? offering.totalShares
+          : (Number.isFinite(totalSharesSnapshot) ? totalSharesSnapshot : offering.sharesAvailable + sharesPurchased)
+        offering.sharesSold = (Number(offering.sharesSold) || 0) + sharesPurchased
+        offering.fundingRaised = (Number(offering.fundingRaised) || 0) + amountInvested
+        offering.investorCount = (Number(offering.investorCount) || 0) + 1
+        offering.lastInvestmentAt = new Date().toISOString()
+        offering.sharePrice = normalizedSharePrice || offering.sharePrice || 0
+        if (!Array.isArray(offering.performanceHistory)) {
+          offering.performanceHistory = []
+        }
+        if (sharesPurchased > 0 || amountInvested > 0) {
+          offering.performanceHistory.push({
+            timestamp: new Date().toISOString(),
+            sharesPurchased,
+            amountInvested,
+            investorId: investmentWithMeta.userId,
+            ownershipPercentage: investmentWithMeta.ownershipPercentage || 0,
+          })
+        }
+
+        if (remaining === 0) {
+          propertyRecord.status = 'funded'
+          offering.status = 'fully-funded'
+        }
+
+        propertyRecord.shareOffering = offering
+        stored[index] = propertyRecord
+        window.localStorage.setItem('userProperties', JSON.stringify(stored))
+        try {
+          window.dispatchEvent(new StorageEvent('storage', { key: 'userProperties' }))
+        } catch (err) {
+          window.dispatchEvent(new Event('userPropertiesUpdated'))
+        }
+      } catch (localError) {
+        console.warn('Failed to update local property allocation:', localError)
+      }
+    }
+
+    const updateRemotePropertyShareAllocation = async () => {
+      if (!investmentData.propertyId) return
+      try {
+        const propertyRef = doc(db, 'properties', investmentData.propertyId)
+        const updates = {
+          updatedAt: serverTimestamp(),
+          'shareOffering.lastInvestmentAt': serverTimestamp(),
+        }
+
+        if (sharesPurchased > 0) {
+          if (inferredSharesRemaining != null) {
+            updates['shareOffering.sharesAvailable'] = Math.max(inferredSharesRemaining, 0)
+          } else {
+            updates['shareOffering.sharesAvailable'] = increment(-sharesPurchased)
+          }
+          updates['shareOffering.sharesSold'] = increment(sharesPurchased)
+        }
+
+        if (amountInvested > 0) {
+          updates['shareOffering.fundingRaised'] = increment(amountInvested)
+        }
+
+        if (investmentWithMeta.ownershipPercentage) {
+          updates['shareOffering.investorCount'] = increment(1)
+        }
+
+        if (normalizedSharePrice > 0) {
+          updates['shareOffering.sharePrice'] = normalizedSharePrice
+        }
+
+        if (sharesPurchased > 0 || amountInvested > 0) {
+          updates['shareOffering.performanceHistory'] = arrayUnion({
+            timestamp: serverTimestamp(),
+            sharesPurchased,
+            amountInvested,
+            investorId: investmentWithMeta.userId,
+            ownershipPercentage: investmentWithMeta.ownershipPercentage || 0,
+          })
+        }
+
+        if (inferredSharesRemaining === 0) {
+          updates.status = 'funded'
+          updates['shareOffering.status'] = 'fully-funded'
+        }
+
+        await updateDoc(propertyRef, updates)
+      } catch (updateError) {
+        console.warn('Failed to update property share allocation in Firestore:', updateError)
+      }
+    }
+
+    updateLocalPropertyShareAllocation()
+    await updateRemotePropertyShareAllocation()
+
+    return { success: true, investment: investmentWithId }
+  } catch (error) {
+    console.error('Add investment error:', error)
+    return { success: false, error: error.message }
+  }
+}
+
+export const getUserInvestments = async (userId = null) => {
+  try {
+    const userData = typeof window !== 'undefined'
+      ? JSON.parse(window.localStorage.getItem('userData') || '{}')
+      : {}
+    
+    const targetUserId = userId || userData.id
+    
+    if (!targetUserId) {
+      return { success: true, investments: [] }
+    }
+
+    // Fetch from Firestore
+    const q = query(
+      collection(db, 'investments'),
+      where('userId', '==', targetUserId),
+      orderBy('createdAt', 'desc')
+    )
+    
+    const querySnapshot = await getDocs(q)
+    const investments = []
+    
+    querySnapshot.forEach((doc) => {
+      const data = doc.data()
+      investments.push({
+        id: doc.id,
+        ...data,
+        createdAt: data.createdAt?.toDate?.()?.toISOString() || new Date().toISOString(),
+        investmentDate: data.investmentDate?.toDate?.()?.toISOString() || new Date().toISOString()
+      })
+    })
+
+    return { success: true, investments }
+  } catch (error) {
+    console.error('Get investments error:', error)
+    // Fallback to localStorage
+    const localInvestments = typeof window !== 'undefined'
+      ? JSON.parse(window.localStorage.getItem('userInvestments') || '[]')
+      : []
+    return { success: true, investments: localInvestments }
+  }
+}
+
+export const submitContactMessage = async (messageData) => {
+  try {
+    const messageWithMeta = {
+      ...messageData,
+      createdAt: serverTimestamp(),
+      status: 'unread',
+      priority: 'normal',
+    }
+
+    // Save to Firestore
+    const docRef = await addDoc(collection(db, 'contactMessages'), messageWithMeta)
+    
+    // Also save to localStorage as backup
+    const localMessages = typeof window !== 'undefined'
+      ? JSON.parse(window.localStorage.getItem('contactMessages') || '[]')
+      : []
+    
+    const messageWithId = { 
+      ...messageWithMeta, 
+      id: docRef.id, 
+      createdAt: new Date().toISOString() 
+    }
+    localMessages.push(messageWithId)
+    
+    if (typeof window !== 'undefined') {
+      window.localStorage.setItem('contactMessages', JSON.stringify(localMessages))
+      try {
+        window.dispatchEvent(new StorageEvent('storage', { key: 'contactMessages' }))
+      } catch (err) {
+        window.dispatchEvent(new Event('contactMessagesUpdated'))
+      }
+    }
+
+    return { success: true, message: messageWithId }
+  } catch (error) {
+    console.error('Submit contact message error:', error)
+    return { success: false, error: error.message }
+  }
+}
+
+export const getAllContactMessages = async () => {
+  try {
+    // Fetch from Firestore
+    const q = query(
+      collection(db, 'contactMessages'),
+      orderBy('createdAt', 'desc')
+    )
+    
+    const querySnapshot = await getDocs(q)
+    const messages = []
+    
+    querySnapshot.forEach((doc) => {
+      const data = doc.data()
+      messages.push({
+        id: doc.id,
+        ...data,
+        createdAt: data.createdAt?.toDate?.()?.toISOString() || new Date().toISOString()
+      })
+    })
+
+    return { success: true, messages }
+  } catch (error) {
+    console.error('Get contact messages error:', error)
+    // Fallback to localStorage
+    const localMessages = typeof window !== 'undefined'
+      ? JSON.parse(window.localStorage.getItem('contactMessages') || '[]')
+      : []
+    localMessages.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+    return { success: true, messages: localMessages }
+  }
+}
+
+export const markMessageAsRead = async (messageId) => {
+  try {
+    // Update in Firestore
+    await updateDoc(doc(db, 'contactMessages', messageId), {
+      status: 'read',
+      readAt: serverTimestamp()
+    })
+
+    // Also update localStorage
+    if (typeof window !== 'undefined') {
+      const messages = JSON.parse(window.localStorage.getItem('contactMessages') || '[]')
+      const index = messages.findIndex(msg => msg.id === messageId)
+      if (index >= 0) {
+        messages[index].status = 'read'
+        messages[index].readAt = new Date().toISOString()
+        window.localStorage.setItem('contactMessages', JSON.stringify(messages))
+        try {
+          window.dispatchEvent(new StorageEvent('storage', { key: 'contactMessages' }))
+        } catch (err) {
+          window.dispatchEvent(new Event('contactMessagesUpdated'))
+        }
+      }
+    }
+
+    return { success: true }
+  } catch (error) {
+    console.error('Mark message as read error:', error)
+    return { success: false, error: error.message }
+  }
+}
+
+export const deleteContactMessage = async (messageId) => {
+  try {
+    try {
+      await deleteDoc(doc(db, 'contactMessages', messageId))
+      console.log('Contact message deleted from Firestore')
+    } catch (error) {
+      console.warn('Failed to delete contact message from Firestore:', error)
+    }
+
+    if (typeof window !== 'undefined') {
+      const messages = JSON.parse(window.localStorage.getItem('contactMessages') || '[]')
+      const filtered = messages.filter((message) => message.id !== messageId)
+      window.localStorage.setItem('contactMessages', JSON.stringify(filtered))
+      try {
+        window.dispatchEvent(new StorageEvent('storage', { key: 'contactMessages' }))
+      } catch (err) {
+        window.dispatchEvent(new Event('contactMessagesUpdated'))
+      }
+    }
+
+    return { success: true }
+  } catch (error) {
+    console.error('Delete contact message error:', error)
+    return { success: false, error: error.message }
+  }
+}
+
+export const replyToContactMessage = async (messageId, replyRecord) => {
+  try {
+    const record = sanitizeForFirestore(replyRecord)
+    await updateDoc(doc(db, 'contactMessages', messageId), {
+      status: 'replied',
+      repliedAt: serverTimestamp(),
+      replies: arrayUnion({
+        ...record,
+        sentAt: serverTimestamp(),
+      })
+    })
+
+    const replyWithMeta = {
+      ...replyRecord,
+      sentAt: new Date().toISOString()
+    }
+
+    if (typeof window !== 'undefined') {
+      const messages = JSON.parse(window.localStorage.getItem('contactMessages') || '[]')
+      const index = messages.findIndex((message) => message.id === messageId)
+      if (index >= 0) {
+        const existingReplies = messages[index].replies || []
+        messages[index] = {
+          ...messages[index],
+          status: 'replied',
+          repliedAt: replyWithMeta.sentAt,
+          replies: [...existingReplies, replyWithMeta],
+        }
+        window.localStorage.setItem('contactMessages', JSON.stringify(messages))
+        try {
+          window.dispatchEvent(new StorageEvent('storage', { key: 'contactMessages' }))
+        } catch (err) {
+          window.dispatchEvent(new Event('contactMessagesUpdated'))
+        }
+      }
+    }
+
+    return { success: true, reply: replyWithMeta }
+  } catch (error) {
+    console.error('Reply to contact message error:', error)
+    return { success: false, error: error.message }
+  }
+}
+
+// Additional utility functions for admin
+export const getAllProperties = async () => {
+  try {
+    const q = query(collection(db, 'properties'), orderBy('createdAt', 'desc'))
+    const querySnapshot = await getDocs(q)
+    const properties = []
+    
+    querySnapshot.forEach((doc) => {
+      const data = doc.data()
+      properties.push({
+        id: doc.id,
+        ...data,
+        createdAt: data.createdAt?.toDate?.()?.toISOString() || new Date().toISOString()
+      })
+    })
+
+    return { success: true, properties }
+  } catch (error) {
+    console.error('Get all properties error:', error)
+    // Fallback to localStorage
+    const localProperties = typeof window !== 'undefined'
+      ? JSON.parse(window.localStorage.getItem('userProperties') || '[]')
+      : []
+    return { success: true, properties: localProperties }
+  }
+}
+
+export const getAllInvestments = async () => {
+  try {
+    const q = query(collection(db, 'investments'), orderBy('createdAt', 'desc'))
+    const querySnapshot = await getDocs(q)
+    const investments = []
+    
+    querySnapshot.forEach((doc) => {
+      const data = doc.data()
+      investments.push({
+        id: doc.id,
+        ...data,
+        createdAt: data.createdAt?.toDate?.()?.toISOString() || new Date().toISOString(),
+        investmentDate: data.investmentDate?.toDate?.()?.toISOString() || new Date().toISOString()
+      })
+    })
+
+    return { success: true, investments }
+  } catch (error) {
+    console.error('Get all investments error:', error)
+    // Fallback to localStorage
+    const localInvestments = typeof window !== 'undefined'
+      ? JSON.parse(window.localStorage.getItem('userInvestments') || '[]')
+      : []
+    return { success: true, investments: localInvestments }
+  }
+}
+
+// Bidding system functions
+export const addBid = async (bidData) => {
+  try {
+    const user = getCurrentUser()
+    const userData = typeof window !== 'undefined'
+      ? JSON.parse(window.localStorage.getItem('userData') || '{}')
+      : {}
+    
+    const bidWithMeta = {
+      ...bidData,
+      userId: userData.id || user?.uid || 'anonymous',
+      userEmail: userData.email || user?.email || 'unknown',
+      bidderName: bidData.bidderName || userData.name || 'Anonymous',
+      createdAt: serverTimestamp(),
+      status: 'active',
+      bidType: bidData.bidType || 'manual', // manual, auto
+    }
+
+    // Save to Firestore
+    let firestoreResult = null
+    try {
+      const docRef = await addDoc(collection(db, 'bids'), bidWithMeta)
+      firestoreResult = { id: docRef.id, success: true }
+      console.log('Bid saved to Firestore successfully')
+    } catch (firestoreError) {
+      console.warn('Failed to save bid to Firestore, using localStorage only:', firestoreError)
+    }
+    
+    // Always save to localStorage as backup
+    const localBids = typeof window !== 'undefined'
+      ? JSON.parse(window.localStorage.getItem('propertyBids') || '{}')
+      : {}
+    
+    const bidId = firestoreResult?.id || `bid_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+    const bidWithId = {
+      ...bidWithMeta,
+      id: bidId,
+      createdAt: new Date().toISOString(),
+      savedToFirestore: !!firestoreResult
+    }
+    
+    // Organize bids by property ID
+    if (!localBids[bidData.propertyId]) {
+      localBids[bidData.propertyId] = []
+    }
+    localBids[bidData.propertyId].push(bidWithId)
+    
+    if (typeof window !== 'undefined') {
+      window.localStorage.setItem('propertyBids', JSON.stringify(localBids))
+    }
+
+    return { success: true, bid: bidWithId }
+  } catch (error) {
+    console.error('Add bid error:', error)
+    return { success: false, error: error.message }
+  }
+}
+
+export const getBidsForProperty = async (propertyId) => {
+  try {
+    // Fetch from Firestore
+    const q = query(
+      collection(db, 'bids'),
+      where('propertyId', '==', propertyId),
+      orderBy('createdAt', 'desc')
+    )
+    
+    const querySnapshot = await getDocs(q)
+    const bids = []
+    
+    querySnapshot.forEach((doc) => {
+      const data = doc.data()
+      bids.push({
+        id: doc.id,
+        ...data,
+        createdAt: data.createdAt?.toDate?.()?.toISOString() || new Date().toISOString()
+      })
+    })
+
+    return { success: true, bids }
+  } catch (error) {
+    console.error('Get bids error:', error)
+    // Fallback to localStorage
+    const localBids = typeof window !== 'undefined'
+      ? JSON.parse(window.localStorage.getItem('propertyBids') || '{}')
+      : {}
+    const propertyBids = localBids[propertyId] || []
+    return { success: true, bids: propertyBids }
+  }
+}
+
+// Bidding payment functions
+export const addBiddingPayment = async (paymentData) => {
+  try {
+    const user = getCurrentUser()
+    const userData = typeof window !== 'undefined'
+      ? JSON.parse(window.localStorage.getItem('userData') || '{}')
+      : {}
+    
+    const paymentWithMeta = {
+      ...paymentData,
+      userId: userData.id || user?.uid || 'anonymous',
+      userEmail: userData.email || user?.email || 'unknown',
+      createdAt: serverTimestamp(),
+      status: 'pending', // pending, approved, rejected
+      paidAt: serverTimestamp(),
+    }
+
+    // Save to Firestore
+    let firestoreResult = null
+    try {
+      const docRef = await addDoc(collection(db, 'biddingPayments'), paymentWithMeta)
+      firestoreResult = { id: docRef.id, success: true }
+      console.log('Bidding payment saved to Firestore successfully')
+    } catch (firestoreError) {
+      console.warn('Failed to save payment to Firestore, using localStorage only:', firestoreError)
+    }
+    
+    // Always save to localStorage as backup
+    const localPayments = typeof window !== 'undefined'
+      ? JSON.parse(window.localStorage.getItem('biddingFeePayments') || '[]')
+      : []
+    
+    const paymentId = firestoreResult?.id || `payment_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+    const paymentWithId = {
+      ...paymentWithMeta,
+      id: paymentId,
+      createdAt: new Date().toISOString(),
+      paidAt: new Date().toISOString(),
+      savedToFirestore: !!firestoreResult
+    }
+    
+    localPayments.push(paymentWithId)
+    
+    if (typeof window !== 'undefined') {
+      window.localStorage.setItem('biddingFeePayments', JSON.stringify(localPayments))
+      try {
+        window.dispatchEvent(new StorageEvent('storage', { key: 'biddingFeePayments' }))
+      } catch (err) {
+        window.dispatchEvent(new Event('biddingFeePaymentsUpdated'))
+      }
+    }
+
+    return { success: true, payment: paymentWithId }
+  } catch (error) {
+    console.error('Add bidding payment error:', error)
+    return { success: false, error: error.message }
+  }
+}
+
+export const getUserBiddingPayments = async (userId = null) => {
+  try {
+    const userData = typeof window !== 'undefined'
+      ? JSON.parse(window.localStorage.getItem('userData') || '{}')
+      : {}
+
+    const targetUserId = userId || userData.id
+
+    if (!targetUserId) {
+      return { success: true, payments: [] }
+    }
+
+    const q = query(
+      collection(db, 'biddingPayments'),
+      where('userId', '==', targetUserId),
+      orderBy('createdAt', 'desc')
+    )
+
+    const querySnapshot = await getDocs(q)
+    const payments = []
+
+    querySnapshot.forEach((doc) => {
+      const data = doc.data()
+      payments.push({
+        id: doc.id,
+        ...data,
+        createdAt: data.createdAt?.toDate?.()?.toISOString() || new Date().toISOString(),
+        paidAt: data.paidAt?.toDate?.()?.toISOString() || new Date().toISOString()
+      })
+    })
+
+    return { success: true, payments }
+  } catch (error) {
+    console.error('Get bidding payments error:', error)
+    const localPayments = typeof window !== 'undefined'
+      ? JSON.parse(window.localStorage.getItem('biddingFeePayments') || '[]')
+      : []
+    return { success: true, payments: localPayments }
+  }
+}
+
+export const getAllBiddingPayments = async () => {
+  try {
+    const q = query(
+      collection(db, 'biddingPayments'),
+      orderBy('createdAt', 'desc')
+    )
+    const querySnapshot = await getDocs(q)
+    const payments = []
+
+    querySnapshot.forEach((doc) => {
+      const data = doc.data()
+      payments.push({
+        id: doc.id,
+        ...data,
+        createdAt: data.createdAt?.toDate?.()?.toISOString() || new Date().toISOString(),
+        paidAt: data.paidAt?.toDate?.()?.toISOString() || new Date().toISOString(),
+      })
+    })
+
+    return { success: true, payments }
+  } catch (error) {
+    console.error('Get all bidding payments error:', error)
+    const localPayments = typeof window !== 'undefined'
+      ? JSON.parse(window.localStorage.getItem('biddingFeePayments') || '[]')
+      : []
+    localPayments.sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0))
+    return { success: true, payments: localPayments, fallback: true }
+  }
+}
+
+export const updateBiddingPaymentStatus = async (paymentId, status, options = {}) => {
+  const normalizedStatus = (status || '').toLowerCase()
+  const allowedStatuses = ['pending', 'approved', 'rejected']
+
+  if (!allowedStatuses.includes(normalizedStatus)) {
+    return { success: false, error: 'Invalid status: ' + status }
+  }
+
+  const adminNote = options.adminNote || ''
+  const reviewer = options.reviewedBy || options.adminName || null
+  const reviewerId = options.reviewedById || options.adminId || null
+
+  const nowIso = new Date().toISOString()
+  const localUpdates = {
+    status: normalizedStatus,
+    reviewedAt: nowIso,
+    updatedAt: nowIso,
+  }
+
+  if (adminNote) {
+    localUpdates.adminNote = adminNote
+  }
+  if (reviewer) {
+    localUpdates.reviewedBy = reviewer
+  }
+  if (reviewerId) {
+    localUpdates.reviewedById = reviewerId
+  }
+  if (normalizedStatus === 'approved') {
+    localUpdates.approvedAt = nowIso
+    localUpdates.rejectedAt = null
+  } else if (normalizedStatus === 'rejected') {
+    localUpdates.rejectedAt = nowIso
+    localUpdates.approvedAt = null
+  }
+
+  let savedToFirestore = false
+  try {
+    const updates = {
+      status: normalizedStatus,
+      reviewedAt: serverTimestamp(),
+      updatedAt: serverTimestamp(),
+    }
+    if (adminNote) {
+      updates.adminNote = adminNote
+    }
+    if (reviewer) {
+      updates.reviewedBy = reviewer
+    }
+    if (reviewerId) {
+      updates.reviewedById = reviewerId
+    }
+    if (normalizedStatus === 'approved') {
+      updates.approvedAt = serverTimestamp()
+      updates.rejectedAt = null
+    } else if (normalizedStatus === 'rejected') {
+      updates.rejectedAt = serverTimestamp()
+      updates.approvedAt = null
+    }
+
+    await updateDoc(doc(db, 'biddingPayments', paymentId), updates)
+    savedToFirestore = true
+  } catch (error) {
+    console.warn('Failed to update bidding payment in Firestore:', error)
+  }
+
+  let localSuccess = false
+  if (typeof window !== 'undefined') {
+    try {
+      const payments = JSON.parse(window.localStorage.getItem('biddingFeePayments') || '[]')
+      const index = payments.findIndex((payment) => payment.id === paymentId)
+      if (index !== -1) {
+        payments[index] = {
+          ...payments[index],
+          ...localUpdates,
+        }
+        window.localStorage.setItem('biddingFeePayments', JSON.stringify(payments))
+        localSuccess = true
+        try {
+          window.dispatchEvent(new StorageEvent('storage', { key: 'biddingFeePayments' }))
+        } catch (err) {
+          window.dispatchEvent(new Event('biddingFeePaymentsUpdated'))
+        }
+      }
+    } catch (storageError) {
+      console.warn('Failed to update local bidding payment cache:', storageError)
+    }
+  }
+
+  if (!savedToFirestore && !localSuccess) {
+    return { success: false, error: 'Failed to update bidding payment status' }
+  }
+
+  return { success: true, status: normalizedStatus, savedToFirestore, payment: { id: paymentId, ...localUpdates } }
+}
+
+// Notification functions
+export const addNotification = async (notificationData) => {
+  try {
+    const notificationWithMeta = {
+      ...notificationData,
+      createdAt: serverTimestamp(),
+      status: 'unread',
+      type: notificationData.type || 'info', // info, success, warning, error
+    }
+
+    // Save to Firestore
+    let firestoreResult = null
+    try {
+      const docRef = await addDoc(collection(db, 'notifications'), notificationWithMeta)
+      firestoreResult = { id: docRef.id, success: true }
+      console.log('Notification saved to Firestore successfully')
+    } catch (firestoreError) {
+      console.warn('Failed to save notification to Firestore, using localStorage only:', firestoreError)
+    }
+    
+    // Always save to localStorage as backup
+    const localNotifications = typeof window !== 'undefined'
+      ? JSON.parse(window.localStorage.getItem('userNotifications') || '[]')
+      : []
+    
+    const notificationId = firestoreResult?.id || `notification_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+    const notificationWithId = {
+      ...notificationWithMeta,
+      id: notificationId,
+      createdAt: new Date().toISOString(),
+      savedToFirestore: !!firestoreResult
+    }
+    
+    localNotifications.unshift(notificationWithId) // Add to beginning
+    
+    if (typeof window !== 'undefined') {
+      window.localStorage.setItem('userNotifications', JSON.stringify(localNotifications))
+    }
+
+    return { success: true, notification: notificationWithId }
+  } catch (error) {
+    console.error('Add notification error:', error)
+    return { success: false, error: error.message }
+  }
+}
+
+export const getUserNotifications = async (userId) => {
+  try {
+    // Fetch from Firestore
+    const q = query(
+      collection(db, 'notifications'),
+      where('userId', '==', userId),
+      orderBy('createdAt', 'desc')
+    )
+    
+    const querySnapshot = await getDocs(q)
+    const notifications = []
+    
+    querySnapshot.forEach((doc) => {
+      const data = doc.data()
+      notifications.push({
+        id: doc.id,
+        ...data,
+        createdAt: data.createdAt?.toDate?.()?.toISOString() || new Date().toISOString()
+      })
+    })
+
+    return { success: true, notifications }
+  } catch (error) {
+    console.error('Get notifications error:', error)
+    // Fallback to localStorage
+    const localNotifications = typeof window !== 'undefined'
+      ? JSON.parse(window.localStorage.getItem('userNotifications') || '[]')
+      : []
+    return { success: true, notifications: localNotifications }
+  }
+}
+
+export const markNotificationAsRead = async (notificationId) => {
+  try {
+    // Update in Firestore
+    await updateDoc(doc(db, 'notifications', notificationId), {
+      status: 'read',
+      readAt: serverTimestamp()
+    })
+
+    // Also update localStorage
+    if (typeof window !== 'undefined') {
+      const notifications = JSON.parse(window.localStorage.getItem('userNotifications') || '[]')
+      const index = notifications.findIndex(n => n.id === notificationId)
+      if (index >= 0) {
+        notifications[index].status = 'read'
+        notifications[index].readAt = new Date().toISOString()
+        window.localStorage.setItem('userNotifications', JSON.stringify(notifications))
+      }
+    }
+
+    return { success: true }
+  } catch (error) {
+    console.error('Mark notification as read error:', error)
+    return { success: false, error: error.message }
+  }
+}
+
+// Admin settings functions
+export const getAdminSettings = async () => {
+  try {
+    const docRef = doc(db, 'adminSettings', 'global')
+    const docSnap = await getDoc(docRef)
+    
+    if (docSnap.exists()) {
+      return { success: true, settings: docSnap.data() }
+    } else {
+      // Return default settings
+      const defaultSettings = {
+        platformFee: 2.5,
+        minBidIncrement: 500000,
+        maxBidLimit: 1000000000,
+        biddingFeeAmount: 20000,
+        autoApprovalEnabled: false,
+        maintenanceMode: false,
+        createdAt: new Date().toISOString()
+      }
+      return { success: true, settings: defaultSettings }
+    }
+  } catch (error) {
+    console.error('Get admin settings error:', error)
+    // Fallback to localStorage
+    const localSettings = typeof window !== 'undefined'
+      ? JSON.parse(window.localStorage.getItem('adminSettings') || '{}')
+      : {}
+    return { success: true, settings: localSettings }
+  }
+}
+
+export const updateAdminSettings = async (settings) => {
+  try {
+    const settingsWithMeta = {
+      ...settings,
+      updatedAt: serverTimestamp(),
+    }
+
+    // Save to Firestore
+    await setDoc(doc(db, 'adminSettings', 'global'), settingsWithMeta, { merge: true })
+    
+    // Also save to localStorage
+    if (typeof window !== 'undefined') {
+      const settingsForLocal = {
+        ...settings,
+        updatedAt: new Date().toISOString(),
+      }
+      window.localStorage.setItem('adminSettings', JSON.stringify(settingsForLocal))
+    }
+
+    return { success: true }
+  } catch (error) {
+    console.error('Update admin settings error:', error)
+    return { success: false, error: error.message }
+  }
+}
+
+// Test function to verify Firestore collections are working
+export const testFirestoreCollections = async () => {
+  const testResults = {
+    users: false,
+    properties: false,
+    evaluations: false,
+    investments: false,
+    contactMessages: false,
+    bids: false,
+    biddingPayments: false,
+    notifications: false,
+    adminSettings: false
+  }
+
+  try {
+    // Test each collection by trying to read from it
+    const collections = [
+      'users', 'properties', 'evaluations', 'investments', 
+      'contactMessages', 'bids', 'biddingPayments', 'notifications'
+    ]
+
+    for (const collectionName of collections) {
+      try {
+        const q = query(collection(db, collectionName), orderBy('createdAt', 'desc'))
+        const querySnapshot = await getDocs(q)
+        testResults[collectionName] = true
+        console.log(`✅ ${collectionName} collection accessible (${querySnapshot.size} documents)`)
+      } catch (error) {
+        console.warn(`⚠️ ${collectionName} collection test failed:`, error.message)
+        testResults[collectionName] = false
+      }
+    }
+
+    // Test admin settings separately (single document)
+    try {
+      const docRef = doc(db, 'adminSettings', 'global')
+      await getDoc(docRef)
+      testResults.adminSettings = true
+      console.log('✅ adminSettings collection accessible')
+    } catch (error) {
+      console.warn('⚠️ adminSettings collection test failed:', error.message)
+      testResults.adminSettings = false
+    }
+
+    const successCount = Object.values(testResults).filter(Boolean).length
+    const totalCount = Object.keys(testResults).length
+    
+    console.log(`🔥 Firestore Test Results: ${successCount}/${totalCount} collections accessible`)
+    
+    return {
+      success: successCount > 0,
+      results: testResults,
+      summary: `${successCount}/${totalCount} collections working`
+    }
+  } catch (error) {
+    console.error('Firestore test failed:', error)
+    return {
+      success: false,
+      error: error.message,
+      results: testResults
+    }
+  }
+}
+
+// Database initialization function to create all collections
+export const initializeFirestoreCollections = async () => {
+  const initResults = {
+    success: true,
+    collectionsCreated: [],
+    errors: []
+  }
+
+  try {
+    // 1. Create bids collection with sample bid
+    try {
+      const sampleBid = {
+        propertyId: 'sample_property_001',
+        bidderName: 'Sample Bidder',
+        bidderEmail: 'sample@example.com',
+        bidderPhone: '+92300000000',
+        amount: 5000000,
+        propertyTitle: 'Sample Property for Bidding',
+        bidType: 'manual',
+        status: 'active',
+        createdAt: serverTimestamp()
+      }
+      await addDoc(collection(db, 'bids'), sampleBid)
+      initResults.collectionsCreated.push('bids')
+      console.log('✅ Created bids collection')
+    } catch (error) {
+      initResults.errors.push(`bids: ${error.message}`)
+      console.error('❌ Failed to create bids collection:', error)
+    }
+
+    // 2. Create biddingPayments collection
+    try {
+      const samplePayment = {
+        propertyId: 'sample_property_001',
+        feeAmount: 20000,
+        fullName: 'Sample Bidder',
+        email: 'sample@example.com',
+        phone: '+92300000000',
+        cnic: '12345-1234567-1',
+        paymentMethod: 'bank',
+        senderAccount: '00123456789',
+        transactionReference: 'TXN123456789',
+        paymentNotes: 'Sample bidding fee payment',
+        status: 'pending',
+        createdAt: serverTimestamp(),
+        paidAt: serverTimestamp()
+      }
+      await addDoc(collection(db, 'biddingPayments'), samplePayment)
+      initResults.collectionsCreated.push('biddingPayments')
+      console.log('✅ Created biddingPayments collection')
+    } catch (error) {
+      initResults.errors.push(`biddingPayments: ${error.message}`)
+      console.error('❌ Failed to create biddingPayments collection:', error)
+    }
+
+    // 3. Create notifications collection
+    try {
+      const sampleNotification = {
+        userId: 'sample_user_001',
+        title: 'Welcome to REMMIC',
+        message: 'Your account has been successfully created. Start exploring properties!',
+        type: 'info',
+        status: 'unread',
+        createdAt: serverTimestamp()
+      }
+      await addDoc(collection(db, 'notifications'), sampleNotification)
+      initResults.collectionsCreated.push('notifications')
+      console.log('✅ Created notifications collection')
+    } catch (error) {
+      initResults.errors.push(`notifications: ${error.message}`)
+      console.error('❌ Failed to create notifications collection:', error)
+    }
+
+    // 4. Create adminSettings document
+    try {
+      const defaultSettings = {
+        platformFee: 2.5,
+        minBidIncrement: 500000,
+        maxBidLimit: 1000000000,
+        biddingFeeAmount: 20000,
+        autoApprovalEnabled: false,
+        maintenanceMode: false,
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp()
+      }
+      await setDoc(doc(db, 'adminSettings', 'global'), defaultSettings)
+      initResults.collectionsCreated.push('adminSettings')
+      console.log('✅ Created adminSettings collection')
+    } catch (error) {
+      initResults.errors.push(`adminSettings: ${error.message}`)
+      console.error('❌ Failed to create adminSettings collection:', error)
+    }
+
+    // 5. Ensure existing collections have at least one document
+    
+    // Properties collection sample
+    try {
+      const propertiesQuery = query(collection(db, 'properties'))
+      const propertiesSnapshot = await getDocs(propertiesQuery)
+      
+      if (propertiesSnapshot.empty) {
+        const sampleProperty = {
+          title: 'Sample Commercial Plot',
+          location: 'DHA Phase 5, Lahore',
+          area: '5 Marla',
+          price: 15000000,
+          description: 'Prime commercial plot in DHA Phase 5',
+          propertyType: 'commercial',
+          status: 'approved',
+          userId: 'sample_user_001',
+          userEmail: 'sample@example.com',
+          createdAt: serverTimestamp()
+        }
+        await addDoc(collection(db, 'properties'), sampleProperty)
+        initResults.collectionsCreated.push('properties (sample)')
+        console.log('✅ Added sample data to properties collection')
+      }
+    } catch (error) {
+      initResults.errors.push(`properties: ${error.message}`)
+      console.error('❌ Failed to ensure properties collection:', error)
+    }
+
+    // Evaluations collection sample
+    try {
+      const evaluationsQuery = query(collection(db, 'evaluations'))
+      const evaluationsSnapshot = await getDocs(evaluationsQuery)
+      
+      if (evaluationsSnapshot.empty) {
+        const sampleEvaluation = {
+          propertyAddress: 'Sample Address, Lahore',
+          propertyType: 'residential',
+          area: '10 Marla',
+          currentValue: 25000000,
+          status: 'pending',
+          userId: 'sample_user_001',
+          createdAt: serverTimestamp()
+        }
+        await addDoc(collection(db, 'evaluations'), sampleEvaluation)
+        initResults.collectionsCreated.push('evaluations (sample)')
+        console.log('✅ Added sample data to evaluations collection')
+      }
+    } catch (error) {
+      initResults.errors.push(`evaluations: ${error.message}`)
+      console.error('❌ Failed to ensure evaluations collection:', error)
+    }
+
+    // Investments collection sample
+    try {
+      const investmentsQuery = query(collection(db, 'investments'))
+      const investmentsSnapshot = await getDocs(investmentsQuery)
+      
+      if (investmentsSnapshot.empty) {
+        const sampleInvestment = {
+          propertyId: 'sample_property_001',
+          propertyTitle: 'Sample Investment Property',
+          shares: 10,
+          amount: 500000,
+          sharePrice: 50000,
+          paymentMethod: 'bank',
+          status: 'completed',
+          userId: 'sample_user_001',
+          userEmail: 'sample@example.com',
+          createdAt: serverTimestamp(),
+          investmentDate: serverTimestamp()
+        }
+        await addDoc(collection(db, 'investments'), sampleInvestment)
+        initResults.collectionsCreated.push('investments (sample)')
+        console.log('✅ Added sample data to investments collection')
+      }
+    } catch (error) {
+      initResults.errors.push(`investments: ${error.message}`)
+      console.error('❌ Failed to ensure investments collection:', error)
+    }
+
+    // Contact Messages collection sample
+    try {
+      const messagesQuery = query(collection(db, 'contactMessages'))
+      const messagesSnapshot = await getDocs(messagesQuery)
+      
+      if (messagesSnapshot.empty) {
+        const sampleMessage = {
+          name: 'Sample User',
+          email: 'sample@example.com',
+          phone: '+92300000000',
+          subject: 'Welcome Message',
+          message: 'This is a sample contact message to initialize the collection.',
+          status: 'unread',
+          priority: 'normal',
+          createdAt: serverTimestamp()
+        }
+        await addDoc(collection(db, 'contactMessages'), sampleMessage)
+        initResults.collectionsCreated.push('contactMessages (sample)')
+        console.log('✅ Added sample data to contactMessages collection')
+      }
+    } catch (error) {
+      initResults.errors.push(`contactMessages: ${error.message}`)
+      console.error('❌ Failed to ensure contactMessages collection:', error)
+    }
+
+    if (initResults.errors.length > 0) {
+      initResults.success = false
+    }
+
+    console.log(`🔥 Database initialization completed: ${initResults.collectionsCreated.length} collections created/verified`)
+    
+    return initResults
+  } catch (error) {
+    console.error('Database initialization failed:', error)
+    return {
+      success: false,
+      collectionsCreated: [],
+      errors: [error.message]
+    }
+  }
+}
+
+export { app, auth, db, analytics }

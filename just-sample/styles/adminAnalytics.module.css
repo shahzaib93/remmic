@@ -1,0 +1,444 @@
+.analyticsContent {
+  display: grid;
+  gap: 2rem;
+}
+
+.metricsGrid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+@media (max-width: 1024px) {
+  .metricsGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.875rem;
+  }
+}
+
+@media (max-width: 640px) {
+  .metricsGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.75rem;
+  }
+}
+
+.metricCard {
+  background: #ffffff;
+  border-radius: 1rem;
+  padding: 1rem;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.06);
+  border: 1px solid rgba(148, 163, 184, 0.15);
+  display: grid;
+  gap: 0.5rem;
+  min-height: 100px;
+}
+
+.metricHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  color: #475569;
+  font-weight: 600;
+}
+
+.metricHeader h3 {
+  margin: 0;
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.metricValue {
+  font-size: clamp(1.25rem, 2.5vw, 1.75rem);
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.metricValue,
+.metricLabel {
+  word-break: break-word;
+}
+
+.metricLabel {
+  margin: 0;
+  color: #94a3b8;
+  font-size: 0.85rem;
+}
+
+.metricTrend {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.25rem 0.5rem;
+  border-radius: 999px;
+  background: rgba(249, 115, 22, 0.12);
+  color: #c2410c;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.metricTrendNegative {
+  background: rgba(248, 113, 113, 0.18);
+  color: #b91c1c;
+}
+
+.chartsSection {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 1.75rem;
+}
+
+.chartCard {
+  background: #ffffff;
+  border-radius: 1.75rem;
+  padding: 1.75rem;
+  box-shadow: 0 12px 32px rgba(15, 23, 42, 0.08);
+  border: 1px solid rgba(148, 163, 184, 0.18);
+  display: grid;
+  gap: 1.25rem;
+}
+
+.chartCard h3 {
+  margin: 0;
+  font-size: 1.15rem;
+  color: #1f2937;
+}
+
+.barChart {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(42px, 1fr));
+  gap: 1.1rem;
+  align-items: end;
+}
+
+.chartBar {
+  display: grid;
+  gap: 0.45rem;
+  justify-items: center;
+}
+
+.barTrack {
+  width: 100%;
+  height: 180px;
+  border-radius: 14px;
+  background: linear-gradient(180deg, rgba(248, 212, 168, 0.3), rgba(248, 250, 252, 0.9));
+  position: relative;
+  overflow: hidden;
+}
+
+.barFill {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  border-radius: 14px;
+  background: linear-gradient(180deg, rgba(249, 115, 22, 0.9), rgba(251, 191, 36, 0.9));
+}
+
+.barLabel {
+  font-size: 0.78rem;
+  color: #94a3b8;
+}
+
+.performanceList {
+  display: grid;
+  gap: 1rem;
+}
+
+.performanceItem {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 1rem;
+  align-items: center;
+}
+
+.propertyName {
+  font-weight: 600;
+  color: #1f2937;
+}
+
+.performanceBar {
+  width: 100%;
+  height: 10px;
+  border-radius: 999px;
+  background: rgba(248, 212, 168, 0.4);
+  overflow: hidden;
+}
+
+.performanceFill {
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, rgba(249, 115, 22, 0.85), rgba(255, 159, 67, 0.85));
+}
+
+.performanceValue {
+  font-weight: 600;
+  color: #f97316;
+}
+
+@media (max-width: 1024px) {
+  .chartsSection {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Property Cards Grid */
+.propertyGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1rem;
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+.propertyCard {
+  background: #ffffff;
+  border: 1px solid rgba(226, 232, 240, 0.8);
+  border-radius: 0.75rem;
+  padding: 1rem;
+  transition: all 0.2s ease;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.propertyCard:hover {
+  border-color: rgba(249, 115, 22, 0.3);
+  box-shadow: 0 4px 12px rgba(249, 115, 22, 0.15);
+}
+
+.propertyHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 0.75rem;
+  gap: 0.5rem;
+}
+
+.propertyTitle {
+  margin: 0;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #1f2937;
+  line-height: 1.2;
+  flex: 1;
+}
+
+.propertyStatus {
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 0.25rem 0.5rem;
+  border-radius: 999px;
+  text-transform: uppercase;
+  letter-spacing: 0.025em;
+  white-space: nowrap;
+}
+
+.statusApproved {
+  background: rgba(34, 197, 94, 0.1);
+  color: #16a34a;
+}
+
+.statusActive {
+  background: rgba(59, 130, 246, 0.1);
+  color: #2563eb;
+}
+
+.statusPending {
+  background: rgba(245, 158, 11, 0.1);
+  color: #d97706;
+}
+
+.statusSold {
+  background: rgba(168, 85, 247, 0.1);
+  color: #9333ea;
+}
+
+.statusDraft {
+  background: rgba(156, 163, 175, 0.1);
+  color: #6b7280;
+}
+
+.propertyDetails {
+  margin-bottom: 0.75rem;
+}
+
+.propertyMeta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.propertyType {
+  font-size: 0.75rem;
+  color: #6b7280;
+  font-weight: 500;
+  text-transform: capitalize;
+}
+
+.propertyValue {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #f97316;
+}
+
+.propertyLocation {
+  font-size: 0.75rem;
+  color: #9ca3af;
+  line-height: 1.3;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.performanceSection {
+  border-top: 1px solid rgba(226, 232, 240, 0.6);
+  padding-top: 0.75rem;
+}
+
+.performanceHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.performanceLabel {
+  font-size: 0.75rem;
+  color: #6b7280;
+  font-weight: 500;
+}
+
+.performanceScore {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #f97316;
+  transition: color 0.3s ease;
+}
+
+.performanceReasons {
+  margin-top: 0.75rem;
+  padding-top: 0.5rem;
+  border-top: 1px solid rgba(226, 232, 240, 0.4);
+}
+
+.reasonsHeader {
+  margin-bottom: 0.5rem;
+}
+
+.reasonsLabel {
+  font-size: 0.6875rem;
+  color: #6b7280;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.025em;
+}
+
+.reasonsList {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 0.25rem;
+}
+
+.reasonItem {
+  font-size: 0.6875rem;
+  color: #9ca3af;
+  line-height: 1.3;
+  padding-left: 0.75rem;
+  position: relative;
+}
+
+.reasonItem::before {
+  content: "•";
+  position: absolute;
+  left: 0;
+  color: #d1d5db;
+  font-weight: bold;
+}
+
+/* No Data State */
+.noDataState {
+  text-align: center;
+  padding: 2rem;
+  color: #9ca3af;
+}
+
+.noDataIcon {
+  margin: 0 auto 1rem;
+  width: 48px;
+  height: 48px;
+  color: #d1d5db;
+}
+
+.noDataState h4 {
+  margin: 0 0 0.5rem 0;
+  font-size: 1rem;
+  color: #6b7280;
+}
+
+.noDataState p {
+  margin: 0;
+  font-size: 0.875rem;
+  color: #9ca3af;
+}
+
+@media (max-width: 768px) {
+  .metricsGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.625rem;
+  }
+
+  .metricCard {
+    padding: 0.75rem;
+    min-height: 85px;
+  }
+
+  .metricHeader {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.25rem;
+  }
+
+  .metricTrend {
+    font-size: 0.625rem;
+    padding: 0.2rem 0.4rem;
+  }
+
+  .propertyGrid {
+    grid-template-columns: 1fr;
+    max-height: 350px;
+  }
+
+  .propertyCard {
+    padding: 0.875rem;
+  }
+
+  .propertyHeader {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+
+  .propertyStatus {
+    align-self: flex-end;
+  }
+}
+
+@media (max-width: 480px) {
+  .metricsGrid {
+    grid-template-columns: 1fr;
+    gap: 0.5rem;
+  }
+
+  .metricCard {
+    padding: 0.625rem;
+    min-height: 75px;
+  }
+
+  .metricValue {
+    font-size: 1.125rem;
+  }
+}

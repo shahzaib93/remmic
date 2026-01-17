@@ -11,6 +11,263 @@
 @import './design-tokens.css';
 
 /* ========================================
+   Investment Page Components
+   ======================================== */
+
+/* Layout Classes */
+.page-wrapper {
+  @apply min-h-screen bg-white;
+}
+
+.main-wrapper {
+  @apply relative;
+}
+
+.padding-global {
+  @apply px-4 md:px-6 lg:px-8 xl:px-12;
+}
+
+.container-large {
+  @apply mx-auto max-w-7xl;
+}
+
+.padding-section-medium {
+  @apply py-16 md:py-20 lg:py-24;
+}
+
+/* Header Styles */
+.section-header {
+  @apply bg-gradient-to-br from-slate-900 to-slate-800 py-20 lg:py-32;
+}
+
+.header-component {
+  @apply text-center;
+}
+
+.header-top-content-wrap {
+  @apply flex flex-col gap-8 lg:gap-12;
+}
+
+.header-top-card {
+  @apply flex flex-col items-center gap-4;
+}
+
+.header-top-card.second {
+  @apply flex flex-col lg:flex-row items-center justify-between gap-8;
+}
+
+.header-top-card-content {
+  @apply text-center lg:text-left;
+}
+
+.header-button-wrapper {
+  @apply flex flex-col sm:flex-row gap-4;
+}
+
+/* Typography */
+.heading-style-h1 {
+  @apply text-4xl md:text-5xl lg:text-6xl font-bold leading-tight;
+  color: #ffffff;
+}
+
+.heading-style-h2 {
+  @apply text-3xl md:text-4xl lg:text-5xl font-bold leading-tight text-slate-900;
+}
+
+.heading-style-h5 {
+  @apply text-xl font-semibold text-slate-900;
+}
+
+.text-color-brand {
+  color: #c9a227;
+}
+
+.text-size-medium {
+  @apply text-lg leading-relaxed;
+}
+
+.text-size-regular {
+  @apply text-base leading-relaxed text-slate-600;
+}
+
+/* Section Styles */
+.section-tag {
+  @apply inline-flex items-center px-4 py-2 rounded-full text-sm font-semibold;
+  background: rgba(201, 162, 39, 0.1);
+  color: #c9a227;
+}
+
+.section-feature {
+  @apply bg-white;
+}
+
+.feature-component {
+  @apply space-y-8;
+}
+
+.feature-top-content-wrapper {
+  @apply text-center space-y-4;
+}
+
+/* Button Styles */
+.button {
+  @apply inline-flex items-center justify-center px-6 py-3 rounded-lg font-semibold transition-all duration-200;
+}
+
+.button.is-secondary {
+  @apply bg-orange-500 hover:bg-orange-600 text-white;
+}
+
+.button.w-inline-block {
+  @apply inline-flex;
+}
+
+.button-text {
+  @apply text-sm font-semibold;
+}
+
+/* Story Tracker Animation */
+.story-tracker-wrapper {
+  display: flex !important;
+  justify-content: center !important;
+  width: 100% !important;
+  padding: 2rem 15% !important;
+  overflow-x: auto !important;
+  overflow-y: hidden !important;
+}
+
+.story-tracker {
+  display: flex !important;
+  gap: 60px !important;
+  overflow: visible !important;
+  padding: 1rem 0 !important;
+  width: max-content !important;
+  justify-content: center !important;
+  flex-shrink: 0 !important;
+}
+
+.story-tracker.scrolling {
+  animation: continuous-scroll 60s linear infinite !important;
+}
+
+@keyframes continuous-scroll {
+  0% {
+    transform: translateX(50%);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+.story-card {
+  flex-shrink: 0 !important;
+  min-width: auto !important;
+}
+
+/* Process Section Styles */
+.section-process {
+  @apply bg-gray-50 py-20;
+}
+
+.page-lode {
+  @apply px-4 md:px-6 lg:px-8 xl:px-12;
+}
+
+.process-component {
+  @apply max-w-7xl mx-auto text-center space-y-16;
+}
+
+.process-top-content {
+  @apply space-y-4;
+}
+
+.process-head-line {
+  @apply inline-flex items-center px-4 py-2 rounded-full text-sm font-semibold;
+  background: rgba(201, 162, 39, 0.1);
+  color: #c9a227;
+}
+
+.process-bottom-content {
+  @apply space-y-8;
+}
+
+.process-card-list-wrapper {
+  @apply grid grid-cols-1 lg:grid-cols-3 gap-8 lg:gap-16;
+}
+
+.process-card-wrapper {
+  @apply flex flex-col items-center space-y-8;
+}
+
+.process-line-wrapper {
+  @apply flex flex-col items-center space-y-4;
+}
+
+.process-number {
+  @apply w-16 h-16 rounded-full flex items-center justify-center text-white font-bold;
+  background: #c9a227;
+}
+
+.process-line {
+  @apply hidden lg:block w-px h-16 bg-gray-200;
+}
+
+.process-card {
+  @apply bg-white rounded-xl p-8 shadow-lg border border-gray-100 text-center space-y-6 max-w-sm;
+}
+
+.process-card-image {
+  @apply w-20 h-20 mx-auto object-contain;
+}
+
+.process-card-content {
+  @apply space-y-3;
+}
+
+.heading-style-h6 {
+  @apply text-lg font-semibold text-slate-900;
+}
+
+/* CTA Section */
+.section-cta {
+  @apply bg-gradient-to-br from-slate-900 to-slate-800 py-20 text-center text-white;
+}
+
+.cta-component {
+  @apply max-w-4xl mx-auto space-y-8;
+}
+
+.cta-content {
+  @apply space-y-6;
+}
+
+.cta-button-wrapper {
+  @apply flex flex-col sm:flex-row gap-4 justify-center;
+}
+
+.padding-bottom.padding-large {
+  @apply pb-8;
+}
+
+@media (max-width: 991px) {
+  .story-tracker-wrapper {
+    padding: 1.5rem 10% !important;
+  }
+  .story-tracker {
+    gap: 30px !important;
+  }
+}
+
+@media (max-width: 767px) {
+  .story-tracker-wrapper {
+    padding: 1rem 5% !important;
+  }
+  .story-tracker {
+    gap: 30px !important;
+  }
+}
+
+/* ========================================
    Reusable Button Components
    ======================================== */
 

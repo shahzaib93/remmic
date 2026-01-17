@@ -1,0 +1,16 @@
+<svg width="30" height="87" viewBox="0 0 30 87" fill="none" xmlns="http://www.w3.org/2000/svg">
+<mask id="mask0_190_2288" style="mask-type:alpha" maskUnits="userSpaceOnUse" x="0" y="0" width="30" height="87">
+<rect x="0.0966797" y="0.84845" width="28.9914" height="85.3635" rx="4.29502" fill="#4C6C5A"/>
+</mask>
+<g mask="url(#mask0_190_2288)">
+<rect x="-7.95642" y="-2.01062" width="52.7849" height="135.708" rx="3.68381" fill="#FF833B"/>
+<rect x="16.032" y="-4.16818" width="0.920954" height="33.7111" transform="rotate(43.1771 16.032 -4.16818)" fill="white" fill-opacity="0.15"/>
+<rect x="26.213" y="-3.13693" width="0.920954" height="48.8524" transform="rotate(43.1771 26.213 -3.13693)" fill="white" fill-opacity="0.15"/>
+<rect x="28.7441" y="7.30878" width="0.920954" height="52.7327" transform="rotate(43.1771 28.7441 7.30878)" fill="white" fill-opacity="0.15"/>
+<rect x="28.7441" y="18.9119" width="0.920954" height="52.5661" transform="rotate(43.1771 28.7441 18.9119)" fill="white" fill-opacity="0.15"/>
+<rect x="28.7441" y="33.0955" width="0.920954" height="53.6359" transform="rotate(43.1771 28.7441 33.0955)" fill="white" fill-opacity="0.15"/>
+<rect x="29.4943" y="45.9888" width="0.920954" height="53.3862" transform="rotate(43.1771 29.4943 45.9888)" fill="white" fill-opacity="0.15"/>
+<rect x="29.4943" y="58.8822" width="0.920954" height="53.7699" transform="rotate(43.1771 29.4943 58.8822)" fill="white" fill-opacity="0.15"/>
+<rect x="29.2867" y="72.6965" width="0.920954" height="51.7373" transform="rotate(43.1771 29.2867 72.6965)" fill="white" fill-opacity="0.15"/>
+</g>
+</svg>

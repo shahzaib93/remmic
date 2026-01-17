@@ -36,7 +36,18 @@
       "Bash(lsof:*)",
       "Bash(git fetch:*)",
       "Bash(fuser:*)",
-      "Bash(unzip:*)"
+      "Bash(unzip:*)",
+      "Bash(timeout 10 npm run dev)",
+      "Bash(timeout 10 npm run dev -- -p 3009)",
+      "Bash(timeout 15 npm run dev -- -p 3010)",
+      "Bash(npx next lint:*)",
+      "Bash(timeout 15 npm run dev -- -p 3011)",
+      "Bash(rg:*)",
+      "Bash(timeout 15 npm run dev)",
+      "Bash(timeout 15 npm run dev -- -p 3009)",
+      "Bash(timeout 15 npm run dev -- -p 3008)",
+      "Bash(timeout 20 npm run dev -- -p 3008)",
+      "Bash(timeout 20 npm run dev -- -p 3010)"
     ],
     "additionalDirectories": [
       "/home/aicoder/Documents/Remmic"

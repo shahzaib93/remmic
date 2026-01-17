@@ -1,0 +1,363 @@
+/* Global Modern Button Styles */
+
+/* Navbar Container - Ensure white border */
+.nav-container {
+  border-color: white !important;
+}
+
+.button,
+.button.w-inline-block {
+  display: inline-flex !important;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px 28px !important;
+  background: linear-gradient(135deg, #ff5e01 0%, #ff8a3d 100%) !important;
+  color: white !important;
+  font-size: 15px !important;
+  font-weight: 600 !important;
+  border: none !important;
+  border-radius: 50px !important;
+  text-decoration: none !important;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 4px 15px rgba(255, 94, 1, 0.3) !important;
+  letter-spacing: 0.5px;
+  text-transform: none !important;
+}
+
+.button:hover,
+.button.w-inline-block:hover {
+  transform: translateY(-2px) !important;
+  box-shadow: 0 8px 25px rgba(255, 94, 1, 0.4) !important;
+  background: linear-gradient(135deg, #ff8a3d 0%, #ff5e01 100%) !important;
+  color: white !important;
+}
+
+.button:active,
+.button.w-inline-block:active {
+  transform: translateY(0) !important;
+  box-shadow: 0 4px 15px rgba(255, 94, 1, 0.3) !important;
+}
+
+/* Ripple effect for buttons */
+.button::before,
+.button.w-inline-block::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.3);
+  transform: translate(-50%, -50%);
+  transition: width 0.6s, height 0.6s;
+}
+
+.button:hover::before,
+.button.w-inline-block:hover::before {
+  width: 300px;
+  height: 300px;
+}
+
+/* Button variants */
+.button-primary {
+  background: linear-gradient(135deg, #ff5e01 0%, #ff8a3d 100%) !important;
+  box-shadow: 0 4px 15px rgba(255, 94, 1, 0.3) !important;
+}
+
+.button-primary:hover {
+  background: linear-gradient(135deg, #ff8a3d 0%, #ff5e01 100%) !important;
+  box-shadow: 0 8px 25px rgba(255, 94, 1, 0.4) !important;
+}
+
+.button-secondary {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3) !important;
+}
+
+.button-secondary:hover {
+  background: linear-gradient(135deg, #764ba2 0%, #667eea 100%) !important;
+  box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4) !important;
+}
+
+.button-outline {
+  background: transparent !important;
+  color: #ff5e01 !important;
+  border: 2px solid #ff5e01 !important;
+  box-shadow: none !important;
+}
+
+.button-outline:hover {
+  background: #ff5e01 !important;
+  color: white !important;
+  box-shadow: 0 8px 25px rgba(255, 94, 1, 0.3) !important;
+}
+
+.button-success {
+  background: linear-gradient(135deg, #10b981 0%, #34d399 100%) !important;
+  box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3) !important;
+}
+
+.button-success:hover {
+  background: linear-gradient(135deg, #34d399 0%, #10b981 100%) !important;
+  box-shadow: 0 8px 25px rgba(16, 185, 129, 0.4) !important;
+}
+
+.button-danger {
+  background: linear-gradient(135deg, #ef4444 0%, #f87171 100%) !important;
+  box-shadow: 0 4px 15px rgba(239, 68, 68, 0.3) !important;
+}
+
+.button-danger:hover {
+  background: linear-gradient(135deg, #f87171 0%, #ef4444 100%) !important;
+  box-shadow: 0 8px 25px rgba(239, 68, 68, 0.4) !important;
+}
+
+/* Button sizes */
+.button-small {
+  padding: 10px 24px !important;
+  font-size: 14px !important;
+  border-radius: 40px !important;
+}
+
+.button-large {
+  padding: 16px 36px !important;
+  font-size: 17px !important;
+  border-radius: 60px !important;
+}
+
+/* Loading state */
+.button-loading {
+  pointer-events: none;
+  opacity: 0.7;
+}
+
+.button-loading::after {
+  content: '';
+  position: absolute;
+  width: 20px;
+  height: 20px;
+  margin: auto;
+  border: 2px solid transparent;
+  border-radius: 50%;
+  border-top-color: white;
+  animation: button-spin 0.6s linear infinite;
+}
+
+@keyframes button-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Disabled state */
+.button:disabled,
+.button-disabled {
+  opacity: 0.5 !important;
+  cursor: not-allowed !important;
+  pointer-events: none !important;
+}
+
+/* Button group */
+.button-group {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+/* Full width button */
+.button-full {
+  width: 100% !important;
+  display: flex !important;
+  justify-content: center;
+}
+
+/* Icon buttons */
+.button-icon {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.button-icon svg,
+.button-icon i {
+  width: 18px;
+  height: 18px;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .button,
+  .button.w-inline-block {
+    padding: 10px 24px !important;
+    font-size: 14px !important;
+  }
+  
+  .button-large {
+    padding: 14px 32px !important;
+    font-size: 16px !important;
+  }
+  
+  .button-small {
+    padding: 8px 20px !important;
+    font-size: 13px !important;
+  }
+}
+
+/* Override Webflow button styles */
+.w-button {
+  background: linear-gradient(135deg, #ff5e01 0%, #ff8a3d 100%) !important;
+  color: white !important;
+  border-radius: 50px !important;
+  padding: 12px 28px !important;
+  font-weight: 600 !important;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  box-shadow: 0 4px 15px rgba(255, 94, 1, 0.3) !important;
+}
+
+.w-button:hover {
+  transform: translateY(-2px) !important;
+  box-shadow: 0 8px 25px rgba(255, 94, 1, 0.4) !important;
+  background: linear-gradient(135deg, #ff8a3d 0%, #ff5e01 100%) !important;
+}
+
+/* Footer Card Sizing Fix */
+.footer-card-list {
+  display: grid !important;
+  grid-template-columns: repeat(3, 1fr) !important;
+  gap: 30px !important;
+  align-items: stretch !important;
+}
+
+.footer-card {
+  height: auto !important;
+  min-height: 200px !important;
+  display: flex !important;
+  flex-direction: column !important;
+}
+
+.footer-card.second {
+  height: auto !important;
+}
+
+/* Ensure equal height for all footer cards */
+.footer-bottom-link-list {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* Responsive footer cards */
+@media (max-width: 991px) {
+  .footer-card-list {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+}
+
+@media (max-width: 767px) {
+  .footer-card-list {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+/* CTA Section Mobile Fix */
+.section-cta {
+  position: relative;
+  overflow: hidden;
+}
+
+.cta-component {
+  position: relative;
+  min-height: 400px;
+  background: linear-gradient(135deg, #fff5f0 0%, #ffe8db 100%);
+  overflow: hidden !important;
+}
+
+.cta-image-wrapper {
+  z-index: 1;
+}
+
+.cta-glass-image-wrapper {
+  z-index: 2;
+}
+
+.cta-content {
+  position: relative;
+  z-index: 3;
+}
+
+/* Mobile responsive adjustments */
+@media (max-width: 767px) {
+  .section-cta {
+    background: linear-gradient(135deg, #fff5f0 0%, #ffe8db 100%);
+  }
+  
+  .cta-component {
+    padding: 3rem 1.5rem !important;
+    min-height: auto !important;
+    background: transparent !important;
+    border: none !important;
+    overflow: hidden !important;
+  }
+  
+  .cta-image-wrapper {
+    display: none !important; /* Hide the 3D image on mobile */
+  }
+  
+  .cta-image {
+    display: none !important;
+  }
+  
+  .cta-glass-image-wrapper {
+    display: none !important;
+  }
+  
+  .cta-content {
+    text-align: center;
+    padding: 0;
+    width: 100%;
+  }
+  
+  .cta-content h2 {
+    font-size: 1.75rem !important;
+    line-height: 1.3 !important;
+    margin-bottom: 1.5rem !important;
+  }
+  
+  .cta-button-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+    width: 100%;
+  }
+  
+  .cta-button-wrapper .button {
+    width: 100%;
+    max-width: 280px;
+    padding: 14px 24px !important;
+  }
+}
+
+@media (max-width: 479px) {
+  .cta-component {
+    padding: 2.5rem 1rem !important;
+    border-radius: 20px !important;
+    margin: 0 10px !important;
+  }
+  
+  .cta-content h2 {
+    font-size: 1.5rem !important;
+  }
+  
+  .cta-button-wrapper .button {
+    max-width: 240px;
+    font-size: 14px !important;
+  }
+}

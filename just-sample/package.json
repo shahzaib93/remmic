@@ -1,0 +1,27 @@
+{
+  "name": "remmic-theme",
+  "version": "1.0.0",
+  "description": "REMMIC Real Estate Platform",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start"
+  },
+  "keywords": [
+    "real-estate",
+    "nextjs",
+    "remmic"
+  ],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "firebase": "^12.4.0",
+    "jspdf": "^3.0.3",
+    "next": "^14.0.0",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0"
+  },
+  "devDependencies": {
+    "@next/swc-linux-x64-gnu": "^16.0.5"
+  }
+}

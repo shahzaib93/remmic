@@ -1,0 +1,370 @@
+import Head from 'next/head'
+import { useEffect, useState } from 'react'
+import Navbar from '../components/Navbar'
+
+export default function Bidding() {
+  const [isVisible, setIsVisible] = useState(false)
+
+  useEffect(() => {
+    setIsVisible(true)
+  }, [])
+
+  return (
+    <>
+      <Head>
+        <title>Bidding - REMMIC</title>
+      </Head>
+      <div className="page-wrapper">
+        <Navbar />
+        <main className="main-wrapper">
+          <section className="section-trust">
+            <div className="padding-global">
+              <div className="container-x-large">
+                <div className="padding-section-medium">
+                  <div className="trust-component">
+                    <div className="trust-top-content" style={{
+                      opacity: isVisible ? 1 : 0,
+                      transform: isVisible ? 'translateY(0) scale(1)' : 'translateY(50px) scale(0.9)',
+                      transition: 'all 0.8s ease'
+                    }}>
+                      <h2 className="heading-style-h2" 
+                          style={{textAlign: 'center', fontSize: '2.8rem', lineHeight: '1.3', fontWeight: 900, margin: '0 auto'}}>
+                        Real Estate Auctions <br/> Made Simple
+                      </h2>
+                    </div>
+                    <div className="padding-bottom padding-large">
+                    </div>
+                    <div className="trust-bottom-content">
+                      <div className="trust-image-wrapper" style={{
+                        transform: isVisible ? 'translateX(50px) rotate(-6deg)' : 'translateX(181px) rotate(-6deg)',
+                        opacity: isVisible ? 1 : 0,
+                        transition: 'all 1s ease 0.2s'
+                      }}>
+                        <img src="https://images.unsplash.com/photo-1600585154340-0ef3c08dc63c?w=1200&h=800&fit=crop&auto=format&q=80" loading="lazy" alt="Contemporary smart home exterior" className="trust-image"/>
+                      </div>
+                      <div className="trust-image-wrapper is-middle" style={{
+                        transform: isVisible ? 'translateY(-20px)' : 'translateY(-50px)',
+                        opacity: isVisible ? 1 : 0,
+                        transition: 'all 1s ease 0.4s',
+                        zIndex: 2,
+                        position: 'relative'
+                      }}>
+                        <img src="https://images.unsplash.com/photo-1580587771525-78b9dba3b914?w=1200&h=800&fit=crop&auto=format&q=80" loading="lazy" alt="Property auction house" className="trust-image" style={{
+                          width: '100%',
+                          height: '100%',
+                          objectFit: 'cover'
+                        }}/>
+                        <div className="trust-card" style={{
+                          position: 'absolute',
+                          bottom: '20px',
+                          left: '20px',
+                          right: '20px',
+                          background: 'rgba(255, 255, 255, 0.95)',
+                          padding: '15px',
+                          borderRadius: '8px',
+                          backdropFilter: 'blur(10px)'
+                        }}>
+                          <div className="text-size-small text-color-brand">
+                            "Experience transparent, real-time property auctions where every bid brings you closer to the deal."
+                          </div>
+                        </div>
+                        <div className="trust-overly">
+                        </div>
+                      </div>
+                      <div className="trust-image-wrapper" style={{
+                        transform: isVisible ? 'translateX(-50px) rotate(5deg)' : 'translateX(-100px) rotate(5deg)',
+                        opacity: isVisible ? 1 : 0,
+                        transition: 'all 1s ease 0.6s'
+                      }}>
+                        <img src="https://images.unsplash.com/photo-1568605114967-8130f3a36994?w=1200&h=800&fit=crop&auto=format&q=80" 
+                            loading="lazy" 
+                            alt="Beautiful house interior" 
+                            className="trust-image"/>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <section data-wf-feature-variant="base" className="section-feature">
+            <div className="padding-global">
+              <div className="container-large">
+                <div className="padding-section-medium">
+                  <div data-w-id="a6792325-465d-c3c7-29b9-8e788dd4558e" className="feature-component">
+                    <div className="feature-top-content-wrapper">
+                      <div className="section-tag">
+                        <div>
+                          Feature
+                        </div>
+                      </div>
+                      <h2 className="heading-style-h2" 
+                          style={{fontSize: '2.2rem', lineHeight: '1.4', textAlign: 'center', margin: '0 auto', display: 'block', maxWidth: '90%', fontWeight: 900}}>
+                        All-in-One Property Marketplace <br/>
+                        Easy. Secure. Stress-Free.
+                      </h2>
+                    </div>
+                    <div className="padding-bottom padding-large">
+                    </div>
+
+                    <div className="feature-bottom-card second-card" style={{
+                      opacity: isVisible ? 1 : 0,
+                      transform: isVisible ? 'translateY(0)' : 'translateY(30px)',
+                      transition: 'all 0.8s ease 0.8s'
+                    }}>
+                      <div className="feature-bottom-image-wrapper second">  
+                        <img
+                          src="https://images.unsplash.com/photo-1599423300746-b62533397364?w=1200&h=800&fit=crop&auto=format&q=80"
+                          loading="lazy"
+                          data-w-id="a6792325-465d-c3c7-29b9-8e788dd455a1"
+                          sizes="(max-width: 2640px) 100vw, 2640px"
+                          alt="Modern House"
+                          style={{width: '100%', display: 'block'}}
+                          className="feature-bottom-image"
+                        />
+                        <a href="/bidding/1"
+                          style={{position: 'absolute', bottom: '15px', left: '50%', transform: 'translateX(-50%)', padding: '8px 18px', background: '#000', color: '#fff', fontSize: '14px', borderRadius: '5px', textDecoration: 'none', opacity: 0, transition: 'opacity 0.3s ease', zIndex: 10}}
+                          onMouseOver={(e) => e.target.style.opacity = '1'}
+                          onMouseOut={(e) => e.target.style.opacity = '0'}>
+                          View More
+                        </a>
+                      </div>
+                      
+                      <div className="feature-bottom-content">
+                        <h5 className="heading-style-h5">Property Overview</h5>
+                        <div className="text-size-regular">
+                          Browse through our extensive collection of premium properties available for auction.
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="feature-bottom-card second-card" style={{
+                      opacity: isVisible ? 1 : 0,
+                      transform: isVisible ? 'translateY(0)' : 'translateY(30px)',
+                      transition: 'all 0.8s ease 1s'
+                    }}>
+                      <div className="feature-bottom-image-wrapper second">
+                        <img
+                          src="https://images.unsplash.com/photo-1529429617124-aee5418f3f37?w=1200&h=800&fit=crop&auto=format&q=80"
+                          loading="lazy"
+                          alt="Beautiful House"
+                          className="feature-bottom-image"
+                          style={{width: '100%', display: 'block'}}
+                        />
+                        <a href="/bidding/2"
+                          style={{position: 'absolute', bottom: '15px', left: '50%', transform: 'translateX(-50%)', padding: '8px 18px', background: '#000', color: '#fff', fontSize: '14px', borderRadius: '5px', textDecoration: 'none', opacity: 0, transition: 'opacity 0.3s ease', zIndex: 10}}
+                          onMouseOver={(e) => e.target.style.opacity = '1'}
+                          onMouseOut={(e) => e.target.style.opacity = '0'}>
+                          View More
+                        </a>
+                      </div>
+                      <div className="feature-bottom-content">
+                        <h5 className="heading-style-h5">Live Bidding</h5>
+                        <div className="text-size-regular">
+                          Participate in real-time auctions from anywhere with our mobile-friendly platform.
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="feature-bottom-card third" style={{
+                      opacity: isVisible ? 1 : 0,
+                      transform: isVisible ? 'translateY(0)' : 'translateY(30px)',
+                      transition: 'all 0.8s ease 1.2s'
+                    }}>
+                      <div className="feature-bottom-image-wrapper third">
+                        <img
+                          src="https://images.unsplash.com/photo-1502673530728-f79b4cab31b1?w=1200&h=800&fit=crop&auto=format&q=80"
+                          loading="lazy"
+                          alt="Luxury House"
+                          style={{width: '100%', display: 'block'}}
+                          className="feature-bottom-image"
+                        />
+                        <a href="/bidding/3"
+                          style={{position: 'absolute', bottom: '15px', left: '50%', transform: 'translateX(-50%)', padding: '8px 18px', background: '#000', color: '#fff', fontSize: '14px', borderRadius: '5px', textDecoration: 'none', opacity: 0, transition: 'opacity 0.3s ease', zIndex: 10}}
+                          onMouseOver={(e) => e.target.style.opacity = '1'}
+                          onMouseOut={(e) => e.target.style.opacity = '0'}>
+                          View More
+                        </a>
+                      </div>
+                      <div className="feature-bottom-content">
+                        <h5 className="heading-style-h5">Secure Transactions</h5>
+                        <div className="text-size-regular">
+                          Complete property purchases with confidence through our secure payment system.
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <section className="section-bidding-info">
+            <div className="padding-global">
+              <div className="container-large">
+                <div className="padding-section-medium">
+                  <div className="bidding-info-component">
+                    <div className="bidding-info-header" style={{
+                      opacity: isVisible ? 1 : 0,
+                      transform: isVisible ? 'translateY(0)' : 'translateY(30px)',
+                      transition: 'all 0.8s ease 1.4s'
+                    }}>
+                      <h2 className="heading-style-h2">How Live Bidding Works</h2>
+                      <div className="text-size-regular">
+                        Join our transparent, real-time property auctions and compete with confidence.
+                      </div>
+                    </div>
+                    
+                    <div className="bidding-steps">
+                      <div className="bidding-step" style={{
+                        opacity: isVisible ? 1 : 0,
+                        transform: isVisible ? 'translateY(0)' : 'translateY(30px)',
+                        transition: 'all 0.8s ease 1.6s'
+                      }}>
+                        <div className="step-number">1</div>
+                        <h4 className="heading-style-h4">Register & Verify</h4>
+                        <div className="text-size-regular">
+                          Complete your registration and verify your identity to participate in auctions.
+                        </div>
+                      </div>
+                      
+                      <div className="bidding-step" style={{
+                        opacity: isVisible ? 1 : 0,
+                        transform: isVisible ? 'translateY(0)' : 'translateY(30px)',
+                        transition: 'all 0.8s ease 1.8s'
+                      }}>
+                        <div className="step-number">2</div>
+                        <h4 className="heading-style-h4">Browse Properties</h4>
+                        <div className="text-size-regular">
+                          Explore available properties, view detailed information, and set your bidding strategy.
+                        </div>
+                      </div>
+                      
+                      <div className="bidding-step" style={{
+                        opacity: isVisible ? 1 : 0,
+                        transform: isVisible ? 'translateY(0)' : 'translateY(30px)',
+                        transition: 'all 0.8s ease 2s'
+                      }}>
+                        <div className="step-number">3</div>
+                        <h4 className="heading-style-h4">Place Your Bid</h4>
+                        <div className="text-size-regular">
+                          Join the live auction and place your bids in real-time with complete transparency.
+                        </div>
+                      </div>
+                      
+                      <div className="bidding-step" style={{
+                        opacity: isVisible ? 1 : 0,
+                        transform: isVisible ? 'translateY(0)' : 'translateY(30px)',
+                        transition: 'all 0.8s ease 2.2s'
+                      }}>
+                        <div className="step-number">4</div>
+                        <h4 className="heading-style-h4">Win & Complete</h4>
+                        <div className="text-size-regular">
+                          Secure your property and complete the transaction with our secure payment system.
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+        </main>
+
+        <footer className="section-footer">
+          <div className="padding-global">
+            <div className="container-large">
+              <div className="footer-component">
+                <div className="footer-top-content">
+                  <div className="footer-form-block w-form">
+                    <form id="email-form" name="email-form" method="get" className="footer-form">
+                      <input className="footer-input w-input" maxLength="256" name="email" placeholder="Enter your email" type="email" id="email" required=""/>
+                      <div className="footer-submit-button">
+                        <input type="submit" className="button w-inline-block" value="Submit"/>
+                      </div>
+                    </form>
+                    <div className="w-form-done">
+                      <div>Thank you! Your submission has been received!</div>
+                    </div>
+                    <div className="w-form-fail">
+                      <div>Oops! Something went wrong while submitting the form.</div>
+                    </div>
+                  </div>
+                  <div className="footer-social-link-wrapper">
+                    <a href="https://www.instagram.com/" target="_blank" className="footer-social-link-circle w-inline-block">
+                      <img src="/images/instagram.svg" loading="lazy" alt="instagram" className="social-link"/>
+                      <img src="/images/instagram-02.svg" loading="lazy" alt="instagram" className="hover-social-link"/>
+                    </a>
+                    <a href="https://x.com/" target="_blank" className="footer-social-link-circle w-inline-block">
+                      <img src="/images/twitter.svg" loading="lazy" alt="X" className="social-link"/>
+                      <img src="/images/twitter-02.svg" loading="lazy" alt="X" className="hover-social-link"/>
+                    </a>
+                    <a href="https://linkedin.com/" target="_blank" className="footer-social-link-circle w-inline-block">
+                      <img src="/images/linkedin.svg" loading="lazy" alt="linkdin" className="social-link"/>
+                      <img src="/images/linkedin-02.svg" loading="lazy" alt="Linkdine" className="hover-social-link"/>
+                    </a>
+                    <a href="https://www.facebook.com/" target="_blank" className="footer-social-link-circle w-inline-block">
+                      <img src="/images/facebook.svg" loading="lazy" alt="facebook" className="social-link"/>
+                      <img src="/images/facebook-02.svg" loading="lazy" alt="Facebook " className="hover-social-link"/>
+                    </a>
+                  </div>
+                </div>
+                <div className="footer-card">
+                  <div className="text-size-regular">Company</div>
+                  <div className="footer-link-list">
+                    <a href="/" className="text-size-regular">Home</a>
+                    <a href="/about" className="text-size-regular">About</a>
+                    <a href="/contact" className="text-size-regular">Contact</a>
+                    <a href="/blog" className="text-size-regular">Blog</a>
+                  </div>
+                </div>
+                <div className="footer-card-list">
+                  <div className="footer-card">
+                    <div className="text-size-regular">Inner page</div>
+                    <div className="footer-bottom-link-list">
+                      <a href="/feature" className="footer-text">Feature</a>
+                      <a href="/team" className="footer-text">Team</a>
+                      <a href="/pricing" className="footer-text">Price</a>
+                      <a href="/privacy-policy" className="footer-text">Privacy Policy</a>
+                      <a href="/terms-and-conditions" className="footer-text">Terms & Conditions</a>
+                    </div>
+                  </div>
+                  <div className="footer-card second">
+                    <div className="text-size-regular">Authentication</div>
+                    <div className="footer-bottom-link-list">
+                      <a href="#" className="footer-text">Login</a>
+                      <a href="#" className="footer-text">Sign up</a>
+                      <a href="#" className="footer-text">Forgot</a>
+                      <a href="#" className="footer-text">Confirm email</a>
+                    </div>
+                  </div>
+                  <div className="footer-card">
+                    <div className="text-size-regular">Utility pages</div>
+                    <div className="footer-bottom-link-list">
+                      <a href="/style-guide" className="footer-text">Style Guide</a>
+                      <a href="/change-log" className="footer-text">Change log</a>
+                      <a href="/404" className="footer-text">404 page</a>
+                      <a href="/licenses" className="footer-text">Licenses</a>
+                      <a href="/protected" className="footer-text">Protected</a>
+                    </div>
+                  </div>
+                </div>
+                <div className="footer-botom-content">
+                  <div className="website-link-wrapper">
+                    <div className="text-size-small tex-color-black-700">Powered by</div>
+                    <a href="https://webflow.com/" target="_blank" className="website-link w-inline-block">
+                      <img src="https://cdn.prod.website-files.com/68a06250db2face4039500cc/68ac246250478d4752966a90_webflow%20Logo.svg" loading="lazy" alt="webflow" className="website-logo"/>
+                    </a>
+                  </div>
+                  <div className="text-size-small tex-color-black-700">© 2024 REMMIC. All rights reserved.</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </footer>
+      </div>
+      <script src="/scripts/remove-webflow-badge.js"></script>
+    </>
+  )
+}

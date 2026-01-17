@@ -1,0 +1,145 @@
+diff --git a/pages/bidding.js b/pages/bidding.js
+--- a/pages/bidding.js
++++ b/pages/bidding.js
+@@
+ const HeroInfo = ({ label, value }) => (
+   <div style={{ minWidth: '160px' }}>
+     <div style={{ color: '#6b7280', fontSize: '0.8rem', textTransform: 'uppercase', fontWeight: 600 }}>{label}</div>
+     <div style={{ fontSize: '1.1rem', fontWeight: 600, color: '#111827' }}>{value || 'TBC'}</div>
+   </div>
+ )
++
++const LOCATION_CURRENCY = {
++  default: { code: 'PKR', label: 'PKR' },
++  pakistan: { code: 'PKR', label: 'PKR' },
++  india: { code: 'INR', label: 'INR' },
++  bangladesh: { code: 'BDT', label: 'BDT' },
++  'sri-lanka': { code: 'LKR', label: 'LKR' },
++  nepal: { code: 'NPR', label: 'NPR' },
++  afghanistan: { code: 'AFN', label: 'AFN' },
++  maldives: { code: 'MVR', label: 'MVR' },
++  bhutan: { code: 'BTN', label: 'BTN' },
++  myanmar: { code: 'MMK', label: 'MMK' },
++  thailand: { code: 'THB', label: 'THB' },
++  malaysia: { code: 'MYR', label: 'MYR' },
++  singapore: { code: 'SGD', label: 'SGD' },
++  indonesia: { code: 'IDR', label: 'IDR' },
++  philippines: { code: 'PHP', label: 'PHP' },
++  vietnam: { code: 'VND', label: 'VND' },
++  cambodia: { code: 'KHR', label: 'KHR' },
++  laos: { code: 'LAK', label: 'LAK' },
++  china: { code: 'CNY', label: 'CNY' },
++  japan: { code: 'JPY', label: 'JPY' },
++  'south-korea': { code: 'KRW', label: 'KRW' },
++  uae: { code: 'AED', label: 'AED' },
++  'saudi-arabia': { code: 'SAR', label: 'SAR' },
++  qatar: { code: 'QAR', label: 'QAR' },
++  kuwait: { code: 'KWD', label: 'KWD' },
++  oman: { code: 'OMR', label: 'OMR' },
++  bahrain: { code: 'BHD', label: 'BHD' },
++  turkey: { code: 'TRY', label: 'TRY' },
++  iran: { code: 'IRR', label: 'IRR' },
++  iraq: { code: 'IQD', label: 'IQD' },
++  jordan: { code: 'JOD', label: 'JOD' },
++  lebanon: { code: 'LBP', label: 'LBP' },
++  syria: { code: 'SYP', label: 'SYP' },
++  egypt: { code: 'EGP', label: 'EGP' },
++  usa: { code: 'USD', label: 'USD' },
++  canada: { code: 'CAD', label: 'CAD' },
++  uk: { code: 'GBP', label: 'GBP' },
++  germany: { code: 'EUR', label: 'EUR' },
++  france: { code: 'EUR', label: 'EUR' },
++  italy: { code: 'EUR', label: 'EUR' },
++  spain: { code: 'EUR', label: 'EUR' },
++  netherlands: { code: 'EUR', label: 'EUR' },
++  belgium: { code: 'EUR', label: 'EUR' },
++  switzerland: { code: 'CHF', label: 'CHF' },
++  austria: { code: 'EUR', label: 'EUR' },
++  sweden: { code: 'SEK', label: 'SEK' },
++  norway: { code: 'NOK', label: 'NOK' },
++  denmark: { code: 'DKK', label: 'DKK' },
++  finland: { code: 'EUR', label: 'EUR' },
++  australia: { code: 'AUD', label: 'AUD' },
++  'new-zealand': { code: 'NZD', label: 'NZD' },
++  'south-africa': { code: 'ZAR', label: 'ZAR' }
++}
++
++const PRICE_OPTIONS = [
++  { value: '1000000', label: '10 Lakh' },
++  { value: '2500000', label: '25 Lakh' },
++  { value: '5000000', label: '50 Lakh' },
++  { value: '7500000', label: '75 Lakh' },
++  { value: '10000000', label: '1 Crore' },
++  { value: '15000000', label: '1.5 Crore' },
++  { value: '20000000', label: '2 Crore' },
++  { value: '30000000', label: '3 Crore' },
++  { value: '50000000', label: '5 Crore' },
++  { value: '100000000', label: '10 Crore+' }
++]
+@@
+   const [selectedPropertyType, setSelectedPropertyType] = useState('')
+   const [selectedStatus, setSelectedStatus] = useState('')
+   const [selectedSort, setSelectedSort] = useState('ending-soon')
+   const [heroProperty, setHeroProperty] = useState(null)
+   const [heroCountdown, setHeroCountdown] = useState({ label: '', timeLeft: '', phase: 'idle' })
+   const [isViewingsOpen, setIsViewingsOpen] = useState(false)
++  const activeCurrency = useMemo(() => {
++    const key = (selectedLocation || '').toLowerCase()
++    return LOCATION_CURRENCY[key] || LOCATION_CURRENCY.default
++  }, [selectedLocation])
+@@
+-                            <select
+-                              value={selectedPriceRange}
+-                              onChange={(e) => setSelectedPriceRange(e.target.value)}
+-                              style={{
+-                                width: '100%',
+-                                padding: '12px',
+-                                fontSize: '14px',
+-                                fontWeight: '500',
+-                                color: '#1f2937',
+-                                backgroundColor: '#f9fafb',
+-                                border: '1px solid #e5e7eb',
+-                                borderRadius: '6px',
+-                                cursor: 'pointer',
+-                                outline: 'none'
+-                              }}
+-                            >
+-                              <option value="">Any</option>
+-                              <option value="1000000">₨10 Lakh</option>
+-                              <option value="2500000">₨25 Lakh</option>
+-                              <option value="5000000">₨50 Lakh</option>
+-                              <option value="7500000">₨75 Lakh</option>
+-                              <option value="10000000">₨1 Crore</option>
+-                              <option value="15000000">₨1.5 Crore</option>
+-                              <option value="20000000">₨2 Crore</option>
+-                              <option value="30000000">₨3 Crore</option>
+-                              <option value="50000000">₨5 Crore</option>
+-                              <option value="100000000">₨10 Crore+</option>
+-                            </select>
++                            <select
++                              value={selectedPriceRange}
++                              onChange={(e) => setSelectedPriceRange(e.target.value)}
++                              style={{
++                                width: '100%',
++                                padding: '12px',
++                                fontSize: '14px',
++                                fontWeight: '500',
++                                color: '#1f2937',
++                                backgroundColor: '#f9fafb',
++                                border: '1px solid #e5e7eb',
++                                borderRadius: '6px',
++                                cursor: 'pointer',
++                                outline: 'none'
++                              }}
++                            >
++                              <option value="">Any</option>
++                              {PRICE_OPTIONS.map((option) => (
++                                <option key={option.value} value={option.value}>
++                                  {`${activeCurrency.label} ${option.label}`}
++                                </option>
++                              ))}
++                            </select>
++                            <div style={{ fontSize: '12px', fontWeight: 600, color: '#f97316', marginTop: '6px' }}>
++                              Showing prices in {activeCurrency.label}
++                            </div>
+                           </div>

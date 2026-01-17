@@ -1,0 +1,1307 @@
+import Head from 'next/head'
+import { useEffect, useState } from 'react'
+import { useRouter } from 'next/router'
+import Navbar from '../components/Navbar'
+import { useFirebase } from '../contexts/FirebaseContext'
+
+// Utility function to estimate localStorage usage
+const getStorageUsage = () => {
+  let total = 0
+  for (let key in localStorage) {
+    if (localStorage.hasOwnProperty(key)) {
+      total += localStorage[key].length + key.length
+    }
+  }
+  return total
+}
+
+// Utility function to format bytes
+const formatBytes = (bytes) => {
+  if (bytes === 0) return '0 Bytes'
+  const k = 1024
+  const sizes = ['Bytes', 'KB', 'MB', 'GB']
+  const i = Math.floor(Math.log(bytes) / Math.log(k))
+  return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i]
+}
+
+const MAX_FILE_SIZE = 5 * 1024 * 1024
+
+const createEmptyMediaLibrary = () => ({
+  simpleImages: [],
+  panoramicImages: [],
+  videos: []
+})
+
+export default function LandRegistration() {
+  const { addProperty, user } = useFirebase()
+  const router = useRouter()
+  const [loading, setLoading] = useState(false)
+  const [isVisible, setIsVisible] = useState(false)
+  const [selectedPropertyImage, setSelectedPropertyImage] = useState(null)
+  const [propertyImagePreview, setPropertyImagePreview] = useState('')
+  
+  const [formData, setFormData] = useState({
+    fullname: '',
+    cnic: '',
+    phone: '',
+    email: '',
+    landtype: '',
+    listingType: 'bidding',
+    areasize: '',
+    address: '',
+    plotno: '',
+    description: '',
+    cnicdoc: null,
+    landdoc: null,
+    propertyImage: null,
+    // Bidding-specific fields
+    minBidAmount: '',
+    maxBidAmount: '',
+    biddingStartDate: '',
+    biddingStartTime: '',
+    biddingEndDate: '',
+    biddingEndTime: '',
+    biddingFees: '',
+    showInUpcomingAuctions: false,
+    // Investment-specific fields
+    investmentTotalShares: '',
+    investmentSharePrice: '',
+    investmentMinShares: '1',
+    investmentLandCost: '',
+    investmentDevelopmentCost: '',
+    investmentOtherCosts: '',
+    investmentProjectedYield: '',
+    investmentExpectedAppreciation: '',
+    investmentHoldingPeriodMonths: ''
+  })
+
+  useEffect(() => {
+    setIsVisible(true)
+  }, [])
+
+  // Handle form field changes
+  const handleInputChange = (e) => {
+    const { name, value, type, files, checked } = e.target
+    
+    if (type === 'file') {
+      setFormData(prev => ({
+        ...prev,
+        [name]: files[0]
+      }))
+    } else if (type === 'checkbox') {
+      setFormData(prev => ({
+        ...prev,
+        [name]: checked
+      }))
+    } else {
+      setFormData(prev => ({
+        ...prev,
+        [name]: value
+      }))
+    }
+  }
+
+  // Handle property image upload with optimized storage
+  const handlePropertyImageUpload = (e) => {
+    const file = e.target.files[0]
+    if (file) {
+      // Check file size (limit to 2MB)
+      if (file.size > 2 * 1024 * 1024) {
+        alert('Image size should be less than 2MB. Please choose a smaller image.')
+        return
+      }
+
+      const reader = new FileReader()
+      reader.onload = (event) => {
+        const base64String = event.target.result
+        
+        // Create a compressed version for preview
+        const img = new Image()
+        img.onload = () => {
+          const canvas = document.createElement('canvas')
+          const ctx = canvas.getContext('2d')
+          
+          // Calculate new dimensions (max 800px width/height)
+          let { width, height } = img
+          const maxSize = 800
+          
+          if (width > height && width > maxSize) {
+            height = (height * maxSize) / width
+            width = maxSize
+          } else if (height > maxSize) {
+            width = (width * maxSize) / height
+            height = maxSize
+          }
+          
+          canvas.width = width
+          canvas.height = height
+          
+          // Draw and compress
+          ctx.drawImage(img, 0, 0, width, height)
+          const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.7) // 70% quality
+          
+          setSelectedPropertyImage({
+            url: compressedDataUrl,
+            name: file.name,
+            type: 'image/jpeg',
+            compressed: true
+          })
+          setPropertyImagePreview(compressedDataUrl)
+        }
+        img.src = base64String
+      }
+      reader.readAsDataURL(file)
+    }
+  }
+
+  // Remove property image
+  const removePropertyImage = () => {
+    setSelectedPropertyImage(null)
+    setPropertyImagePreview('')
+    document.getElementById('propertyImageUpload').value = ''
+  }
+
+  // Handle form submission
+  const handleSubmit = async (e) => {
+    e.preventDefault()
+    setLoading(true)
+
+    try {
+      // Prepare property data for integration with the property management system
+      const propertyData = {
+        title: `${formData.landtype} Land - ${formData.areasize}`,
+        type: formData.listingType, // This will route to correct page (rental/investment/bidding)
+        price: 0, // Will be set later during evaluation
+        location: formData.address,
+        description: formData.description || `${formData.landtype} land of ${formData.areasize} located at ${formData.address}. Plot/Khasra No: ${formData.plotno}`,
+        status: 'pending', // Pending approval/evaluation
+        
+        // Land specific details
+        landType: formData.landtype,
+        areaSize: formData.areasize,
+        plotNumber: formData.plotno,
+        
+        // Owner details
+        ownerName: formData.fullname,
+        ownerCNIC: formData.cnic,
+        ownerPhone: formData.phone,
+        ownerEmail: formData.email,
+        
+        // Documents (in real implementation, these would be uploaded to cloud storage)
+        documents: {
+          cnicDoc: formData.cnicdoc?.name || '',
+          landDoc: formData.landdoc?.name || '',
+        },
+        
+        // Images with base64 conversion for persistence
+        images: selectedPropertyImage ? [selectedPropertyImage] : [],
+        
+        // Bidding-specific data (only included if listingType is 'bidding')
+        ...(formData.listingType === 'bidding' && {
+          bidding: {
+            minBidAmount: parseFloat(formData.minBidAmount) || 0,
+            maxBidAmount: parseFloat(formData.maxBidAmount) || 0,
+            startDate: formData.biddingStartDate,
+            startTime: formData.biddingStartTime,
+            endDate: formData.biddingEndDate,
+            endTime: formData.biddingEndTime,
+            fees: parseFloat(formData.biddingFees) || 0,
+            startDateTime: new Date(`${formData.biddingStartDate}T${formData.biddingStartTime}`).toISOString(),
+            endDateTime: new Date(`${formData.biddingEndDate}T${formData.biddingEndTime}`).toISOString(),
+            showInUpcomingAuctions: formData.showInUpcomingAuctions
+          }
+        }),
+
+        ...(formData.listingType === 'investment' && (() => {
+          const totalShares = parseFloat(formData.investmentTotalShares) || 0
+          const sharePrice = parseFloat(formData.investmentSharePrice) || 0
+          const minShares = Math.max(parseFloat(formData.investmentMinShares) || 1, 1)
+          const landCost = parseFloat(formData.investmentLandCost) || 0
+          const developmentCost = parseFloat(formData.investmentDevelopmentCost) || 0
+          const otherCosts = parseFloat(formData.investmentOtherCosts) || 0
+          const projectedYield = parseFloat(formData.investmentProjectedYield) || 0
+          const expectedAppreciation = parseFloat(formData.investmentExpectedAppreciation) || 0
+          const holdingPeriodMonths = parseFloat(formData.investmentHoldingPeriodMonths) || null
+
+          const fundingTargetFromShares = totalShares * sharePrice
+          const totalCapitalRequirement = landCost + developmentCost + otherCosts
+          const fundingTarget = fundingTargetFromShares || totalCapitalRequirement
+
+          return {
+            price: fundingTarget || 0,
+            shareOffering: {
+              totalShares,
+              sharesAvailable: totalShares,
+              sharePrice,
+              minSharesPerInvestor: minShares,
+              minInvestmentAmount: sharePrice * minShares,
+              fundingTarget,
+              fundingRaised: 0,
+              sharesSold: 0,
+              investorCount: 0,
+              landCost,
+              developmentCost,
+              otherCosts,
+              projectedYield,
+              expectedAppreciation,
+              holdingPeriodMonths,
+              performanceHistory: []
+            },
+            investmentDetails: {
+              landCost,
+              developmentCost,
+              otherCosts,
+              totalCapitalRequirement,
+              fundingTarget,
+              projectedYield,
+              expectedAppreciation,
+              holdingPeriodMonths,
+              totalShares,
+              sharePrice,
+              minSharesPerInvestor: minShares
+            }
+          }
+        })()),
+
+        // Metadata
+        registrationDate: new Date().toISOString(),
+        source: 'land-registration-form',
+        needsEvaluation: true
+      }
+
+      // Add property through Firebase context - this will make it appear on respective pages
+      const result = await addProperty(propertyData)
+
+      if (result.success) {
+        // Show success message, including any warnings
+        let message = 'Land registration submitted successfully! Your property has been added to the platform and will appear on the respective page based on your listing type.'
+        
+        if (result.warning) {
+          message += '\n\nNote: ' + result.warning
+        }
+        
+        alert(message)
+        
+        // Reset form
+        setFormData({
+          fullname: '',
+          cnic: '',
+          phone: '',
+          email: '',
+          landtype: '',
+          listingType: 'bidding',
+          areasize: '',
+          address: '',
+          plotno: '',
+          description: '',
+          cnicdoc: null,
+          landdoc: null,
+          propertyImage: null,
+          // Reset bidding-specific fields
+          minBidAmount: '',
+          maxBidAmount: '',
+          biddingStartDate: '',
+          biddingStartTime: '',
+          biddingEndDate: '',
+          biddingEndTime: '',
+          biddingFees: '',
+          showInUpcomingAuctions: false,
+          investmentTotalShares: '',
+          investmentSharePrice: '',
+          investmentMinShares: '1',
+          investmentLandCost: '',
+          investmentDevelopmentCost: '',
+          investmentOtherCosts: '',
+          investmentProjectedYield: '',
+          investmentExpectedAppreciation: '',
+          investmentHoldingPeriodMonths: ''
+        })
+        setSelectedPropertyImage(null)
+        setPropertyImagePreview('')
+        
+        // Clear file inputs
+        const fileInputs = document.querySelectorAll('input[type="file"]')
+        fileInputs.forEach(input => input.value = '')
+        
+        // Redirect to appropriate page based on listing type
+        setTimeout(() => {
+          if (formData.listingType === 'rental') {
+            router.push('/rental')
+          } else if (formData.listingType === 'investment') {
+            router.push('/investment-shares')
+          } else {
+            router.push('/bidding')
+          }
+        }, 2000)
+        
+      } else {
+        // Show more helpful error message
+        let errorMessage = 'Failed to submit registration: ' + result.error
+        
+        if (result.error.includes('Storage quota exceeded')) {
+          errorMessage += '\n\nSuggestions:\n• Try uploading a smaller image (less than 1MB)\n• Choose JPEG format for better compression\n• Contact support if the problem persists'
+        }
+        
+        alert(errorMessage)
+      }
+    } catch (error) {
+      console.error('Registration error:', error)
+      alert('An error occurred while submitting the registration.')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  return (
+    <>
+      <Head>
+        <title>Land Registration Form - REMMIC</title>
+        <meta name="description" content="Register your land property with REMMIC for sale, rent, or investment opportunities" />
+      </Head>
+      
+      <div className="page-wrapper">
+        <Navbar />
+        
+        <main className="main-wrapper">
+          <header className="secttion-contact">
+            <div className="padding-global">
+              <div className="container-large">
+                <div className="contact-component" style={{
+                  opacity: isVisible ? 1 : 0,
+                  transform: isVisible ? 'translateY(0)' : 'translateY(50px)',
+                  transition: 'all 0.8s ease'
+                }}>
+                  <h2 className="heading-style-h2" style={{ textAlign: 'center', marginBottom: '2rem' }}>
+                    Land Registration Form
+                  </h2>
+                  
+                  <div className="contact-form-block w-form">
+                    <form className="contact-form" onSubmit={handleSubmit}>
+                      
+                      {/* Personal Information */}
+                      <div className="form-row">
+                        <div className="contact-input-field-wrapper">
+                          <label htmlFor="fullname">Full Name *</label>
+                          <input
+                            type="text"
+                            id="fullname"
+                            name="fullname"
+                            placeholder="Ex. Muhammad Ali"
+                            value={formData.fullname}
+                            onChange={handleInputChange}
+                            required
+                            style={{
+                              borderRadius: '12px',
+                              border: '2px solid #e5e7eb',
+                              padding: '12px 16px',
+                              fontSize: '14px',
+                              transition: 'all 0.3s ease',
+                              boxShadow: '0 2px 4px rgba(0,0,0,0.05)'
+                            }}
+                            onFocus={(e) => e.target.style.borderColor = '#ff5e01'}
+                            onBlur={(e) => e.target.style.borderColor = '#e5e7eb'}
+                          />
+                        </div>
+                        <div className="contact-input-field-wrapper">
+                          <label htmlFor="cnic">CNIC / NIC *</label>
+                          <input
+                            type="text"
+                            id="cnic"
+                            name="cnic"
+                            placeholder="Ex. 35202-1234567-8"
+                            value={formData.cnic}
+                            onChange={handleInputChange}
+                            required
+                            style={{
+                              borderRadius: '12px',
+                              border: '2px solid #e5e7eb',
+                              padding: '12px 16px',
+                              fontSize: '14px',
+                              transition: 'all 0.3s ease',
+                              boxShadow: '0 2px 4px rgba(0,0,0,0.05)'
+                            }}
+                            onFocus={(e) => e.target.style.borderColor = '#ff5e01'}
+                            onBlur={(e) => e.target.style.borderColor = '#e5e7eb'}
+                          />
+                        </div>
+                      </div>
+
+                      <div className="form-row">
+                        <div className="contact-input-field-wrapper">
+                          <label htmlFor="phone">Phone Number *</label>
+                          <input
+                            type="tel"
+                            id="phone"
+                            name="phone"
+                            placeholder="Ex. 0300-1234567"
+                            value={formData.phone}
+                            onChange={handleInputChange}
+                            required
+                            style={{
+                              borderRadius: '12px',
+                              border: '2px solid #e5e7eb',
+                              padding: '12px 16px',
+                              fontSize: '14px',
+                              transition: 'all 0.3s ease',
+                              boxShadow: '0 2px 4px rgba(0,0,0,0.05)'
+                            }}
+                            onFocus={(e) => e.target.style.borderColor = '#ff5e01'}
+                            onBlur={(e) => e.target.style.borderColor = '#e5e7eb'}
+                          />
+                        </div>
+                        <div className="contact-input-field-wrapper">
+                          <label htmlFor="email">Email (Optional)</label>
+                          <input
+                            type="email"
+                            id="email"
+                            name="email"
+                            placeholder="Ex. example@gmail.com"
+                            value={formData.email}
+                            onChange={handleInputChange}
+                            style={{
+                              borderRadius: '12px',
+                              border: '2px solid #e5e7eb',
+                              padding: '12px 16px',
+                              fontSize: '14px',
+                              transition: 'all 0.3s ease',
+                              boxShadow: '0 2px 4px rgba(0,0,0,0.05)'
+                            }}
+                            onFocus={(e) => e.target.style.borderColor = '#ff5e01'}
+                            onBlur={(e) => e.target.style.borderColor = '#e5e7eb'}
+                          />
+                        </div>
+                      </div>
+
+                      {/* Property Information */}
+                      <div className="form-row">
+                        <div className="contact-input-field-wrapper">
+                          <label htmlFor="landtype">Land Type *</label>
+                          <select
+                            id="landtype"
+                            name="landtype"
+                            value={formData.landtype}
+                            onChange={handleInputChange}
+                            required
+                            style={{
+                              borderRadius: '12px',
+                              border: '2px solid #e5e7eb',
+                              padding: '12px 16px',
+                              fontSize: '14px',
+                              transition: 'all 0.3s ease',
+                              boxShadow: '0 2px 4px rgba(0,0,0,0.05)'
+                            }}
+                            onFocus={(e) => e.target.style.borderColor = '#ff5e01'}
+                            onBlur={(e) => e.target.style.borderColor = '#e5e7eb'}
+                          >
+                            <option value="">-- Select Land Type --</option>
+                            <option value="agriculture">Agriculture</option>
+                            <option value="residential">Residential</option>
+                            <option value="commercial">Commercial</option>
+                            <option value="industrial">Industrial</option>
+                          </select>
+                        </div>
+                        <div className="contact-input-field-wrapper">
+                          <label htmlFor="listingType">Property Listing Purpose *</label>
+                          <select
+                            id="listingType"
+                            name="listingType"
+                            value={formData.listingType}
+                            onChange={handleInputChange}
+                            required
+                            style={{
+                              borderRadius: '12px',
+                              border: '2px solid #e5e7eb',
+                              padding: '12px 16px',
+                              fontSize: '14px',
+                              transition: 'all 0.3s ease',
+                              boxShadow: '0 2px 4px rgba(0,0,0,0.05)'
+                            }}
+                            onFocus={(e) => e.target.style.borderColor = '#ff5e01'}
+                            onBlur={(e) => e.target.style.borderColor = '#e5e7eb'}
+                          >
+                            <option value="bidding">For Sale/Bidding</option>
+                            <option value="rental">For Rent</option>
+                            <option value="investment">Investment Opportunity</option>
+                          </select>
+                        </div>
+                      </div>
+
+                      <div className="form-row">
+                        <div className="contact-input-field-wrapper">
+                          <label htmlFor="areasize">Area Size *</label>
+                          <input
+                            type="text"
+                            id="areasize"
+                            name="areasize"
+                            placeholder="Ex. 5 Marla / 1 Kanal"
+                            value={formData.areasize}
+                            onChange={handleInputChange}
+                            required
+                            style={{
+                              borderRadius: '12px',
+                              border: '2px solid #e5e7eb',
+                              padding: '12px 16px',
+                              fontSize: '14px',
+                              transition: 'all 0.3s ease',
+                              boxShadow: '0 2px 4px rgba(0,0,0,0.05)'
+                            }}
+                            onFocus={(e) => e.target.style.borderColor = '#ff5e01'}
+                            onBlur={(e) => e.target.style.borderColor = '#e5e7eb'}
+                          />
+                        </div>
+                        <div className="contact-input-field-wrapper">
+                          <label htmlFor="address">Location / Address *</label>
+                          <input
+                            type="text"
+                            id="address"
+                            name="address"
+                            placeholder="Enter land address"
+                            value={formData.address}
+                            onChange={handleInputChange}
+                            required
+                            style={{
+                              borderRadius: '12px',
+                              border: '2px solid #e5e7eb',
+                              padding: '12px 16px',
+                              fontSize: '14px',
+                              transition: 'all 0.3s ease',
+                              boxShadow: '0 2px 4px rgba(0,0,0,0.05)'
+                            }}
+                            onFocus={(e) => e.target.style.borderColor = '#ff5e01'}
+                            onBlur={(e) => e.target.style.borderColor = '#e5e7eb'}
+                          />
+                        </div>
+                      </div>
+
+                      <div className="form-row">
+                        <div className="contact-input-field-wrapper">
+                          <label htmlFor="plotno">Khasra / Plot No *</label>
+                          <input
+                            type="text"
+                            id="plotno"
+                            name="plotno"
+                            placeholder="Ex. Plot # 123"
+                            value={formData.plotno}
+                            onChange={handleInputChange}
+                            required
+                            style={{
+                              borderRadius: '12px',
+                              border: '2px solid #e5e7eb',
+                              padding: '12px 16px',
+                              fontSize: '14px',
+                              transition: 'all 0.3s ease',
+                              boxShadow: '0 2px 4px rgba(0,0,0,0.05)'
+                            }}
+                            onFocus={(e) => e.target.style.borderColor = '#ff5e01'}
+                            onBlur={(e) => e.target.style.borderColor = '#e5e7eb'}
+                          />
+                        </div>
+                        <div className="contact-input-field-wrapper"></div>
+                      </div>
+
+                      {/* Bidding-Specific Fields - Only show when 'For Sale/Bidding' is selected */}
+                      {formData.listingType === 'bidding' && (
+                        <>
+                          {/* Bid Limits Row */}
+                          <div className="form-row">
+                            <div className="contact-input-field-wrapper">
+                              <label htmlFor="minBidAmount">Minimum Bid Amount (PKR) *</label>
+                              <input
+                                type="number"
+                                id="minBidAmount"
+                                name="minBidAmount"
+                                placeholder="Ex. 500000"
+                                value={formData.minBidAmount}
+                                onChange={handleInputChange}
+                                required={formData.listingType === 'bidding'}
+                                style={{
+                                  borderRadius: '12px',
+                                  border: '2px solid #e5e7eb',
+                                  padding: '12px 16px',
+                                  fontSize: '14px',
+                                  transition: 'all 0.3s ease',
+                                  boxShadow: '0 2px 4px rgba(0,0,0,0.05)'
+                                }}
+                                onFocus={(e) => e.target.style.borderColor = '#ff5e01'}
+                                onBlur={(e) => e.target.style.borderColor = '#e5e7eb'}
+                              />
+                            </div>
+                            <div className="contact-input-field-wrapper">
+                              <label htmlFor="maxBidAmount">Maximum Bid Limit (PKR) *</label>
+                              <input
+                                type="number"
+                                id="maxBidAmount"
+                                name="maxBidAmount"
+                                placeholder="Ex. 2000000"
+                                value={formData.maxBidAmount}
+                                onChange={handleInputChange}
+                                required={formData.listingType === 'bidding'}
+                                style={{
+                                  borderRadius: '12px',
+                                  border: '2px solid #e5e7eb',
+                                  padding: '12px 16px',
+                                  fontSize: '14px',
+                                  transition: 'all 0.3s ease',
+                                  boxShadow: '0 2px 4px rgba(0,0,0,0.05)'
+                                }}
+                                onFocus={(e) => e.target.style.borderColor = '#ff5e01'}
+                                onBlur={(e) => e.target.style.borderColor = '#e5e7eb'}
+                              />
+                            </div>
+                          </div>
+
+                          {/* Bidding Dates Row */}
+                          <div className="form-row">
+                            <div className="contact-input-field-wrapper">
+                              <label htmlFor="biddingStartDate">Bidding Start Date *</label>
+                              <input
+                                type="date"
+                                id="biddingStartDate"
+                                name="biddingStartDate"
+                                value={formData.biddingStartDate}
+                                onChange={handleInputChange}
+                                required={formData.listingType === 'bidding'}
+                                style={{
+                                  borderRadius: '12px',
+                                  border: '2px solid #e5e7eb',
+                                  padding: '12px 16px',
+                                  fontSize: '14px',
+                                  transition: 'all 0.3s ease',
+                                  boxShadow: '0 2px 4px rgba(0,0,0,0.05)'
+                                }}
+                                onFocus={(e) => e.target.style.borderColor = '#ff5e01'}
+                                onBlur={(e) => e.target.style.borderColor = '#e5e7eb'}
+                              />
+                            </div>
+                            <div className="contact-input-field-wrapper">
+                              <label htmlFor="biddingStartTime">Bidding Start Time *</label>
+                              <input
+                                type="time"
+                                id="biddingStartTime"
+                                name="biddingStartTime"
+                                value={formData.biddingStartTime}
+                                onChange={handleInputChange}
+                                required={formData.listingType === 'bidding'}
+                                style={{
+                                  borderRadius: '12px',
+                                  border: '2px solid #e5e7eb',
+                                  padding: '12px 16px',
+                                  fontSize: '14px',
+                                  transition: 'all 0.3s ease',
+                                  boxShadow: '0 2px 4px rgba(0,0,0,0.05)'
+                                }}
+                                onFocus={(e) => e.target.style.borderColor = '#ff5e01'}
+                                onBlur={(e) => e.target.style.borderColor = '#e5e7eb'}
+                              />
+                            </div>
+                          </div>
+
+                          {/* Bidding End Dates Row */}
+                          <div className="form-row">
+                            <div className="contact-input-field-wrapper">
+                              <label htmlFor="biddingEndDate">Bidding End Date *</label>
+                              <input
+                                type="date"
+                                id="biddingEndDate"
+                                name="biddingEndDate"
+                                value={formData.biddingEndDate}
+                                onChange={handleInputChange}
+                                required={formData.listingType === 'bidding'}
+                                style={{
+                                  borderRadius: '12px',
+                                  border: '2px solid #e5e7eb',
+                                  padding: '12px 16px',
+                                  fontSize: '14px',
+                                  transition: 'all 0.3s ease',
+                                  boxShadow: '0 2px 4px rgba(0,0,0,0.05)'
+                                }}
+                                onFocus={(e) => e.target.style.borderColor = '#ff5e01'}
+                                onBlur={(e) => e.target.style.borderColor = '#e5e7eb'}
+                              />
+                            </div>
+                            <div className="contact-input-field-wrapper">
+                              <label htmlFor="biddingEndTime">Bidding End Time *</label>
+                              <input
+                                type="time"
+                                id="biddingEndTime"
+                                name="biddingEndTime"
+                                value={formData.biddingEndTime}
+                                onChange={handleInputChange}
+                                required={formData.listingType === 'bidding'}
+                                style={{
+                                  borderRadius: '12px',
+                                  border: '2px solid #e5e7eb',
+                                  padding: '12px 16px',
+                                  fontSize: '14px',
+                                  transition: 'all 0.3s ease',
+                                  boxShadow: '0 2px 4px rgba(0,0,0,0.05)'
+                                }}
+                                onFocus={(e) => e.target.style.borderColor = '#ff5e01'}
+                                onBlur={(e) => e.target.style.borderColor = '#e5e7eb'}
+                              />
+                            </div>
+                          </div>
+
+                          {/* Bidding Fees Row */}
+                          <div className="form-row">
+                            <div className="contact-input-field-wrapper">
+                              <label htmlFor="biddingFees">Bidding Fees (PKR) *</label>
+                              <input
+                                type="number"
+                                id="biddingFees"
+                                name="biddingFees"
+                                placeholder="Ex. 5000"
+                                value={formData.biddingFees}
+                                onChange={handleInputChange}
+                                required={formData.listingType === 'bidding'}
+                                style={{
+                                  borderRadius: '12px',
+                                  border: '2px solid #e5e7eb',
+                                  padding: '12px 16px',
+                                  fontSize: '14px',
+                                  transition: 'all 0.3s ease',
+                                  boxShadow: '0 2px 4px rgba(0,0,0,0.05)'
+                                }}
+                                onFocus={(e) => e.target.style.borderColor = '#ff5e01'}
+                                onBlur={(e) => e.target.style.borderColor = '#e5e7eb'}
+                              />
+                              <p style={{
+                                fontSize: '12px',
+                                color: '#6b7280',
+                                marginTop: '6px',
+                                fontStyle: 'italic'
+                              }}>
+                                Amount required to participate in bidding
+                              </p>
+                            </div>
+                            <div className="contact-input-field-wrapper"></div>
+                          </div>
+
+                          {/* Show in Upcoming Auctions Checkbox */}
+                          <div className="form-row">
+                            <div className="contact-input-field-wrapper">
+                              <div style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '12px',
+                                padding: '16px',
+                                border: '2px solid #e5e7eb',
+                                borderRadius: '12px',
+                                backgroundColor: '#f9fafb',
+                                boxShadow: '0 2px 4px rgba(0,0,0,0.05)'
+                              }}>
+                              <input
+                                type="checkbox"
+                                id="showInUpcomingAuctions"
+                                name="showInUpcomingAuctions"
+                                  checked={formData.showInUpcomingAuctions}
+                                onChange={handleInputChange}
+                                style={{
+                                    width: '18px',
+                                    height: '18px',
+                                    accentColor: '#ff5e01',
+                                    cursor: 'pointer'
+                                  }}
+                              />
+                                <label 
+                                  htmlFor="showInUpcomingAuctions"
+                                style={{
+                                    fontSize: '14px',
+                                    fontWeight: '500',
+                                    color: '#374151',
+                                    cursor: 'pointer',
+                                    flex: 1
+                                  }}
+                                >
+                                  Show this property in "Upcoming Auctions" section
+                                </label>
+                            </div>
+                              <p style={{
+                                fontSize: '12px',
+                                color: '#6b7280',
+                                marginTop: '8px',
+                                fontStyle: 'italic'
+                              }}>
+                                Enable this to display your property in the upcoming auctions showcase on the bidding page
+                              </p>
+                            </div>
+                            <div className="contact-input-field-wrapper"></div>
+                          </div>
+                        </>
+                      )}
+
+                      {/* Investment-Specific Fields - Only show when 'For Investment' is selected */}
+                      {formData.listingType === 'investment' && (
+                        <>
+                          {/* Share Details Row */}
+                          <div className="form-row">
+                            <div className="contact-input-field-wrapper">
+                              <label htmlFor="investmentTotalShares">Total Shares *</label>
+                              <input
+                                type="number"
+                                id="investmentTotalShares"
+                                name="investmentTotalShares"
+                                placeholder="Ex. 400"
+                                value={formData.investmentTotalShares}
+                                onChange={handleInputChange}
+                                required={formData.listingType === 'investment'}
+                                min="1"
+                                style={{
+                                    borderRadius: '12px',
+                                    border: '2px solid #e5e7eb',
+                                    padding: '12px 16px',
+                                    fontSize: '14px',
+                                    transition: 'all 0.3s ease',
+                                    boxShadow: '0 2px 4px rgba(0,0,0,0.05)'
+                                  }}
+                                onFocus={(e) => e.target.style.borderColor = '#ff5e01'}
+                                onBlur={(e) => e.target.style.borderColor = '#e5e7eb'}
+                              />
+                            </div>
+                              <div className="contact-input-field-wrapper">
+                                <label htmlFor="investmentSharePrice">Price Per Share (PKR) *</label>
+                              <input
+                                type="number"
+                                id="investmentSharePrice"
+                                name="investmentSharePrice"
+                                placeholder="Ex. 50000"
+                                value={formData.investmentSharePrice}
+                                onChange={handleInputChange}
+                                required={formData.listingType === 'investment'}
+                                min="1"
+                                style={{
+                                    borderRadius: '12px',
+                                    border: '2px solid #e5e7eb',
+                                    padding: '12px 16px',
+                                    fontSize: '14px',
+                                    transition: 'all 0.3s ease',
+                                    boxShadow: '0 2px 4px rgba(0,0,0,0.05)'
+                                  }}
+                                onFocus={(e) => e.target.style.borderColor = '#ff5e01'}
+                                onBlur={(e) => e.target.style.borderColor = '#e5e7eb'}
+                              />
+                            </div>
+                          </div>
+
+                          {/* Investment Period and Costs Row */}
+                          <div className="form-row">
+                            <div className="contact-input-field-wrapper">
+                              <label htmlFor="investmentMinShares">Minimum Shares Per Investor *</label>
+                              <input
+                                type="number"
+                                id="investmentMinShares"
+                                name="investmentMinShares"
+                                placeholder="Ex. 2"
+                                value={formData.investmentMinShares}
+                                onChange={handleInputChange}
+                                required={formData.listingType === 'investment'}
+                                min="1"
+                                style={{
+                                    borderRadius: '12px',
+                                    border: '2px solid #e5e7eb',
+                                    padding: '12px 16px',
+                                    fontSize: '14px',
+                                    transition: 'all 0.3s ease',
+                                    boxShadow: '0 2px 4px rgba(0,0,0,0.05)'
+                                  }}
+                                onFocus={(e) => e.target.style.borderColor = '#ff5e01'}
+                                onBlur={(e) => e.target.style.borderColor = '#e5e7eb'}
+                              />
+                            </div>
+                              <div className="contact-input-field-wrapper">
+                                <label htmlFor="investmentHoldingPeriodMonths">Holding Period (Months)</label>
+                              <input
+                                type="number"
+                                id="investmentHoldingPeriodMonths"
+                                name="investmentHoldingPeriodMonths"
+                                placeholder="Ex. 36"
+                                value={formData.investmentHoldingPeriodMonths}
+                                onChange={handleInputChange}
+                                min="0"
+                                style={{
+                                    borderRadius: '12px',
+                                    border: '2px solid #e5e7eb',
+                                    padding: '12px 16px',
+                                    fontSize: '14px',
+                                    transition: 'all 0.3s ease',
+                                    boxShadow: '0 2px 4px rgba(0,0,0,0.05)'
+                                  }}
+                                onFocus={(e) => e.target.style.borderColor = '#ff5e01'}
+                                onBlur={(e) => e.target.style.borderColor = '#e5e7eb'}
+                              />
+                            </div>
+                          </div>
+
+                          {/* Cost Breakdown Row */}
+                          <div className="form-row">
+                            <div className="contact-input-field-wrapper">
+                              <label htmlFor="investmentLandCost">Land Cost (PKR) *</label>
+                              <input
+                                type="number"
+                                id="investmentLandCost"
+                                name="investmentLandCost"
+                                placeholder="Ex. 12000000"
+                                value={formData.investmentLandCost}
+                                onChange={handleInputChange}
+                                required={formData.listingType === 'investment'}
+                                min="0"
+                                style={{
+                                    borderRadius: '12px',
+                                    border: '2px solid #e5e7eb',
+                                    padding: '12px 16px',
+                                    fontSize: '14px',
+                                    transition: 'all 0.3s ease',
+                                    boxShadow: '0 2px 4px rgba(0,0,0,0.05)'
+                                  }}
+                                onFocus={(e) => e.target.style.borderColor = '#ff5e01'}
+                                onBlur={(e) => e.target.style.borderColor = '#e5e7eb'}
+                              />
+                            </div>
+                              <div className="contact-input-field-wrapper">
+                                <label htmlFor="investmentDevelopmentCost">Development / Construction Cost (PKR)</label>
+                              <input
+                                type="number"
+                                id="investmentDevelopmentCost"
+                                name="investmentDevelopmentCost"
+                                placeholder="Ex. 4000000"
+                                value={formData.investmentDevelopmentCost}
+                                onChange={handleInputChange}
+                                min="0"
+                                style={{
+                                    borderRadius: '12px',
+                                    border: '2px solid #e5e7eb',
+                                    padding: '12px 16px',
+                                    fontSize: '14px',
+                                    transition: 'all 0.3s ease',
+                                    boxShadow: '0 2px 4px rgba(0,0,0,0.05)'
+                                  }}
+                                onFocus={(e) => e.target.style.borderColor = '#ff5e01'}
+                                onBlur={(e) => e.target.style.borderColor = '#e5e7eb'}
+                              />
+                            </div>
+                          </div>
+
+                          {/* Returns and Projections Row */}
+                          <div className="form-row">
+                            <div className="contact-input-field-wrapper">
+                              <label htmlFor="investmentOtherCosts">Other Costs / Fees (PKR)</label>
+                              <input
+                                type="number"
+                                id="investmentOtherCosts"
+                                name="investmentOtherCosts"
+                                placeholder="Ex. 500000"
+                                value={formData.investmentOtherCosts}
+                                onChange={handleInputChange}
+                                min="0"
+                                style={{
+                                    borderRadius: '12px',
+                                    border: '2px solid #e5e7eb',
+                                    padding: '12px 16px',
+                                    fontSize: '14px',
+                                    transition: 'all 0.3s ease',
+                                    boxShadow: '0 2px 4px rgba(0,0,0,0.05)'
+                                  }}
+                                onFocus={(e) => e.target.style.borderColor = '#ff5e01'}
+                                onBlur={(e) => e.target.style.borderColor = '#e5e7eb'}
+                              />
+                            </div>
+                              <div className="contact-input-field-wrapper">
+                                <label htmlFor="investmentProjectedYield">Projected Annual Yield (%)</label>
+                              <input
+                                type="number"
+                                id="investmentProjectedYield"
+                                name="investmentProjectedYield"
+                                placeholder="Ex. 9"
+                                value={formData.investmentProjectedYield}
+                                onChange={handleInputChange}
+                                min="0"
+                                step="0.1"
+                                style={{
+                                    borderRadius: '12px',
+                                    border: '2px solid #e5e7eb',
+                                    padding: '12px 16px',
+                                    fontSize: '14px',
+                                    transition: 'all 0.3s ease',
+                                    boxShadow: '0 2px 4px rgba(0,0,0,0.05)'
+                                  }}
+                                onFocus={(e) => e.target.style.borderColor = '#ff5e01'}
+                                onBlur={(e) => e.target.style.borderColor = '#e5e7eb'}
+                              />
+                            </div>
+                          </div>
+
+                          {/* Investment Summary Row */}
+                          <div className="form-row">
+                            <div className="contact-input-field-wrapper">
+                              <label htmlFor="investmentExpectedAppreciation">Expected Appreciation (%)</label>
+                              <input
+                                type="number"
+                                id="investmentExpectedAppreciation"
+                                name="investmentExpectedAppreciation"
+                                placeholder="Ex. 12"
+                                value={formData.investmentExpectedAppreciation}
+                                onChange={handleInputChange}
+                                min="0"
+                                step="0.1"
+                                style={{
+                                    borderRadius: '12px',
+                                    border: '2px solid #e5e7eb',
+                                    padding: '12px 16px',
+                                    fontSize: '14px',
+                                    transition: 'all 0.3s ease',
+                                    boxShadow: '0 2px 4px rgba(0,0,0,0.05)'
+                                  }}
+                                onFocus={(e) => e.target.style.borderColor = '#ff5e01'}
+                                onBlur={(e) => e.target.style.borderColor = '#e5e7eb'}
+                              />
+                            </div>
+                              <div className="contact-input-field-wrapper" style={{
+                                display: 'flex',
+                                flexDirection: 'column',
+                                justifyContent: 'flex-end'
+                              }}>
+                                <div style={{
+                                  background: '#f8fafc',
+                                  borderRadius: '12px',
+                                  padding: '16px',
+                                  border: '1px solid #e5e7eb'
+                                }}>
+                                  <div style={{
+                                    display: 'flex',
+                                    justifyContent: 'space-between',
+                                    fontSize: '13px',
+                                    color: '#6b7280'
+                                  }}>
+                                    <span>Target raise (shares × price)</span>
+                                    <strong style={{ color: '#111827' }}>
+                                      ₨ {((parseFloat(formData.investmentTotalShares) || 0) * (parseFloat(formData.investmentSharePrice) || 0)).toLocaleString()}
+                                    </strong>
+                                </div>
+                                  <div style={{
+                                    display: 'flex',
+                                    justifyContent: 'space-between',
+                                    marginTop: '8px',
+                                    fontSize: '13px',
+                                    color: '#6b7280'
+                                  }}>
+                                    <span>Estimated project cost</span>
+                                    <strong style={{ color: '#111827' }}>
+                                      ₨ {(parseFloat(formData.investmentLandCost || 0)
+                                        + parseFloat(formData.investmentDevelopmentCost || 0)
+                                        + parseFloat(formData.investmentOtherCosts || 0)).toLocaleString()}
+                                    </strong>
+                                </div>
+                              </div>
+                            </div>
+                            </div>
+                        </>
+                      )}
+
+                      {/* Description */}
+                      <div className="form-row full-width">
+                        <div className="contact-input-field-wrapper">
+                          <label htmlFor="description">Description</label>
+                          <textarea
+                            id="description"
+                            name="description"
+                            placeholder="Enter additional details about land..."
+                            value={formData.description}
+                            onChange={handleInputChange}
+                            rows="4"
+                            style={{
+                              borderRadius: '12px',
+                              border: '2px solid #e5e7eb',
+                              padding: '12px 16px',
+                              fontSize: '14px',
+                              transition: 'all 0.3s ease',
+                              boxShadow: '0 2px 4px rgba(0,0,0,0.05)',
+                              resize: 'vertical'
+                            }}
+                            onFocus={(e) => e.target.style.borderColor = '#ff5e01'}
+                            onBlur={(e) => e.target.style.borderColor = '#e5e7eb'}
+                          />
+                        </div>
+                      </div>
+
+                      {/* Property Image Upload */}
+                      <div className="form-row full-width">
+                        <div className="contact-input-field-wrapper">
+                          <label htmlFor="propertyImage">Property Image (Optional)</label>
+                          <p style={{ fontSize: '12px', color: '#6b7280', marginTop: '4px', marginBottom: '8px' }}>
+                            Recommended: JPEG format, less than 1MB for best performance
+                          </p>
+                          <div style={{
+                            border: '2px dashed #ccc',
+                            borderRadius: '12px',
+                            padding: '30px',
+                            textAlign: 'center',
+                            backgroundColor: '#f9f9f9',
+                            marginTop: '8px'
+                          }}>
+                            {propertyImagePreview ? (
+                              <div>
+                                <div style={{
+                                  width: '200px',
+                                  height: '150px',
+                                  margin: '0 auto 15px',
+                                  borderRadius: '8px',
+                                  overflow: 'hidden'
+                                }}>
+                                  <img
+                                    src={propertyImagePreview}
+                                    alt="Property preview"
+                                  style={{
+                                      width: '100%',
+                                      height: '100%',
+                                      objectFit: 'cover'
+                                    }}
+                                />
+                              </div>
+                                <button
+                                type="button"
+                                  onClick={removePropertyImage}
+                                style={{
+                                    background: '#ef4444',
+                                    color: 'white',
+                                    padding: '8px 16px',
+                                    borderRadius: '6px',
+                                    border: 'none',
+                                    cursor: 'pointer',
+                                    fontSize: '14px',
+                                    marginRight: '10px'
+                                  }}
+                                >
+                                  Remove Image
+                                </button>
+                                <label
+                                  htmlFor="propertyImageUpload"
+                                style={{
+                                    background: '#ff5e01',
+                                    color: 'white',
+                                    padding: '8px 16px',
+                                    borderRadius: '6px',
+                                    cursor: 'pointer',
+                                    fontSize: '14px',
+                                    fontWeight: '600',
+                                    display: 'inline-block'
+                                  }}
+                                >
+                                  Change Image
+                                </label>
+                            </div>
+                            ) : (
+                              <div>
+                                <div style={{ fontSize: '48px', marginBottom: '10px' }}></div>
+                                <p style={{ margin: '0 0 15px 0', color: '#666' }}>
+                                  Upload an image of your property
+                                </p>
+                                <label
+                                  htmlFor="propertyImageUpload"
+                                style={{
+                                    background: '#ff5e01',
+                                    color: 'white',
+                                    padding: '10px 20px',
+                                    borderRadius: '8px',
+                                    cursor: 'pointer',
+                                    fontSize: '14px',
+                                    fontWeight: '600',
+                                    display: 'inline-block'
+                                  }}
+                                >
+                                  Choose Image
+                                </label>
+                            </div>
+                            )}
+                            <input
+                              type="file"
+                              accept="image/*"
+                              id="propertyImageUpload"
+                              style={{ display: 'none' }}
+                              onChange={handlePropertyImageUpload}
+                            />
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Document Uploads */}
+                      <div className="form-row">
+                        <div className="contact-input-field-wrapper">
+                          <label htmlFor="cnicdoc">Upload CNIC Document *</label>
+                          <input
+                            type="file"
+                            id="cnicdoc"
+                            name="cnicdoc"
+                            onChange={handleInputChange}
+                            required
+                            accept=".pdf,.jpg,.jpeg,.png"
+                            style={{
+                              borderRadius: '12px',
+                              border: '2px solid #e5e7eb',
+                              padding: '12px 16px',
+                              fontSize: '14px',
+                              transition: 'all 0.3s ease',
+                              boxShadow: '0 2px 4px rgba(0,0,0,0.05)',
+                              background: 'white'
+                            }}
+                            onFocus={(e) => e.target.style.borderColor = '#ff5e01'}
+                            onBlur={(e) => e.target.style.borderColor = '#e5e7eb'}
+                          />
+                        </div>
+                        <div className="contact-input-field-wrapper">
+                          <label htmlFor="landdoc">Upload Land Document *</label>
+                          <input
+                            type="file"
+                            id="landdoc"
+                            name="landdoc"
+                            onChange={handleInputChange}
+                            required
+                            accept=".pdf,.jpg,.jpeg,.png"
+                            style={{
+                              borderRadius: '12px',
+                              border: '2px solid #e5e7eb',
+                              padding: '12px 16px',
+                              fontSize: '14px',
+                              transition: 'all 0.3s ease',
+                              boxShadow: '0 2px 4px rgba(0,0,0,0.05)',
+                              background: 'white'
+                            }}
+                            onFocus={(e) => e.target.style.borderColor = '#ff5e01'}
+                            onBlur={(e) => e.target.style.borderColor = '#e5e7eb'}
+                          />
+                        </div>
+                      </div>
+
+                      {/* Submit Button */}
+                      <button
+                        type="submit"
+                        disabled={loading}
+                        style={{
+                          marginTop: '15px',
+                          textAlign: 'center',
+                          width: '100%',
+                          background: loading ? '#ccc' : 'linear-gradient(135deg, #ff5e01, #ff7221)',
+                          color: '#fff',
+                          border: 'none',
+                          borderRadius: '8px',
+                          padding: '15px 30px',
+                          fontSize: '16px',
+                          fontWeight: '600',
+                          cursor: loading ? 'not-allowed' : 'pointer',
+                          transition: 'all 0.3s ease'
+                        }}
+                        className="button is-submit w-button"
+                      >
+                        {loading ? 'Submitting...' : 'Submit Registration'}
+                      </button>
+                    </form>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </header>
+        </main>
+      </div>
+    </>
+  )
+}
+

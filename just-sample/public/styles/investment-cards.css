@@ -1,0 +1,74 @@
+.story-tracker-wrapper {
+  display: flex !important;
+  justify-content: center !important;
+  width: 100% !important;
+  padding: 2rem 15% !important;
+  overflow-x: auto !important;
+  overflow-y: hidden !important;
+}
+
+.story-tracker {
+  display: flex !important;
+  gap: 60px !important;
+  overflow: visible !important;
+  padding: 1rem 0 !important;
+  width: max-content !important;
+  justify-content: center !important;
+  flex-shrink: 0 !important;
+}
+
+.story-tracker.scrolling {
+  animation: continuous-scroll 60s linear infinite !important;
+}
+
+@keyframes continuous-scroll {
+  0% {
+    transform: translateX(50%);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+/* Custom scrollbar styling for horizontal scroll */
+.story-tracker::-webkit-scrollbar {
+  height: 8px;
+}
+
+.story-tracker::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.1);
+  border-radius: 4px;
+}
+
+.story-tracker::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 4px;
+}
+
+.story-tracker::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.5);
+}
+
+/* Ensure cards maintain their original styling */
+.story-card {
+  flex-shrink: 0 !important;
+  min-width: auto !important;
+}
+
+@media (max-width: 991px) {
+  .story-tracker-wrapper {
+    padding: 1.5rem 10% !important;
+  }
+  .story-tracker {
+    gap: 30px !important;
+  }
+}
+
+@media (max-width: 767px) {
+  .story-tracker-wrapper {
+    padding: 1rem 5% !important;
+  }
+  .story-tracker {
+    gap: 30px !important;
+  }
+}

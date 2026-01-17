@@ -1,0 +1,160 @@
+const express = require('express');
+const path = require('path');
+const open = require('open');
+const fs = require('fs');
+
+const app = express();
+const PORT = process.env.PORT || 3000;
+
+// Load the standard navbar component
+let standardNavbar = '';
+try {
+  standardNavbar = fs.readFileSync(path.join(__dirname, 'src/components/navbar.html'), 'utf8');
+} catch (err) {
+  console.error('Error loading navbar component:', err);
+}
+
+// Serve static assets
+app.use('/assets', express.static(path.join(__dirname, 'src/assets')));
+app.use('/scripts', express.static(path.join(__dirname, 'src/scripts')));
+
+// Serve old assets for backward compatibility
+app.use(express.static(path.join(__dirname)));
+
+// Middleware to inject the remove-webflow-badge script and standardize navbar
+const injectScript = (htmlPath, currentPage = '') => {
+  return (req, res) => {
+    fs.readFile(htmlPath, 'utf8', (err, html) => {
+      if (err) {
+        console.error('Error reading file:', htmlPath, err);
+        return res.status(500).send('Error loading page');
+      }
+      
+      // Replace the existing navbar with the standard one
+      let modifiedHtml = html;
+      
+      // Find and replace the navbar section
+      const navbarPattern = /<div[^>]*class="[^"]*navbar[^"]*"[^>]*>[\s\S]*?<\/div>\s*<\/div>/i;
+      if (standardNavbar && navbarPattern.test(modifiedHtml)) {
+        // Create navbar with current page highlighting
+        let currentNavbar = standardNavbar;
+        if (currentPage) {
+          // Add w--current class to the current page link
+          const linkPattern = new RegExp(`(<a href="${currentPage}"[^>]*class="[^"]*nav-link[^"]*)(")`, 'i');
+          currentNavbar = currentNavbar.replace(linkPattern, '$1 w--current$2');
+        }
+        modifiedHtml = modifiedHtml.replace(navbarPattern, currentNavbar);
+      }
+      
+      // Update asset paths in HTML
+      modifiedHtml = modifiedHtml
+        // Update logo path
+        .replace(/logoremmic\.png/g, '/assets/images/logo.png')
+        // Update property images
+        .replace(/house(\d*)\.jpg/g, '/assets/images/properties/house$1.jpg')
+        .replace(/Houses\.png/g, '/assets/images/properties/Houses.png')
+        .replace(/House 1\.png/g, '/assets/images/properties/House 1.png')
+        .replace(/Apartments\.png/g, '/assets/images/properties/Apartments.png')
+        .replace(/commercial\.png/g, '/assets/images/properties/commercial.png')
+        // Update 3D model images
+        .replace(/3d-model\.jpg/g, '/assets/images/3d-models/3d-model.jpg')
+        .replace(/3d-view\.jpg/g, '/assets/images/3d-models/3d-view.jpg')
+        .replace(/3dhouse(\d*)\.jpg/g, '/assets/images/3d-models/3dhouse$1.jpg')
+        .replace(/3dmodel\.png/g, '/assets/images/3d-models/3dmodel.png')
+        .replace(/3dwallpaper\.jpg/g, '/assets/images/3d-models/3dwallpaper.jpg')
+        // Update team images
+        .replace(/junaid\.jpg/g, '/assets/images/team/junaid.jpg')
+        .replace(/saad\.jpg/g, '/assets/images/team/saad.jpg')
+        .replace(/uzair\.jpg/g, '/assets/images/team/uzair.jpg')
+        .replace(/khatam\.jpg/g, '/assets/images/team/khatam.jpg')
+        // Update feature images
+        .replace(/block chain\.png/g, '/assets/images/features/blockchain.png')
+        .replace(/check progress\.png/g, '/assets/images/features/check-progress.png')
+        .replace(/complete\.png/g, '/assets/images/features/complete.png')
+        .replace(/growth\.png/g, '/assets/images/features/growth.png')
+        .replace(/investment\.png/g, '/assets/images/features/investment.png')
+        .replace(/personalizes\.png/g, '/assets/images/features/personalizes.png')
+        .replace(/sign up\.png/g, '/assets/images/features/signup.png')
+        .replace(/start\.png/g, '/assets/images/features/start.png')
+        .replace(/stay secure\.png/g, '/assets/images/features/stay-secure.png')
+        .replace(/value based\.png/g, '/assets/images/features/value-based.png')
+        .replace(/verified\.png/g, '/assets/images/features/verified.png');
+      
+      // Inject the script before closing body tag
+      const scriptTag = '<script src="/scripts/remove-webflow-badge.js"></script>';
+      modifiedHtml = modifiedHtml.replace('</body>', `${scriptTag}\n</body>`);
+      
+      res.send(modifiedHtml);
+    });
+  };
+};
+
+// Main pages
+app.get('/', injectScript(path.join(__dirname, 'src/pages/home.html'), '/'));
+app.get('/home', injectScript(path.join(__dirname, 'src/pages/home.html'), '/'));
+app.get('/about', injectScript(path.join(__dirname, 'src/pages/about.html'), '/about'));
+app.get('/contact', injectScript(path.join(__dirname, 'src/pages/contact.html'), '/contact'));
+app.get('/features', injectScript(path.join(__dirname, 'src/pages/feature.html'), '/features'));
+
+// Authentication pages
+app.get('/login', injectScript(path.join(__dirname, 'src/pages/auth/login.html'), '/login'));
+app.get('/signup', injectScript(path.join(__dirname, 'src/pages/auth/signup.html'), '/signup'));
+
+// Property pages
+app.get('/property', injectScript(path.join(__dirname, 'src/pages/property/property-list.html'), '/property'));
+app.get('/properties', injectScript(path.join(__dirname, 'src/pages/property/property-list.html'), '/property'));
+app.get('/bidding', injectScript(path.join(__dirname, 'src/pages/property/bidding.html'), '/bidding'));
+app.get('/bidding/:id', injectScript(path.join(__dirname, 'src/pages/property/bidding-detail.html'), '/bidding'));
+app.get('/evaluation', injectScript(path.join(__dirname, 'src/pages/property/evaluation.html'), '/evaluation'));
+app.get('/investment', injectScript(path.join(__dirname, 'src/pages/property/investment.html'), '/investment'));
+app.get('/rental', injectScript(path.join(__dirname, 'src/pages/property/rental-management.html'), '/rental'));
+app.get('/rental-management', injectScript(path.join(__dirname, 'src/pages/property/rental-management.html'), '/rental'));
+app.get('/land-registration', injectScript(path.join(__dirname, 'src/pages/property/land-registration.html'), '/land-registration'));
+
+// Team and business pages
+app.get('/team', injectScript(path.join(__dirname, 'src/pages/team/team.html'), '/team'));
+app.get('/pricing', injectScript(path.join(__dirname, 'src/pages/pricing.html'), '/pricing'));
+app.get('/payment', injectScript(path.join(__dirname, 'src/pages/payment.html'), '/payment'));
+
+// Legal pages
+app.get('/privacy', injectScript(path.join(__dirname, 'src/pages/legal/privacy-policy.html'), '/privacy'));
+app.get('/privacy-policy', injectScript(path.join(__dirname, 'src/pages/legal/privacy-policy.html'), '/privacy'));
+
+// Developer pages
+app.get('/style-guide', injectScript(path.join(__dirname, 'src/pages/style-guide.html'), '/style-guide'));
+
+// Error handling
+app.get('*', (req, res) => {
+  fs.readFile(path.join(__dirname, 'src/pages/errors/404.html'), 'utf8', (err, html) => {
+    if (err) {
+      return res.status(404).send('Page not found');
+    }
+    const scriptTag = '<script src="/scripts/remove-webflow-badge.js"></script>';
+    const modifiedHtml = html.replace('</body>', `${scriptTag}\\n</body>`);
+    res.status(404).send(modifiedHtml);
+  });
+});
+
+app.listen(PORT, () => {
+  console.log(`\n🚀 REMMIC Server is running on http://localhost:${PORT}`);
+  console.log('\n📁 New Organized Structure:');
+  console.log('   📄 Pages: src/pages/');
+  console.log('   🖼️  Images: src/assets/images/');
+  console.log('   🎨 CSS: src/assets/css/');
+  console.log('   ⚡ JS: src/assets/js/');
+  console.log('   📜 Scripts: src/scripts/');
+  console.log('\n📄 Available pages:');
+  console.log('   🏠 http://localhost:' + PORT + '/ - Home');
+  console.log('   ℹ️  http://localhost:' + PORT + '/about - About');
+  console.log('   💰 http://localhost:' + PORT + '/bidding - Bidding');
+  console.log('   🏘️  http://localhost:' + PORT + '/property - Property Lists');
+  console.log('   📊 http://localhost:' + PORT + '/evaluation - Evaluation');
+  console.log('   💼 http://localhost:' + PORT + '/investment - Investment');
+  console.log('   🏠 http://localhost:' + PORT + '/rental - Rental Management');
+  console.log('   👥 http://localhost:' + PORT + '/team - Team');
+  console.log('   🔐 http://localhost:' + PORT + '/login - Login');
+  console.log('   ✍️  http://localhost:' + PORT + '/signup - Sign Up');
+  console.log('\n✨ Opening browser...\n');
+  
+  open(`http://localhost:${PORT}`);
+});

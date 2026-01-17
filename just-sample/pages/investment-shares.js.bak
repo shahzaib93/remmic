@@ -1,0 +1,3220 @@
+import Head from 'next/head'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useRouter } from 'next/router'
+import Navbar from '../components/Navbar'
+import SecondaryMarket from '../components/SecondaryMarket'
+import { getPropertiesByType, ensurePropertyImage, formatCurrency } from '../utils/propertyStorage'
+import { useFirebase } from '../contexts/FirebaseContext'
+import Footer from '../components/Footer'
+
+const CRORE = 10000000
+const LAKH = 100000
+const MILLION = 1000000
+
+const parseAmount = (value) => {
+  if (value == null) return null
+  if (typeof value === 'number' && Number.isFinite(value)) return value
+  if (typeof value !== 'string') return null
+
+  const normalized = value.trim().toLowerCase()
+  if (!normalized) return null
+
+  let multiplier = 1
+  if (normalized.includes('crore')) multiplier = CRORE
+  else if (normalized.includes('lakh')) multiplier = LAKH
+  else if (normalized.includes('million')) multiplier = MILLION
+  else if (normalized.includes('billion')) multiplier = 1000 * MILLION
+
+  const numeric = parseFloat(normalized.replace(/[^0-9.]/g, ''))
+  if (!Number.isFinite(numeric)) return null
+
+  return numeric * multiplier
+}
+
+const formatPercent = (value) => {
+  if (!Number.isFinite(value)) return '0%'
+  const rounded = Number(value.toFixed(1))
+  const sign = rounded > 0 ? '+' : ''
+  return `${sign}${rounded}%`
+}
+
+const generateMonthlyGrowthSeries = (portfolioValue, averageAnnualReturn) => {
+  const data = []
+  const baseValue = Number.isFinite(portfolioValue) ? portfolioValue : 0
+  const avgReturn = Number.isFinite(averageAnnualReturn) ? averageAnnualReturn : 0
+  const now = new Date()
+
+  for (let i = 11; i >= 0; i--) {
+    const date = new Date(now.getFullYear(), now.getMonth() - i, 1)
+    const progressRatio = (12 - i) / 12
+    const growth = avgReturn * progressRatio
+    const value = baseValue * (1 + growth / 100)
+
+    data.push({
+      month: date.toLocaleDateString('en-US', { month: 'short', year: '2-digit' }),
+      growth: Number(growth.toFixed(2)),
+      value: Number(value.toFixed(0)),
+    })
+  }
+
+  return data
+}
+
+const formatHoldPeriod = (share) => {
+  const holdMonths = share?.holdPeriodMonths || share?.holdPeriod || share?.durationMonths
+  if (Number.isFinite(holdMonths) && holdMonths > 0) {
+    if (holdMonths % 12 === 0) {
+      const years = holdMonths / 12
+      return `${years} year${years === 1 ? '' : 's'}`
+    }
+    return `${holdMonths} month${holdMonths === 1 ? '' : 's'}`
+  }
+
+  const holdYears = share?.holdPeriodYears || share?.durationYears
+  if (Number.isFinite(holdYears) && holdYears > 0) {
+    return `${holdYears} year${holdYears === 1 ? '' : 's'}`
+  }
+
+  return 'N/A'
+}
+
+const formatYieldPercent = (value) => {
+  if (!Number.isFinite(value)) return 'N/A'
+  const rounded = Number(value.toFixed(1))
+  return `${rounded}%`
+}
+
+const ensureFeatureArraySafe = (raw) => {
+  if (!raw) return []
+  if (Array.isArray(raw)) {
+    return raw
+      .map((item) => {
+        if (typeof item === 'string') return item
+        if (item && typeof item === 'object') {
+          if (typeof item.label === 'string') return item.label
+          if (typeof item.name === 'string') return item.name
+        }
+        return null
+      })
+      .filter(Boolean)
+  }
+  if (typeof raw === 'string') {
+    return [raw]
+  }
+  return []
+}
+
+export default function InvestmentShares() {
+  const [investmentShares, setInvestmentShares] = useState([])
+  const [isMobile, setIsMobile] = useState(false)
+  const [investmentAnalytics, setInvestmentAnalytics] = useState({
+    totalPortfolioValue: 0,
+    totalDistributedShares: 0,
+    totalAvailableShares: 0,
+    totalInvestors: 0,
+    averageReturn: 0,
+    averageSharePrice: 0,
+    averageShareChangeValue: 0,
+    monthlyGrowth: [],
+    distributedSharesData: [],
+    topPerformingInvestments: []
+  })
+  const [isLoading, setIsLoading] = useState(true)
+  const [searchTerm, setSearchTerm] = useState('')
+  const [selectedFilter, setSelectedFilter] = useState('all')
+  const [selectedLocation, setSelectedLocation] = useState('all')
+  const [selectedRiskLevel, setSelectedRiskLevel] = useState('all')
+  const [filteredInvestments, setFilteredInvestments] = useState([])
+  const { getAllProperties, getAllInvestments } = useFirebase()
+  const router = useRouter()
+  const scrollerRef = useRef(null)
+  const autoScrollRef = useRef({ isPointerDown: false, isHovered: false })
+  const [selectedSort, setSelectedSort] = useState('recommended')
+  const rememberOpportunity = useCallback((opportunity) => {
+    if (typeof window === 'undefined') return
+    try {
+      const payload = {
+        savedAt: Date.now(),
+        share: opportunity,
+      }
+      window.localStorage.setItem('selectedInvestmentOpportunity', JSON.stringify(payload))
+    } catch (error) {
+      console.warn('Failed to cache selected opportunity:', error)
+    }
+  }, [])
+  const handleShareOpportunity = useCallback((opportunity) => {
+    if (typeof window === 'undefined') return
+    const shareUrl = `${window.location.origin}/investment-shares?id=${opportunity?.id || opportunity?.originalId || ''}`
+    const shareData = {
+      title: opportunity?.title || 'REMMIC Opportunity',
+      text: `Explore ${opportunity?.title || 'this REMMIC investment'} on REMMIC.`,
+      url: shareUrl
+    }
+
+    if (navigator.share) {
+      navigator.share(shareData).catch(() => navigator.clipboard?.writeText(shareUrl))
+    } else if (navigator.clipboard) {
+      navigator.clipboard.writeText(shareUrl)
+    }
+  }, [])
+
+  const carouselInvestments = useMemo(() => {
+    if (!filteredInvestments.length) return []
+
+    if (filteredInvestments.length >= 6) return filteredInvestments
+
+    const padded = [...filteredInvestments]
+    let iteration = 0
+    const targetLength = Math.max(6, filteredInvestments.length * 2)
+
+    while (padded.length < targetLength) {
+      const base = filteredInvestments[iteration % filteredInvestments.length]
+      const duplicateIndex = Math.floor(iteration / filteredInvestments.length)
+
+      padded.push({
+        ...base,
+        originalId: base?.id,
+        __duplicate: true,
+        __duplicateKey: `${base?.id || base?.title || 'share'}-dup-${duplicateIndex}-${iteration}`
+      })
+
+      iteration += 1
+    }
+
+    return padded
+  }, [filteredInvestments])
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return undefined
+    const scroller = scrollerRef.current
+    if (!scroller) return undefined
+
+    const state = autoScrollRef.current
+
+    const handlePointerDown = () => { state.isPointerDown = true }
+    const handlePointerUp = () => { state.isPointerDown = false }
+    const handleMouseEnter = () => { state.isHovered = true }
+    const handleMouseLeave = () => { state.isHovered = false }
+
+    scroller.addEventListener('pointerdown', handlePointerDown)
+    scroller.addEventListener('pointerup', handlePointerUp)
+    scroller.addEventListener('pointercancel', handlePointerUp)
+    scroller.addEventListener('mouseenter', handleMouseEnter)
+    scroller.addEventListener('mouseleave', handleMouseLeave)
+
+    let rafId = null
+    let lastTimestamp = 0
+
+    const step = (timestamp) => {
+      if (!lastTimestamp) {
+        lastTimestamp = timestamp
+      } else {
+        const elapsed = timestamp - lastTimestamp
+        lastTimestamp = timestamp
+
+        const maxScroll = Math.max(0, scroller.scrollWidth - scroller.clientWidth)
+        if (maxScroll > 0 && !state.isPointerDown && !state.isHovered) {
+          const distance = elapsed * 0.12
+          let next = scroller.scrollLeft + distance
+          if (next >= maxScroll) {
+            next -= maxScroll
+          }
+          scroller.scrollLeft = next
+        }
+      }
+
+      rafId = window.requestAnimationFrame(step)
+    }
+
+    rafId = window.requestAnimationFrame(step)
+
+    return () => {
+      if (rafId) window.cancelAnimationFrame(rafId)
+      scroller.removeEventListener('pointerdown', handlePointerDown)
+      scroller.removeEventListener('pointerup', handlePointerUp)
+      scroller.removeEventListener('pointercancel', handlePointerUp)
+      scroller.removeEventListener('mouseenter', handleMouseEnter)
+      scroller.removeEventListener('mouseleave', handleMouseLeave)
+      state.isPointerDown = false
+      state.isHovered = false
+    }
+  }, [filteredInvestments.length])
+
+  const highlightedId = useMemo(() => router.query.id?.toString() || null, [router.query.id])
+
+  const availableLocations = useMemo(() => {
+    const seen = new Set()
+    const unique = []
+    investmentShares.forEach((share) => {
+      const location = (share.location || '').trim()
+      if (!location) return
+      const key = location.toLowerCase()
+      if (!seen.has(key)) {
+        seen.add(key)
+        unique.push(location)
+      }
+    })
+    return unique
+  }, [investmentShares])
+
+  const availableRiskLevels = useMemo(() => {
+    const seen = new Set()
+    const unique = []
+    investmentShares.forEach((share) => {
+      const risk = (share.riskLevel || '').trim()
+      if (!risk) return
+      const key = risk.toLowerCase()
+      if (!seen.has(key)) {
+        seen.add(key)
+        unique.push(risk)
+      }
+    })
+    return unique
+  }, [investmentShares])
+
+
+  useEffect(() => {
+    if (
+      selectedLocation !== 'all'
+      && !availableLocations.some((location) => location.toLowerCase() === selectedLocation.toLowerCase())
+    ) {
+      setSelectedLocation('all')
+    }
+  }, [availableLocations, selectedLocation])
+
+  useEffect(() => {
+    if (
+      selectedRiskLevel !== 'all'
+      && !availableRiskLevels.some((risk) => risk.toLowerCase() === selectedRiskLevel.toLowerCase())
+    ) {
+      setSelectedRiskLevel('all')
+    }
+  }, [availableRiskLevels, selectedRiskLevel])
+
+  const loadInvestments = useCallback(async () => {
+    setIsLoading(true)
+
+    try {
+      const [propertyResponse, investmentResponse] = await Promise.all([
+        typeof getAllProperties === 'function' ? getAllProperties() : Promise.resolve(null),
+        typeof getAllInvestments === 'function' ? getAllInvestments() : Promise.resolve(null)
+      ])
+
+      const fetchedProperties = Array.isArray(propertyResponse?.properties) ? propertyResponse.properties : []
+      const fallbackProperties = typeof window !== 'undefined' ? getPropertiesByType('investment') : []
+      const rawProperties = fetchedProperties.length > 0 ? fetchedProperties : fallbackProperties
+
+      const normalizedProperties = (rawProperties || []).filter((property) => {
+        const type = (property?.type || '').toLowerCase()
+        const status = (property?.status || '').toLowerCase()
+        if (type && type !== 'investment') return false
+        return status !== 'archived'
+      })
+
+      const fetchedInvestments = Array.isArray(investmentResponse?.investments) ? investmentResponse.investments : []
+      let fallbackInvestments = []
+      if (!fetchedInvestments.length && typeof window !== 'undefined') {
+        try {
+          fallbackInvestments = JSON.parse(window.localStorage.getItem('userInvestments') || '[]')
+        } catch {
+          fallbackInvestments = []
+        }
+      }
+      const allInvestments = fetchedInvestments.length ? fetchedInvestments : fallbackInvestments
+
+      const propertySummaries = normalizedProperties.map((property, index) => {
+        const propertyId = property?.id != null ? property.id.toString() : property?.propertyId?.toString()
+        if (!propertyId) return null
+
+        const propertyInvestments = allInvestments.filter((investment) => {
+          const investmentPropertyId = investment?.propertyId ?? investment?.property?.id
+          if (!investmentPropertyId) return false
+          return investmentPropertyId.toString() === propertyId
+        })
+
+        const shareOffering = property.shareOffering || {}
+
+        const priceNumericCandidates = [
+          Number(property.priceNumeric),
+          parseAmount(property.price),
+          parseAmount(property.valuation),
+          parseAmount(property.totalValue)
+        ].filter((value) => Number.isFinite(value))
+        const priceNumeric = priceNumericCandidates.length ? priceNumericCandidates[0] : 0
+
+        const sharePriceCandidates = [
+          Number(shareOffering.sharePrice),
+          parseAmount(property.sharePrice),
+          parseAmount(property.minInvestment),
+          parseAmount(property.minimumInvestment),
+          parseAmount(property.minInvestmentAmount),
+          parseAmount(property.minimumContribution)
+        ].filter((value) => Number.isFinite(value))
+
+        const totalSharesFromOffering = Number.isFinite(Number(shareOffering.totalShares))
+          ? Number(shareOffering.totalShares)
+          : Number(property.totalShares)
+
+        const sharesSoldFromOffering = Number.isFinite(Number(shareOffering.sharesSold))
+          ? Number(shareOffering.sharesSold)
+          : null
+
+        const sharesAvailableFromOffering = Number.isFinite(Number(shareOffering.sharesAvailable))
+          ? Number(shareOffering.sharesAvailable)
+          : null
+
+        const propertyInvestmentsShares = propertyInvestments.reduce((sum, inv) => {
+          const shareCount = Number(inv?.shares ?? inv?.sharesOwned) || 0
+          return sum + shareCount
+        }, 0)
+
+        const propertyInvestmentsAmount = propertyInvestments.reduce((sum, inv) => {
+          const amount = Number(inv?.amount ?? inv?.totalAmount) || 0
+          return sum + amount
+        }, 0)
+
+        const inferredSharesSold = sharesSoldFromOffering != null
+          ? sharesSoldFromOffering
+          : propertyInvestmentsShares
+
+        const inferredTotalShares = Number.isFinite(totalSharesFromOffering)
+          ? totalSharesFromOffering
+          : Math.max(propertyInvestmentsShares, Number(property.totalShares) || 0, 100)
+
+        const baselineSharePrice = sharePriceCandidates.length > 0
+          ? sharePriceCandidates[0]
+          : (propertyInvestmentsShares > 0 && propertyInvestmentsAmount > 0
+              ? propertyInvestmentsAmount / propertyInvestmentsShares
+              : (priceNumeric > 0 ? priceNumeric / Math.max(inferredTotalShares || 1, 1) : 50000))
+
+        const inferredSharesAvailable = sharesAvailableFromOffering != null
+          ? sharesAvailableFromOffering
+          : Math.max(inferredTotalShares - inferredSharesSold, 0)
+
+        let currentSharePrice = propertyInvestments.length > 0
+          ? propertyInvestments.reduce((sum, inv) => {
+              const shareCount = Number(inv?.shares ?? inv?.sharesOwned) || 0
+              if (shareCount <= 0) return sum + baselineSharePrice
+              const investmentCurrentValue = Number(inv?.currentValue) || Number(inv?.amount) || baselineSharePrice * shareCount
+              return sum + (investmentCurrentValue / shareCount)
+            }, 0) / propertyInvestments.length
+          : baselineSharePrice
+
+        let sharePriceDelta = currentSharePrice - baselineSharePrice
+        let sharePriceDeltaPercent = baselineSharePrice > 0 ? (sharePriceDelta / baselineSharePrice) * 100 : 0
+
+        if (!Number.isFinite(sharePriceDeltaPercent) || sharePriceDeltaPercent === 0) {
+          const expectedAppreciation = Number(shareOffering.expectedAppreciation)
+          if (Number.isFinite(expectedAppreciation) && expectedAppreciation !== 0) {
+            sharePriceDeltaPercent = expectedAppreciation
+            sharePriceDelta = baselineSharePrice * (expectedAppreciation / 100)
+            currentSharePrice = baselineSharePrice + sharePriceDelta
+          }
+        }
+
+        const normalizedSharesSold = Number.isFinite(inferredSharesSold) ? inferredSharesSold : 0
+        const normalizedSharesAvailable = Number.isFinite(inferredSharesAvailable)
+          ? inferredSharesAvailable
+          : Math.max((inferredTotalShares || 0) - normalizedSharesSold, 0)
+
+        const totalValueNumeric = baselineSharePrice * (inferredTotalShares || 0)
+        const currentValueNumeric = currentSharePrice * (inferredTotalShares || 0)
+
+        const minInvestmentCandidates = [
+          Number(shareOffering.minInvestmentAmount),
+          Number(shareOffering.minSharesPerInvestor) * baselineSharePrice,
+          parseAmount(property.minInvestment),
+          parseAmount(property.minimumInvestment),
+          parseAmount(property.minInvestmentAmount)
+        ].filter((value) => Number.isFinite(value) && value > 0)
+        const minInvestmentValue = minInvestmentCandidates.length ? minInvestmentCandidates[0] : baselineSharePrice * Math.max(Number(shareOffering.minSharesPerInvestor) || 1, 1)
+
+        const projectedYieldPercent = Number(shareOffering.projectedYield)
+        const monthlyGrowthPercent = Number.isFinite(projectedYieldPercent) && projectedYieldPercent > 0
+          ? projectedYieldPercent / 12
+          : sharePriceDeltaPercent / 12
+
+        const uniqueInvestorsFromOffering = Number.isFinite(Number(shareOffering.investorCount))
+          ? Number(shareOffering.investorCount)
+          : null
+
+        const uniqueInvestors = uniqueInvestorsFromOffering != null
+          ? uniqueInvestorsFromOffering
+          : new Set(
+              propertyInvestments.map((inv) => inv?.userId || inv?.userEmail || inv?.id)
+            ).size
+
+        const thirtyDaysAgo = new Date()
+        thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
+        const recentInvestments = propertyInvestments.filter((inv) => {
+          const investmentDate = inv?.investmentDate || inv?.createdAt
+          if (!investmentDate) return false
+          const dateInstance = new Date(investmentDate)
+          return !Number.isNaN(dateInstance.getTime()) && dateInstance >= thirtyDaysAgo
+        }).length
+
+        const projectedValueNumeric = currentValueNumeric * (1 + Math.max(sharePriceDeltaPercent || 5, 5) / 100)
+
+        const fundingRaised = Number.isFinite(Number(shareOffering.fundingRaised))
+          ? Number(shareOffering.fundingRaised)
+          : propertyInvestmentsAmount
+
+        const fundingTarget = baselineSharePrice * (inferredTotalShares || 0)
+        const fundingPercent = fundingTarget > 0
+          ? Math.min(100, Math.max(0, (fundingRaised / fundingTarget) * 100))
+          : soldPercent
+
+        const features = ensureFeatureArraySafe(property.features)
+        const soldPercent = inferredTotalShares > 0 ? (normalizedSharesSold / inferredTotalShares) * 100 : 0
+        const availablePercent = inferredTotalShares > 0
+          ? (normalizedSharesAvailable / inferredTotalShares) * 100
+          : 100
+
+        const highlightMatch = highlightedId && propertyId === highlightedId
+
+        const rawStatus = typeof property.status === 'string' ? property.status.trim() : ''
+        const normalizedStatus = rawStatus.toLowerCase()
+        const isComingSoon = normalizedStatus.includes('coming')
+
+        const shareStatus = typeof shareOffering.status === 'string' ? shareOffering.status : ''
+
+        const baseStatus = shareStatus
+          ? shareStatus
+          : isComingSoon
+            ? 'Coming Soon'
+          : soldPercent >= 85
+            ? 'Limited Availability'
+            : soldPercent >= 60
+              ? 'Selling Fast'
+              : 'Open for Investment'
+
+        const statusLabel = rawStatus || baseStatus
+
+        const creationDateCandidate = property?.createdAt
+          || property?.created_at
+          || property?.listedAt
+          || property?.listed_at
+          || property?.listingDate
+          || property?.listing_date
+
+        let isNew = false
+        if (creationDateCandidate) {
+          const creationDate = new Date(creationDateCandidate)
+          if (!Number.isNaN(creationDate.getTime()) && creationDate >= thirtyDaysAgo) {
+            isNew = true
+          }
+        }
+
+        if (!isNew) {
+          isNew = recentInvestments > 0 || normalizedStatus.includes('new')
+        }
+
+        return {
+          id: propertyId,
+          isHighlighted: Boolean(highlightMatch),
+          isNew,
+          isComingSoon,
+          title: property.title || 'Investment Opportunity',
+          location: property.location || property.city || 'Location not specified',
+          totalValue: formatCurrency(totalValueNumeric, { maximumFractionDigits: 0 }) ?? '',
+          currentValue: formatCurrency(currentValueNumeric, { maximumFractionDigits: 0 }) ?? '',
+          totalValueNumeric,
+          currentValueNumeric,
+          minInvestment: formatCurrency(minInvestmentValue, { maximumFractionDigits: 0 }) ?? '',
+          expectedReturn: `${formatPercent(sharePriceDeltaPercent || 0)} per share`,
+          monthlyGrowth: formatPercent(monthlyGrowthPercent || 0),
+          growthRate: Number.isFinite(monthlyGrowthPercent) ? Number(monthlyGrowthPercent.toFixed(2)) : 0,
+          riskLevel: property.riskLevel || property.risk || ['Low', 'Medium', 'High'][index % 3],
+          duration: property.duration || property.investmentHorizon || '3-5 years',
+          image: ensurePropertyImage(property),
+          status: statusLabel,
+          totalInvestors: uniqueInvestors || property.totalInvestors || property.investorsCount || 0,
+          recentActivity: (() => {
+            const lastInvestmentAt = shareOffering.lastInvestmentAt || shareOffering.lastInvestment || property.lastInvestmentAt
+            if (lastInvestmentAt) {
+              const date = new Date(lastInvestmentAt)
+              if (!Number.isNaN(date.getTime())) {
+                return `Last investment ${date.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}`
+              }
+            }
+            if (recentInvestments > 0) {
+              return `${recentInvestments} new investment${recentInvestments === 1 ? '' : 's'} in 30 days`
+            }
+            return 'No new investments in the last 30 days'
+          })(),
+          projectedValue: `${formatCurrency(projectedValueNumeric, { maximumFractionDigits: 0 }) ?? ''} (Projected)`,
+          description: property.description || property.summary || 'High-potential investment with strong market demand.',
+          landCost: property.landCost ? formatCurrency(property.landCost, { maximumFractionDigits: 0 }) : formatCurrency(minInvestmentValue, { maximumFractionDigits: 0 }) || '',
+          areaSize: property.areaSize || property.area || '',
+          plotNumber: property.plotNumber || property.plotno || '',
+          landType: property.landType || property.landtype || '',
+          developmentCost: property.developmentCost ? formatCurrency(property.developmentCost, { maximumFractionDigits: 0 }) : '',
+          projectedYield: property.projectedYield ? formatPercent(property.projectedYield) : '',
+          expectedAppreciation: property.expectedAppreciation ? formatPercent(property.expectedAppreciation) : '',
+          holdingPeriodMonths: property.holdingPeriodMonths || property.holdPeriodMonths || '',
+          features: features.length > 0
+            ? features
+            : ['Verified documentation', 'High demand location', 'Projected rental income', 'Professional management'],
+          source: property.source || 'official',
+          consortiumPartner: property.consortiumPartner || property.developer || property.partner || 'DHA Developers',
+          sharesDistributed: normalizedSharesSold,
+          sharesDistributedPercent: soldPercent,
+          sharesAvailable: Math.round(availablePercent),
+          sharesAvailablePercent: availablePercent,
+          sharesSold: normalizedSharesSold,
+          totalShares: inferredTotalShares,
+          sharesAvailableCount: normalizedSharesAvailable,
+          sharePrice: baselineSharePrice,
+          sharePriceFormatted: formatCurrency(baselineSharePrice, { maximumFractionDigits: 0 }) ?? '',
+          currentSharePriceFormatted: formatCurrency(currentSharePrice, { maximumFractionDigits: 0 }) ?? '',
+          shareChangeValueFormatted: formatCurrency(Math.abs(sharePriceDelta), { maximumFractionDigits: 0 }) ?? '',
+          shareChangeCurrencyFormatted: formatCurrency(sharePriceDelta, { maximumFractionDigits: 0 }) ?? 'PKR 0',
+          shareChangeValue: sharePriceDelta,
+          shareChangePercent: sharePriceDeltaPercent,
+          shareChangeLabel: formatPercent(sharePriceDeltaPercent || 0),
+          uniqueInvestors,
+          statusCategory: isComingSoon
+            ? 'coming-soon'
+            : soldPercent >= 95
+              ? 'fully-funded'
+              : soldPercent >= 60
+                ? 'selling'
+                : 'live',
+          fundingPercent,
+          fundingRaised,
+          fundingTarget,
+          availabilityPercent: availablePercent
+        }
+      }).filter(Boolean)
+
+      let dataset = propertySummaries
+      if (highlightedId) {
+        dataset = [...dataset].sort((a, b) => {
+          const aMatch = a.id?.toString() === highlightedId
+          const bMatch = b.id?.toString() === highlightedId
+          if (aMatch === bMatch) return 0
+          return aMatch ? -1 : 1
+        })
+      }
+
+      const totalPortfolioValue = dataset.reduce((sum, prop) => sum + (prop.currentValueNumeric || 0), 0)
+      const totalDistributedShares = dataset.reduce((sum, prop) => sum + (prop.sharesDistributed || prop.sharesSold || 0), 0)
+      const totalAvailableShares = dataset.reduce((sum, prop) => sum + (prop.sharesAvailableCount || Math.max((prop.totalShares || 0) - (prop.sharesDistributed || 0), 0)), 0)
+      const uniqueInvestorsAcross = new Set(
+        allInvestments.map((inv) => inv?.userId || inv?.userEmail || inv?.id)
+      ).size
+      const averageReturn = dataset.length
+        ? dataset.reduce((sum, prop) => sum + (prop.shareChangePercent || 0), 0) / dataset.length
+        : 0
+      const averageSharePrice = dataset.length
+        ? dataset.reduce((sum, prop) => sum + (prop.sharePrice || 0), 0) / dataset.length
+        : 0
+      const averageShareChangeValue = dataset.length
+        ? dataset.reduce((sum, prop) => sum + (prop.shareChangeValue || 0), 0) / dataset.length
+        : 0
+
+      setInvestmentAnalytics({
+        totalPortfolioValue,
+        totalDistributedShares,
+        totalAvailableShares,
+        totalInvestors: uniqueInvestorsAcross,
+        averageReturn,
+        averageSharePrice,
+        averageShareChangeValue,
+        monthlyGrowth: generateMonthlyGrowthSeries(totalPortfolioValue, averageReturn),
+        distributedSharesData: dataset.map((prop) => ({
+          propertyName: prop.title,
+          distributedShares: prop.sharesDistributed || 0,
+          distributedPercent: Number.isFinite(prop.sharesDistributedPercent)
+            ? Number(prop.sharesDistributedPercent.toFixed(2))
+            : 0,
+          totalShares: prop.totalShares,
+          investors: prop.uniqueInvestors ?? prop.totalInvestors ?? 0
+        })),
+        topPerformingInvestments: [...dataset]
+          .sort((a, b) => (b.shareChangePercent || 0) - (a.shareChangePercent || 0))
+          .slice(0, 5)
+          .map((prop) => ({
+            name: prop.title,
+            returnPercent: Number(prop.shareChangePercent || 0),
+            growthPercent: Math.max(prop.shareChangePercent || 0, 0),
+            value: prop.currentValueNumeric || 0
+          }))
+      })
+
+      const normalizedDataset = dataset.filter(Boolean)
+      setInvestmentShares(normalizedDataset)
+      setFilteredInvestments(normalizedDataset)
+    } catch (error) {
+      console.warn('Failed to load investment shares:', error)
+      setInvestmentShares([])
+      setFilteredInvestments([])
+      setInvestmentAnalytics((prev) => ({
+        ...prev,
+        totalPortfolioValue: 0,
+        totalDistributedShares: 0,
+        totalAvailableShares: 0,
+        totalInvestors: 0,
+        averageReturn: 0,
+        averageSharePrice: 0,
+        averageShareChangeValue: 0,
+        monthlyGrowth: generateMonthlyGrowthSeries(0, 0),
+        distributedSharesData: [],
+        topPerformingInvestments: []
+      }))
+    } finally {
+      setIsLoading(false)
+    }
+  }, [getAllProperties, getAllInvestments, highlightedId])
+
+  useEffect(() => {
+    const lowered = searchTerm.trim().toLowerCase()
+    const locationFilter = selectedLocation.toLowerCase()
+    const riskFilter = selectedRiskLevel.toLowerCase()
+
+    const matches = investmentShares.filter((opportunity) => {
+      const matchesSearch = !lowered
+        || opportunity.title?.toLowerCase().includes(lowered)
+        || opportunity.location?.toLowerCase().includes(lowered)
+        || opportunity.riskLevel?.toLowerCase().includes(lowered)
+
+      const statusValue = opportunity.status?.toLowerCase() || ''
+      const fundedPercent = Number.isFinite(opportunity.sharesDistributedPercent)
+        ? opportunity.sharesDistributedPercent
+        : Number.isFinite(opportunity.fundingPercent)
+          ? opportunity.fundingPercent
+          : 0
+      const availabilityPercent = Number.isFinite(opportunity.sharesAvailablePercent)
+        ? opportunity.sharesAvailablePercent
+        : Number.isFinite(opportunity.availabilityPercent)
+          ? opportunity.availabilityPercent
+          : 100 - fundedPercent
+
+      const isComingSoon = Boolean(opportunity.isComingSoon)
+        || statusValue.includes('coming')
+        || statusValue.includes('upcoming')
+
+      const isFullyFunded = fundedPercent >= 95
+        || availabilityPercent <= 5
+        || statusValue.includes('closed')
+        || statusValue.includes('fully')
+      const isLive = !isComingSoon && !isFullyFunded && availabilityPercent > 0
+      const isNew = Boolean(opportunity.isNew) || statusValue.includes('new')
+
+      const matchesFilter = selectedFilter === 'all'
+        || (selectedFilter === 'live' && isLive)
+        || (selectedFilter === 'new' && isNew)
+        || (selectedFilter === 'coming-soon' && isComingSoon)
+        || (selectedFilter === 'fully-funded' && isFullyFunded)
+
+      const matchesLocation = selectedLocation === 'all'
+        || opportunity.location?.toLowerCase().includes(locationFilter)
+
+      const matchesRisk = selectedRiskLevel === 'all'
+        || opportunity.riskLevel?.toLowerCase() === riskFilter
+
+      return matchesSearch && matchesFilter && matchesLocation && matchesRisk
+    })
+
+    const parseCurrency = (value) => {
+      if (value == null) return 0
+      if (typeof value === 'number') return value
+      const cleaned = value.toString().replace(/[^0-9.]/g, '')
+      return Number(cleaned || 0)
+    }
+
+    const sortedMatches = [...matches]
+
+    switch (selectedSort) {
+      case 'roi-desc':
+        sortedMatches.sort((a, b) => (b.shareChangePercent || 0) - (a.shareChangePercent || 0))
+        break
+      case 'roi-asc':
+        sortedMatches.sort((a, b) => (a.shareChangePercent || 0) - (b.shareChangePercent || 0))
+        break
+      case 'min-low':
+        sortedMatches.sort((a, b) => parseCurrency(a.minInvestment) - parseCurrency(b.minInvestment))
+        break
+      case 'min-high':
+        sortedMatches.sort((a, b) => parseCurrency(b.minInvestment) - parseCurrency(a.minInvestment))
+        break
+      case 'alphabetical':
+        sortedMatches.sort((a, b) => a.title.localeCompare(b.title))
+        break
+      default:
+        sortedMatches.sort((a, b) => {
+          if (a.isHighlighted && !b.isHighlighted) return -1
+          if (!a.isHighlighted && b.isHighlighted) return 1
+          return (b.shareChangePercent || 0) - (a.shareChangePercent || 0)
+        })
+        break
+    }
+
+    setFilteredInvestments(sortedMatches)
+  }, [investmentShares, searchTerm, selectedFilter, selectedLocation, selectedRiskLevel, selectedSort])
+
+  useEffect(() => {
+
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth <= 768)
+    }
+
+    checkMobile()
+    window.addEventListener('resize', checkMobile)
+
+    const handleStorageChange = (event) => {
+      if (event.key === 'userProperties' || event.key === 'userInvestments') {
+        loadInvestments()
+      }
+    }
+
+    window.addEventListener('storage', handleStorageChange)
+    window.addEventListener('propertyAdded', loadInvestments)
+
+    if (typeof window !== 'undefined' && !document.querySelector('script[data-webfont-loader="manrope"]')) {
+      const script = document.createElement('script')
+      script.src = 'https://ajax.googleapis.com/ajax/libs/webfont/1.6.26/webfont.js'
+      script.setAttribute('data-webfont-loader', 'manrope')
+      script.onload = () => {
+        if (window.WebFont) {
+          window.WebFont.load({
+            google: { families: ["Manrope:300,regular,500,600,700,800"] }
+          })
+        }
+      }
+      document.head.appendChild(script)
+    }
+
+    loadInvestments()
+
+    return () => {
+      window.removeEventListener('resize', checkMobile)
+      window.removeEventListener('storage', handleStorageChange)
+      window.removeEventListener('propertyAdded', loadInvestments)
+    }
+  }, [loadInvestments])
+
+  const totalPortfolioDisplay = formatCurrency(investmentAnalytics.totalPortfolioValue, { maximumFractionDigits: 0 }) || 'PKR 0'
+  const totalInvestorsDisplay = (investmentAnalytics.totalInvestors || 0).toLocaleString()
+  const averageReturnDisplay = formatPercent(investmentAnalytics.averageReturn || 0)
+  const activeOpportunitiesCount = filteredInvestments.length
+  const activeOpportunityLabel = activeOpportunitiesCount === 1 ? 'opportunity' : 'opportunities'
+  const heroPrimaryLocation = filteredInvestments[0]?.location || availableLocations[0] || 'Multiple markets'
+  const heroStats = [
+    {
+      label: 'Assets Under Management',
+      value: totalPortfolioDisplay,
+      hint: 'Across live REMMIC offerings'
+    },
+    {
+      label: 'Avg. Projected Returns',
+      value: averageReturnDisplay,
+      hint: 'Modeled IRR from active deals'
+    },
+    {
+      label: 'Verified Investors',
+      value: totalInvestorsDisplay,
+      hint: 'Active members on the platform'
+    },
+    {
+      label: 'Average Ticket Size',
+      value: formatCurrency(investmentAnalytics.averageSharePrice, { maximumFractionDigits: 0 }) || 'PKR 0',
+      hint: 'Investor commitment per deal'
+    }
+  ]
+
+  return (
+    <>
+      <Head>
+        <title>REMMIC Land Investments</title>
+        <meta content="REMMIC Land Investments" property="og:title" />
+        <meta content="REMMIC Land Investments" property="twitter:title" />
+        <meta content="width=device-width, initial-scale=1" name="viewport" />
+        <link href="https://cdn.prod.website-files.com/68a06250db2face4039500cc/css/opixo.webflow.shared.269830e95.css" rel="stylesheet" type="text/css" />
+        <link rel="icon" href="/favicon.ico" type="image/x-icon" />
+        <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+      </Head>
+      
+      <div
+        className="page-wrapper"
+        style={{ background: '#f9fafb', minHeight: '100vh' }}
+      >
+        <Navbar />
+        
+        <main className="main-wrapper" style={{ background: '#f9fafb' }}>
+
+          {/* Investment Opportunities - Hero & Catalog Combined */}
+          <section id="live-market" className="investment-market">
+                      background: #f9fafb;
+                      border-radius: 12px;
+                      overflow: hidden;
+                      box-shadow: none;
+                      display: flex;
+                      flex-direction: column;
+                      transition: box-shadow 0.3s ease;
+                      width: 100%;
+                      min-height: 180px;
+                      border: 1px solid #e5e7eb;
+                      position: relative;
+                    }
+
+                    .investment-card:hover {
+                      box-shadow: 0 6px 18px rgba(15, 23, 42, 0.12);
+                    }
+
+                    .investment-media {
+                      position: relative;
+                      width: 100%;
+                      height: 100px;
+                      overflow: hidden;
+                    }
+
+                    .investment-media img {
+                      width: 100%;
+                      height: 100%;
+                      object-fit: cover;
+                    }
+
+                    .status-badge {
+                      position: absolute;
+                      top: 12px;
+                      left: 12px;
+                      padding: 6px 12px;
+                      border-radius: 16px;
+                      font-size: 12px;
+                      font-weight: 600;
+                      text-transform: uppercase;
+                      letter-spacing: 0.5px;
+                      color: #ffffff;
+                      background: #10b981;
+                    }
+
+                    .roi-badge {
+                      position: absolute;
+                      top: 12px;
+                      right: 12px;
+                      background: #ff5e01;
+                      color: white;
+                      padding: 6px 12px;
+                      border-radius: 16px;
+                      font-size: 12px;
+                      font-weight: 600;
+                    }
+
+                    .investment-body {
+                      padding: 12px;
+                      display: flex;
+                      flex-direction: column;
+                      gap: 8px;
+                    }
+
+                    .investment-header h3 {
+                      margin: 0;
+                      font-size: 16px;
+                      font-weight: 600;
+                      color: #0f172a;
+                      line-height: 1.35;
+                    }
+
+                    .investment-location {
+                      color: #64748b;
+                      font-size: 13px;
+                      margin-bottom: 8px;
+                      font-weight: 500;
+                      display: flex;
+                      align-items: center;
+                      gap: 4px;
+                    }
+
+                    .investment-location::before {
+                      content: '';
+                      font-size: 12px;
+                    }
+
+                    .investment-metrics {
+                      display: grid;
+                      grid-template-columns: repeat(2, minmax(260px, 1fr));
+                      gap: 6px;
+                      margin: 0 auto 6px;
+                      max-width: 560px;
+                    }
+
+                    .metric-item {
+                      display: flex;
+                      align-items: center;
+                      justify-content: space-between;
+                      gap: 6px;
+                      padding: 6px 10px;
+                      background: #ffffff;
+                      border-radius: 6px;
+                      border: 1px solid #e2e8f0;
+                      min-height: 30px;
+                    }
+
+                    .metric-label {
+                      font-size: 12px;
+                      color: #1e293b;
+                      font-weight: 600;
+                      letter-spacing: 0.01em;
+                      text-transform: none;
+                      white-space: nowrap;
+                    }
+
+                    .metric-value {
+                      font-size: 14px;
+                      font-weight: 600;
+                      color: #0f172a;
+                    }
+
+                    @media (max-width: 1024px) {
+                      .investment-metrics {
+                        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+                        gap: 6px;
+                        max-width: none;
+                        margin-bottom: 8px;
+                      }
+
+                      .metric-item {
+                        padding: 6px 10px;
+                        min-height: 30px;
+                      }
+
+                      .metric-value {
+                        font-size: 14px;
+                      }
+                    }
+
+                    @media (max-width: 640px) {
+                      .investment-metrics {
+                        grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+                        gap: 6px;
+                        margin-bottom: 8px;
+                      }
+
+                      .metric-item {
+                        padding: 6px 9px;
+                        min-height: 28px;
+                      }
+
+                      .metric-label {
+                        font-size: 11px;
+                        letter-spacing: 0.01em;
+                      }
+
+                      .metric-value {
+                        font-size: 13px;
+                      }
+                    }
+
+                    .investment-status {
+                      background: linear-gradient(135deg, #fef7ed 0%, #fff7ed 100%);
+                      border: 1px solid rgba(251, 191, 36, 0.25);
+                      padding: 14px;
+                      border-radius: 10px;
+                      display: flex;
+                      flex-direction: column;
+                      gap: 8px;
+                    }
+
+                    .status-header {
+                      display: flex;
+                      justify-content: space-between;
+                      align-items: center;
+                    }
+
+                    .status-title {
+                      font-size: 12px;
+                      font-weight: 700;
+                      letter-spacing: 0.08em;
+                      text-transform: uppercase;
+                      color: #b45309;
+                    }
+
+                    .status-badge-large {
+                      font-size: 14px;
+                      font-weight: 900;
+                      background: linear-gradient(135deg, #ff5e01 0%, #ff8534 100%);
+                      -webkit-background-clip: text;
+                      -webkit-text-fill-color: transparent;
+                      background-clip: text;
+                    }
+
+                    .progress-bar {
+                      height: 5px;
+                      background: rgba(255, 94, 1, 0.1);
+                      border-radius: 20px;
+                      overflow: hidden;
+                      margin-bottom: 6px;
+                      position: relative;
+                    }
+
+                    .progress-fill {
+                      height: 100%;
+                      background: linear-gradient(90deg, #ff5e01 0%, #ff8534 50%, #ffaa66 100%);
+                      border-radius: 20px;
+                      transition: width 1s ease-in-out;
+                      position: relative;
+                    }
+
+                    .progress-fill::after {
+                      content: '';
+                      position: absolute;
+                      top: 0;
+                      left: 0;
+                      right: 0;
+                      bottom: 0;
+                      background: linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.3) 50%, transparent 100%);
+                      animation: shimmer 2s infinite;
+                    }
+
+                    @keyframes shimmer {
+                      0% { transform: translateX(-100%); }
+                      100% { transform: translateX(100%); }
+                    }
+
+                    .status-footer {
+                      display: flex;
+                      justify-content: space-between;
+                      align-items: center;
+                    }
+
+                    .investors-count {
+                      font-size: 12px;
+                      font-weight: 600;
+                      color: #c2410c;
+                    }
+
+                    .status-info {
+                      font-size: 11px;
+                      font-weight: 600;
+                      color: #ff5e01;
+                      background: rgba(16, 185, 129, 0.1);
+                      padding: 2px 8px;
+                      border-radius: 10px;
+                      text-transform: uppercase;
+                      letter-spacing: 0.4px;
+                    }
+
+                    @keyframes pulse {
+                      0%, 100% { opacity: 1; }
+                      50% { opacity: 0.7; }
+                    }
+
+                    .key-features {
+                      background: #f0fdf4;
+                      border: 1px solid #bbf7d0;
+                      border-radius: 8px;
+                      padding: 8px;
+                      margin-bottom: 10px;
+                    }
+
+                    .features-label {
+                      font-size: 10px;
+                      color: #166534;
+                      font-weight: 700;
+                      letter-spacing: 0.6px;
+                      text-transform: uppercase;
+                      margin-bottom: 4px;
+                    }
+
+                    .features-list {
+                      display: flex;
+                      flex-wrap: wrap;
+                      gap: 4px;
+                      font-size: 11px;
+                      color: #166534;
+                    }
+
+                    .features-list span::before {
+                      display: none;
+                    }
+
+                    .features-list span {
+                      background: rgba(34, 197, 94, 0.12);
+                      border: 1px solid rgba(34, 197, 94, 0.2);
+                      border-radius: 999px;
+                      padding: 2px 8px;
+                      line-height: 1.2;
+                    }
+
+                    .property-highlights {
+                      display: grid;
+                      grid-template-columns: repeat(2, minmax(0, 1fr));
+                      gap: 8px;
+                      margin-bottom: 10px;
+                    }
+
+                    .highlight-item {
+                      display: flex;
+                      gap: 8px;
+                      align-items: center;
+                      background: rgba(255, 255, 255, 0.9);
+                      border: 1px solid rgba(148, 163, 184, 0.2);
+                      border-radius: 8px;
+                      padding: 8px 10px;
+                      box-shadow: none;
+                    }
+
+                    .highlight-icon {
+                      width: 24px;
+                      height: 24px;
+                      border-radius: 999px;
+                      background: linear-gradient(135deg, rgba(59, 130, 246, 0.16), rgba(15, 23, 42, 0.12));
+                      display: flex;
+                      align-items: center;
+                      justify-content: center;
+                      color: #ff5e01;
+                      font-size: 16px;
+                    }
+
+                    .highlight-label {
+                      font-size: 10px;
+                      font-weight: 700;
+                      color: #64748b;
+                      text-transform: uppercase;
+                      letter-spacing: 0.5px;
+                      margin-bottom: 2px;
+                    }
+
+                    .highlight-value {
+                      font-size: 12px;
+                      font-weight: 600;
+                      color: #334155;
+                      line-height: 1.3;
+                    }
+
+                    .share-panel {
+                      background: #eef2ff;
+                      border: 1px solid #c7d2fe;
+                      border-radius: 12px;
+                      padding: 12px;
+                      display: flex;
+                      flex-direction: column;
+                      gap: 10px;
+                    }
+
+                    .share-panel h4 {
+                      margin: 0;
+                      font-size: 14px;
+                      color: #1e3a8a;
+                    }
+
+                    .share-info {
+                      display: grid;
+                      grid-template-columns: repeat(2, minmax(0, 1fr));
+                      gap: 8px;
+                      font-size: 12px;
+                      font-weight: 600;
+                      color: #1f2937;
+                    }
+
+                    .share-progress {
+                      height: 6px;
+                      border-radius: 999px;
+                      background: rgba(59, 130, 246, 0.2);
+                      overflow: hidden;
+                    }
+
+                    .share-progress span {
+                      display: block;
+                      height: 100%;
+                      background: linear-gradient(90deg, #ff5e01, #e54e00);
+                    }
+
+                    .share-availability {
+                      font-size: 11px;
+                      font-weight: 600;
+                      color: #ff5e01;
+                    }
+
+                    .detail-grid {
+                      display: grid;
+                      grid-template-columns: repeat(2, minmax(0, 1fr));
+                      gap: 8px;
+                    }
+
+                    .detail-card {
+                      border: 1px solid #e5e7eb;
+                      border-radius: 10px;
+                      padding: 8px 10px;
+                      background: #f9fafb;
+                      display: flex;
+                      flex-direction: column;
+                      gap: 3px;
+                      font-size: 12px;
+                    }
+
+                    .detail-card strong {
+                      color: #111827;
+                      font-size: 12px;
+                    }
+
+                    .detail-card span {
+                      color: #4b5563;
+                    }
+
+                    .vairt-actions {
+                      display: flex;
+                      gap: 10px;
+                      margin-top: 12px;
+                    }
+
+
+                    .vairt-btn {
+                      padding: 10px 20px;
+                      border-radius: 6px;
+                      text-decoration: none;
+                      font-size: 14px;
+                      font-weight: 600;
+                      text-align: center;
+                      cursor: pointer;
+                      transition: all 0.3s ease;
+                      border: 1px solid;
+                      display: inline-block;
+                    }
+
+                    .vairt-btn-primary {
+                      background: #ff5e01;
+                      color: white;
+                      border-color: #ff5e01;
+                    }
+
+                    .vairt-btn-primary:hover {
+                      background: #e54e00;
+                      border-color: #e54e00;
+                      transform: translateY(-1px);
+                    }
+
+                    .vairt-btn-secondary {
+                      background: white;
+                      color: #ff5e01;
+                      border-color: #ff5e01;
+                    }
+
+                    .vairt-btn-secondary:hover {
+                      background: #ff5e01;
+                      color: white;
+                    }
+
+                    .vairt-actions {
+                      display: flex;
+                      gap: 10px;
+                      margin-top: 16px;
+                      padding-top: 16px;
+                      border-top: 1px solid #e5e7eb;
+                    }
+
+                    .vairt-actions .vairt-btn {
+                      flex: 1;
+                    }
+
+                    .investment-details-grid {
+                      display: grid;
+                      grid-template-columns: repeat(3, minmax(0, 1fr));
+                      gap: 8px;
+                      margin: 10px 0 6px;
+                    }
+
+                    .investment-detail-card {
+                      border: 1px solid rgba(148, 163, 184, 0.25);
+                      border-radius: 8px;
+                      padding: 8px;
+                      display: flex;
+                      flex-direction: column;
+                      gap: 4px;
+                      background: #f9fafb;
+                    }
+
+                    .investment-detail-card span {
+                      font-size: 10px;
+                      color: #94a3b8;
+                      letter-spacing: 0.08em;
+                      text-transform: uppercase;
+                    }
+
+                    .investment-detail-card strong {
+                      color: #0f172a;
+                      font-size: 13px;
+                    }
+
+                    .investment-description {
+                      font-size: 11px;
+                      color: #475569;
+                      line-height: 1.4;
+                      margin: 8px 0 4px;
+                    }
+
+                    .investment-description strong {
+                      color: #0f172a;
+                    }
+
+                    @media (max-width: 1199px) {
+                      .investment-grid {
+                        grid-template-columns: repeat(auto-fit, minmax(min(100%, 360px), 1fr));
+                      }
+
+                      .investment-body {
+                        padding: 12px;
+                        gap: 8px;
+                      }
+
+                      .investment-metrics {
+                        grid-template-columns: repeat(2, minmax(220px, 1fr));
+                        gap: 8px;
+                        margin-bottom: 8px;
+                      }
+
+                      .metric-item {
+                        padding: 6px 10px;
+                        min-height: 30px;
+                      }
+                    }
+
+                    /* Tablet - 768px to 991px */
+                    @media (max-width: 991px) {
+                      .investment-grid {
+                        padding: 16px;
+                        gap: 16px;
+                      }
+
+                      .investment-card {
+                        border-radius: 10px;
+                        min-height: 200px;
+                      }
+
+                      .investment-media {
+                        height: 100px;
+                      }
+
+                      .investment-body {
+                        padding: 12px;
+                        gap: 8px;
+                      }
+
+                      .investment-header h3 {
+                        font-size: 14px;
+                      }
+
+                      .investment-metrics {
+                        grid-template-columns: repeat(2, minmax(200px, 1fr));
+                        gap: 6px;
+                        margin-bottom: 6px;
+                      }
+
+                      .metric-item {
+                        padding: 6px 9px;
+                        min-height: 28px;
+                      }
+
+                      .metric-label {
+                        font-size: 11px;
+                      }
+
+                      .metric-value {
+                        font-size: 13px;
+                      }
+
+                      .vairt-btn {
+                        padding: 10px 14px;
+                        font-size: 11px;
+                      }
+
+                      .investment-status {
+                        padding: 12px;
+                        margin-bottom: 12px;
+                      }
+
+                      .status-percentage {
+                        font-size: 16px;
+                      }
+
+                      .property-highlights {
+                        gap: 10px;
+                        margin-bottom: 12px;
+                      }
+
+                      .highlight-item {
+                        padding: 12px;
+                        gap: 10px;
+                      }
+
+                      .highlight-icon {
+                        width: 28px;
+                        height: 28px;
+                      }
+
+                      .highlight-label {
+                        font-size: 9px;
+                      }
+
+                      .highlight-value {
+                        font-size: 11px;
+                      }
+                    }
+
+                    /* Mobile Small - up to 575px */
+                    @media (max-width: 575px) {
+                      .investment-grid {
+                        padding: 8px;
+                        gap: 8px;
+                      }
+
+                      .investment-card {
+                        border-radius: 8px;
+                        min-height: 180px;
+                      }
+
+                      .investment-media {
+                        height: 90px;
+                        border-radius: 0 0 6px 6px;
+                      }
+
+                      .investment-body {
+                        padding: 10px;
+                        gap: 6px;
+                      }
+
+                      .investment-header h3 {
+                        font-size: 13px;
+                        margin-bottom: 2px;
+                      }
+
+                      .investment-location {
+                        font-size: 11px;
+                        margin-bottom: 4px;
+                      }
+
+                      .investment-metrics {
+                        grid-template-columns: repeat(2, minmax(150px, 1fr));
+                        gap: 6px;
+                        margin-bottom: 6px;
+                      }
+
+                      .metric-item {
+                        padding: 5px 8px;
+                        min-height: 26px;
+                        border-radius: 6px;
+                      }
+
+                      .metric-label {
+                        font-size: 11px;
+                      }
+
+                      .metric-value {
+                        font-size: 12px;
+                      }
+
+                      .metric-value.highlight {
+                        font-size: 11px;
+                      }
+
+                      .vairt-btn {
+                        padding: 8px 12px;
+                        font-size: 10px;
+                        border-radius: 8px;
+                      }
+
+                      .investment-status {
+                        padding: 10px;
+                        margin-bottom: 10px;
+                        border-radius: 10px;
+                      }
+
+                      .status-percentage {
+                        font-size: 14px;
+                      }
+
+                      .property-highlights {
+                        gap: 8px;
+                        margin-bottom: 10px;
+                      }
+
+                      .highlight-item {
+                        padding: 10px;
+                        gap: 8px;
+                        border-radius: 8px;
+                      }
+
+                      .highlight-icon {
+                        width: 24px;
+                        height: 24px;
+                      }
+
+                      .highlight-label {
+                        font-size: 8px;
+                      }
+
+                      .highlight-value {
+                        font-size: 10px;
+                      }
+                    }
+                  `}</style>
+
+          {/* Investment Opportunities - Hero & Catalog Combined */}
+          <section id="live-market" className="investment-market">
+            <div className="investment-market__shell">
+              <div className="investment-market__header">
+                <div className="investment-market__intro">
+                  <span className="investment-market__eyebrow">Smarter Real Estate Investing</span>
+                  <h2 className="investment-market__title">Live Investment Opportunities</h2>
+                  <p className="investment-market__subtitle">
+                    Invest in premium properties through REMMIC's exclusive consortium partnerships. We connect you with opportunities from trusted developers that you can't access alone.
+                  </p>
+                  <div className="investment-market__meta">
+                    <span className="investment-market__meta-dot" aria-hidden="true" />
+                    <span>{activeOpportunitiesCount} active {activeOpportunityLabel}</span>
+                    <span className="investment-market__meta-divider" aria-hidden="true">&bull;</span>
+                    <span>{heroPrimaryLocation}</span>
+                  </div>
+                  <div className="investment-market__hero-cta">
+                    <a className="investment-market__hero-button" href="#live-market">Browse live deals</a>
+                    <a className="investment-market__hero-link" href="mailto:invest@remmic.com">Talk to an advisor</a>
+                  </div>
+                </div>
+                <div className="investment-market__stats">
+                  {heroStats.map((stat) => (
+                    <div key={stat.label} className="investment-market__stat">
+                      <span className="investment-market__stat-label">{stat.label}</span>
+                      <span className="investment-market__stat-value">{stat.value}</span>
+                      <span className="investment-market__stat-hint">{stat.hint}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="investment-market__filters">
+                <div className="investment-market__search">
+                  <label htmlFor="investment-market-search">Search opportunities</label>
+                  <div className="investment-market__search-input">
+                    <input
+                      id="investment-market-search"
+                      type="search"
+                      value={searchTerm}
+                      onChange={(event) => setSearchTerm(event.target.value)}
+                      placeholder="Search by city, asset or sponsor"
+                    />
+                  </div>
+                </div>
+
+                <div className="investment-market__chip-row">
+                  {[{ key: 'all', label: 'All' }, { key: 'live', label: 'Live' }, { key: 'new', label: 'New' }, { key: 'coming-soon', label: 'Coming Soon' }, { key: 'fully-funded', label: 'Fully Funded' }].map((chip) => {
+                    const isActive = selectedFilter === chip.key
+                    return (
+                      <button
+                        key={chip.key}
+                        type="button"
+                        onClick={() => setSelectedFilter(chip.key)}
+                        className={`investment-market__chip${isActive ? ' is-active' : ''}`}
+                      >
+                        {chip.label}
+                      </button>
+                    )
+                  })}
+                </div>
+
+                <div className="investment-market__select-grid">
+                  <div className="investment-market__select-group">
+                    <label htmlFor="investment-market-location">Location</label>
+                    <select
+                      id="investment-market-location"
+                      value={selectedLocation}
+                      onChange={(event) => setSelectedLocation(event.target.value)}
+                    >
+                      <option value="all">All locations</option>
+                      {availableLocations.map((location) => (
+                        <option key={location} value={location}>
+                          {location}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <div className="investment-market__select-group">
+                    <label htmlFor="investment-market-risk">Risk profile</label>
+                    <select
+                      id="investment-market-risk"
+                      value={selectedRiskLevel}
+                      onChange={(event) => setSelectedRiskLevel(event.target.value)}
+                    >
+                      <option value="all">All risk levels</option>
+                      {availableRiskLevels.map((risk) => (
+                        <option key={risk} value={risk}>
+                          {risk}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <div className="investment-market__select-group">
+                    <label htmlFor="investment-market-sort">Sort by</label>
+                    <select
+                      id="investment-market-sort"
+                      value={selectedSort}
+                      onChange={(event) => setSelectedSort(event.target.value)}
+                    >
+                      <option value="recommended">Recommended</option>
+                      <option value="roi-desc">Highest ROI</option>
+                      <option value="roi-asc">Lowest ROI</option>
+                      <option value="min-low">Lowest min. investment</option>
+                      <option value="min-high">Highest min. investment</option>
+                      <option value="alphabetical">Alphabetical</option>
+                    </select>
+                  </div>
+                </div>
+
+                <button
+                  type="button"
+                  className="investment-market__reset"
+                  onClick={() => {
+                    setSearchTerm('')
+                    setSelectedFilter('all')
+                    setSelectedLocation('all')
+                    setSelectedRiskLevel('all')
+                    setSelectedSort('recommended')
+                  }}
+                >
+                  Reset filters
+                </button>
+              </div>
+
+              <div ref={scrollerRef} className="investment-market__scroller">
+                <div className="investment-market__grid">
+                  {carouselInvestments.map((share, index) => {
+                    const cardKey = share.__duplicate ? share.__duplicateKey || `duplicate-${index}` : share.id || `share-${index}`
+                    const shareId = share.originalId || share.id
+
+                    const statusKey = (share.statusCategory || '').toLowerCase()
+                    const normalizedStatus = (share.status || '').toLowerCase()
+                    const statusVariant = statusKey === 'coming-soon'
+                      ? 'coming'
+                      : statusKey === 'fully-funded'
+                        ? 'limited'
+                        : normalizedStatus.includes('limited')
+                          ? 'limited'
+                          : normalizedStatus.includes('selling') || normalizedStatus.includes('fast')
+                            ? 'selling'
+                            : 'live'
+
+                    const statusLabel = statusKey === 'coming-soon'
+                      ? 'Coming Soon'
+                      : statusKey === 'fully-funded'
+                        ? 'Fully Funded'
+                        : statusVariant === 'live'
+                          ? 'Live'
+                          : statusVariant === 'selling'
+                            ? 'Selling Fast'
+                            : share.status || 'Limited Availability'
+
+                    const statusAccent = ({
+                      live: '#f97316',
+                      selling: '#f59e0b',
+                      limited: '#ef4444',
+                      coming: '#3b82f6'
+                    })[statusVariant] || '#ff5e01'
+
+                    const roiPercent = Math.round(share.shareChangePercent ?? 8.5)
+                    const fundedPercentValue = Number.isFinite(share.sharesDistributedPercent)
+                      ? share.sharesDistributedPercent
+                      : Number.isFinite(share.fundingPercent)
+                        ? share.fundingPercent
+                        : 0
+                    const investedPercent = Math.max(0, Math.min(100, Math.round(fundedPercentValue)))
+                    const availablePercentValue = Number.isFinite(share.sharesAvailablePercent)
+                      ? share.sharesAvailablePercent
+                      : Number.isFinite(share.availabilityPercent)
+                        ? share.availabilityPercent
+                        : 100 - investedPercent
+                    const availablePercent = Math.max(0, Math.min(100, Math.round(availablePercentValue)))
+                    const cardImage = share.image || ensurePropertyImage(share)
+                    const cardClasses = ['investment-market__card']
+                    if (share.isHighlighted) {
+                      cardClasses.push('investment-market__card--highlighted')
+                    }
+                    const investorsLabel = Number.isFinite(share.totalInvestors) && share.totalInvestors > 0 ? share.totalInvestors.toLocaleString() : ''
+                    const riskLabel = share.riskLevel || share.duration || 'Managed'
+                    const features = Array.isArray(share.features) ? share.features.filter(Boolean).slice(0, 3) : []
+                    const shareOffering = share.shareOffering || {}
+                    const targetIrrPercent = Number.isFinite(share.targetIRR) ? share.targetIRR : share.shareChangePercent
+                    const irrDisplay = formatPercent(Number.isFinite(targetIrrPercent) ? targetIrrPercent : 0)
+                    const yieldDisplay = formatYieldPercent(
+                      Number.isFinite(share.cashYield)
+                        ? share.cashYield
+                        : Number.isFinite(share.distributionYield)
+                          ? share.distributionYield
+                          : Number.isFinite(share.rentalYield)
+                            ? share.rentalYield
+                            : Number.isFinite(share.dividendYield)
+                              ? share.dividendYield
+                              : undefined
+                    )
+                    const holdPeriodDisplay = formatHoldPeriod(share)
+                    const detailItems = [
+                      { label: 'Land Cost', value: share.landCost || share.minInvestment || '' },
+                      { label: 'Area Size', value: share.areaSize || '' },
+                      { label: 'Plot No.', value: share.plotNumber || '' },
+                      { label: 'Target IRR', value: irrDisplay },
+                      { label: 'Cash Yield', value: yieldDisplay },
+                      { label: 'Hold Period', value: holdPeriodDisplay }
+                    ]
+                    const investmentDeckUrl = share.investmentDeckUrl || shareOffering.investmentDeckUrl || shareOffering.dealRoomUrl || share.dealRoomUrl || share.deckUrl || share.documentUrl || '#'
+
+                    return (
+                      <div
+                        key={cardKey}
+                        className={cardClasses.join(' ')}
+                        data-highlighted={share.isHighlighted ? 'true' : 'false'}
+                      >
+                        <div className="investment-market__media">
+                          <img src={cardImage} alt={share.title} loading="lazy" />
+                          <div className="investment-market__status" style={{ background: statusAccent }}>
+                            {statusLabel}
+                          </div>
+                          <div className="investment-market__roi">
+                            <span className="investment-market__roi-value">{roiPercent}%</span>
+                            <span className="investment-market__roi-label">Projected ROI</span>
+                          </div>
+                        </div>
+
+                        <div className="investment-market__body">
+                          <div className="investment-market__heading">
+                            <span className="investment-market__tag">{riskLabel}</span>
+                            <h3>{share.title}</h3>
+                            <div className="investment-market__location">
+                              {share.location}
+                            </div>
+                            <div style={{
+                              fontSize: '0.75rem',
+                              color: '#64748b',
+                              fontWeight: '500',
+                              marginTop: '4px',
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '8px'
+                            }}>
+                              <span style={{ color: '#ff5e01', fontWeight: '600' }}>Via REMMIC</span>
+                              {share.consortiumPartner && (
+                                <>
+                                  <span style={{ color: '#cbd5e1' }}>•</span>
+                                  <span>Partner: {share.consortiumPartner}</span>
+                                </>
+                              )}
+                            </div>
+                            {share.description && (
+                              <p className="investment-market__summary">{share.description}</p>
+                            )}
+                          </div>
+
+                          <div className="investment-market__details-grid">
+                            {detailItems.map((item) => (
+                              <div key={item.label} className="investment-market__details-item">
+                                <span className="investment-market__details-label">{item.label}</span>
+                                <span className="investment-market__details-value">{item.value}</span>
+                              </div>
+                            ))}
+                          </div>
+
+                          <div className="investment-market__progress">
+                            <div className="investment-market__progress-header">
+                              <span>{investedPercent}% funded</span>
+                              <span>{availablePercent}% available</span>
+                            </div>
+                            <div className="investment-market__progress-bar">
+                              <div className="investment-market__progress-fill" style={{ width: `${investedPercent}%` }}></div>
+                            </div>
+                          </div>
+
+                          <div className="cta-button-wrapper">
+                            <a
+                              href={`/investment-detail/${shareId}`}
+                              className="button is-secondary w-inline-block"
+                              onClick={() => rememberOpportunity(share)}
+                              style={{
+                                opacity: 1,
+                                transform: 'translate3d(0px, 0px, 0px) scale3d(1, 1, 1) rotateX(0deg) rotateY(0deg) rotateZ(0deg) skew(0deg, 0deg)',
+                                transition: 'transform 600ms 400ms, opacity 600ms 400ms',
+                              }}
+                            >
+                              <div className="button-text">View details</div>
+                            </a>
+                            <a
+                              href={`/investment-payment?id=${shareId}&title=${encodeURIComponent(share.title)}&min=${encodeURIComponent(share.minInvestment)}`}
+                              className="button w-inline-block"
+                              onClick={() => rememberOpportunity(share)}
+                              style={{
+                                opacity: 1,
+                                transform: 'translate3d(0px, 0px, 0px) scale3d(1, 1, 1) rotateX(0deg) rotateY(0deg) rotateZ(0deg) skew(0deg, 0deg)',
+                                transition: 'transform 600ms 500ms, opacity 600ms 500ms',
+                              }}
+                            >
+                              <div className="button-text">Invest now</div>
+                            </a>
+                          </div>
+
+                          <div className="investment-market__support">
+                            <a className="investment-market__document" href={investmentDeckUrl} target="_blank" rel="noreferrer noopener">
+                              Download deck
+                            </a>
+                            <button
+                              type="button"
+                              className="investment-market__share"
+                              onClick={() => handleShareOpportunity(share)}
+                            >
+                              Share deal
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    )
+                  })}
+                </div>
+              </div>
+            </div>          <style jsx>{`
+              .investment-market {
+                position: relative;
+                background: linear-gradient(180deg, #f8fafc 0%, #eef2ff 100%);
+                border-bottom: 1px solid rgba(15, 23, 42, 0.08);
+                padding: clamp(72px, 8vw, 110px) 0;
+              }
+
+              .investment-market__shell {
+                width: min(1600px, 95%);
+                margin: 0 auto;
+                padding: 0 clamp(24px, 4vw, 48px);
+                display: flex;
+                flex-direction: column;
+                gap: clamp(40px, 6vw, 60px);
+              }
+
+              .investment-market__header {
+                display: grid;
+                grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
+                gap: clamp(28px, 5vw, 48px);
+                align-items: stretch;
+              }
+
+              .investment-market__intro {
+                display: flex;
+                flex-direction: column;
+                gap: clamp(18px, 3vw, 24px);
+              }
+
+              .investment-market__eyebrow {
+                align-self: flex-start;
+                padding: 6px 16px;
+                border-radius: 999px;
+                background: rgba(255, 94, 1, 0.12);
+                color: #ff5e01;
+                letter-spacing: 0.16em;
+                font-size: 0.78rem;
+                font-weight: 700;
+                text-transform: uppercase;
+              }
+
+              .investment-market__title {
+                margin: 0;
+                font-size: clamp(2.4rem, 4.8vw, 3.1rem);
+                font-weight: 800;
+                color: #0f172a;
+                line-height: 1.12;
+                letter-spacing: -0.01em;
+              }
+
+              .investment-market__subtitle {
+                margin: 0;
+                font-size: 1.05rem;
+                color: #475569;
+                line-height: 1.7;
+                max-width: 520px;
+              }
+
+              .investment-market__meta {
+                display: flex;
+                align-items: center;
+                gap: 12px;
+                font-size: 0.95rem;
+                color: #64748b;
+              }
+
+              .investment-market__meta-dot {
+                width: 9px;
+                height: 9px;
+                border-radius: 999px;
+                background: #16a34a;
+              }
+
+              .investment-market__meta-divider {
+                color: rgba(100, 116, 139, 0.4);
+              }
+
+              .investment-market__hero-cta {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 12px;
+                align-items: center;
+              }
+
+              .investment-market__hero-button {
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                padding: 0.85rem 1.8rem;
+                border-radius: 14px;
+                background: linear-gradient(135deg, #ff5e01, #ff8732);
+                color: #ffffff;
+                font-weight: 600;
+                text-decoration: none;
+                box-shadow: 0 18px 45px -24px rgba(255, 94, 1, 0.55);
+                transition: transform 0.2s ease, box-shadow 0.2s ease;
+              }
+
+              .investment-market__hero-button:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 26px 55px -24px rgba(255, 94, 1, 0.65);
+              }
+
+              .investment-market__hero-link {
+                color: #ff5e01;
+                font-weight: 600;
+                text-decoration: none;
+                display: inline-flex;
+                gap: 6px;
+                align-items: center;
+                transition: color 0.2s ease;
+              }
+
+              .investment-market__hero-link::after {
+                content: '';
+                font-size: 1rem;
+              }
+
+              .investment-market__hero-link:hover {
+                color: #0f172a;
+              }
+
+              .investment-market__stats {
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+                gap: clamp(16px, 4vw, 24px);
+                width: 100%;
+              }
+
+              .investment-market__stat {
+                background: #f9fafb;
+                border-radius: 18px;
+                padding: clamp(16px, 3vw, 20px);
+                border: 1px solid rgba(226, 232, 240, 0.6);
+                box-shadow: 0 18px 45px -32px rgba(15, 23, 42, 0.45);
+                display: flex;
+                flex-direction: column;
+                gap: 8px;
+                min-height: 140px;
+              }
+
+              .investment-market__stat-label {
+                font-size: 0.74rem;
+                letter-spacing: 0.12em;
+                text-transform: uppercase;
+                color: #64748b;
+                font-weight: 700;
+                white-space: nowrap;
+              }
+
+              .investment-market__stat-value {
+                font-size: clamp(1.35rem, 2.4vw, 1.8rem);
+                font-weight: 700;
+                color: #0f172a;
+                white-space: nowrap;
+              }
+
+              .investment-market__stat-hint {
+                font-size: 0.88rem;
+                color: #64748b;
+                line-height: 1.4;
+              }
+
+              .investment-market__filters {
+                background: #f9fafb;
+                border: 1px solid rgba(226, 232, 240, 0.6);
+                border-radius: 24px;
+                box-shadow: 0 20px 45px -32px rgba(15, 23, 42, 0.45);
+                padding: clamp(24px, 4vw, 32px);
+                display: flex;
+                flex-direction: column;
+                gap: clamp(18px, 4vw, 26px);
+              }
+
+              .investment-market__trust {
+                display: grid;
+                gap: clamp(14px, 3vw, 18px);
+                margin-top: clamp(18px, 3vw, 22px);
+                padding: clamp(20px, 3.5vw, 26px);
+                border-radius: 20px;
+                border: 1px solid rgba(226, 232, 240, 0.65);
+                background: #f9fafb;
+                box-shadow: 0 20px 45px -32px rgba(15, 23, 42, 0.38);
+              }
+
+              .investment-market__trust-intro {
+                display: grid;
+                gap: 6px;
+              }
+
+              .investment-market__trust-eyebrow {
+                font-size: 0.74rem;
+                font-weight: 700;
+                letter-spacing: 0.14em;
+                text-transform: uppercase;
+                color: #ff5e01;
+              }
+
+              .investment-market__trust-copy {
+                margin: 0;
+                font-size: 0.95rem;
+                color: #475569;
+                line-height: 1.55;
+              }
+
+              .investment-market__trust-badges {
+                display: grid;
+                gap: 12px;
+                grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+                list-style: none;
+                padding: 0;
+                margin: 0;
+              }
+
+              .investment-market__trust-badges li {
+                background: #f9fafb;
+                border: 1px solid rgba(226, 232, 240, 0.6);
+                border-radius: 14px;
+                padding: 12px 16px;
+                font-weight: 600;
+                color: #0f172a;
+                letter-spacing: 0.08em;
+              }
+
+
+              .investment-market__search {
+                display: flex;
+                flex-direction: column;
+                gap: 10px;
+              }
+
+              .investment-market__search label {
+                font-size: 0.82rem;
+                font-weight: 700;
+                letter-spacing: 0.12em;
+                text-transform: uppercase;
+                color: #0f172a;
+              }
+
+              .investment-market__search-input {
+                display: flex;
+                align-items: center;
+                gap: 12px;
+                padding: 0.75rem 1rem;
+                border: 1px solid rgba(148, 163, 184, 0.35);
+                border-radius: 16px;
+                background: #f9fafb;
+                transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+              }
+
+              .investment-market__search-input:focus-within {
+                border-color: rgba(37, 99, 235, 0.55);
+                box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.18);
+                background: var(--neutral--white-200);
+              }
+
+              .investment-market__search-input input {
+                flex: 1;
+                border: none;
+                background: transparent;
+                font-size: 1rem;
+                color: #0f172a;
+              }
+
+              .investment-market__chip-row {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 10px;
+                justify-content: center;
+              }
+
+              .investment-market__chip {
+                border-radius: 999px;
+                padding: 0.6rem 1.6rem;
+                border: 1px solid rgba(226, 232, 240, 0.8);
+                background: #f9fafb;
+                color: #0f172a;
+                font-weight: 600;
+                font-size: 0.95rem;
+                cursor: pointer;
+                transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease, color 0.2s ease;
+                box-shadow: 0 8px 18px -15px rgba(15, 23, 42, 0.6);
+              }
+
+              .investment-market__chip:hover {
+                border-color: rgba(255, 94, 1, 0.6);
+                color: #c2410c;
+                background: rgba(255, 247, 237, 0.85);
+              }
+
+              .investment-market__chip.is-active {
+                border-color: rgba(255, 94, 1, 0.75);
+                background: linear-gradient(135deg, #ff5e01, #ff7a2f);
+                color: #ffffff;
+                box-shadow: 0 18px 35px -22px rgba(255, 94, 1, 0.7);
+                transform: translateY(-1px);
+              }
+
+              .investment-market__select-grid {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 18px;
+                justify-content: center;
+                align-items: flex-start;
+              }
+
+              .investment-market__select-group {
+                display: flex;
+                flex-direction: column;
+                gap: 8px;
+                min-width: 220px;
+                flex: 1 1 220px;
+              }
+
+              .investment-market__select-group label {
+                font-size: 0.78rem;
+                font-weight: 700;
+                letter-spacing: 0.12em;
+                text-transform: uppercase;
+                color: #475569;
+              }
+
+              .investment-market__select-group select {
+                width: 100%;
+                border: 1px solid rgba(148, 163, 184, 0.35);
+                border-radius: 12px;
+                padding: 0.8rem 0.9rem;
+                font-size: 0.95rem;
+                background: #f9fafb;
+                color: #0f172a;
+                transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+              }
+
+              .investment-market__select-group select:focus {
+                outline: none;
+                border-color: rgba(37, 99, 235, 0.55);
+                box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.16);
+                background: var(--neutral--white-200);
+              }
+
+              .investment-market__reset {
+                flex: 1 1 220px;
+                min-width: 200px;
+                align-self: flex-end;
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                background: none;
+                border: 1px solid rgba(255, 94, 1, 0.4);
+                padding: 0.5rem 1rem;
+                border-radius: 999px;
+                font-weight: 600;
+                font-size: 0.9rem;
+                color: #ff5e01;
+                cursor: pointer;
+                transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+              }
+
+              .investment-market__reset:hover {
+                background: rgba(255, 94, 1, 0.12);
+                color: #c2410c;
+                border-color: rgba(255, 94, 1, 0.6);
+                box-shadow: 0 10px 18px -14px rgba(255, 94, 1, 0.35);
+              }
+
+              .investment-market__reset:focus-visible {
+                outline: none;
+                background: rgba(255, 94, 1, 0.18);
+                border-color: rgba(255, 94, 1, 0.65);
+              }
+
+              .investment-market__scroller {
+                position: relative;
+                overflow-x: auto;
+                margin: 0 calc(-1 * clamp(18px, 4vw, 36px));
+                padding: 0 clamp(18px, 4vw, 36px) clamp(18px, 3.5vw, 24px);
+                scroll-snap-type: none;
+                -webkit-overflow-scrolling: touch;
+              }
+
+              .investment-market__scroller::-webkit-scrollbar {
+                height: 6px;
+              }
+
+              .investment-market__scroller::-webkit-scrollbar-thumb {
+                background: rgba(148, 163, 184, 0.35);
+                border-radius: 999px;
+              }
+
+              .investment-market__scroller::before,
+              .investment-market__scroller::after {
+                content: none;
+              }
+
+              .investment-market__grid {
+                display: flex;
+                gap: 12px;
+                min-height: 100%;
+              }
+
+              @keyframes investmentCardReveal {
+                from {
+                  opacity: 0;
+                  transform: translateY(14px);
+                }
+                to {
+                  opacity: 1;
+                  transform: translateY(0);
+                }
+              }
+
+              .investment-market__card {
+                flex: 0 0 clamp(280px, 30vw, 420px);
+                background: #f9fafb;
+                border-radius: 16px;
+                overflow: hidden;
+                border: 1px solid rgba(15, 23, 42, 0.08);
+                box-shadow: none;
+                display: flex;
+                flex-direction: column;
+                scroll-snap-align: start;
+                transition: transform 0.25s ease, box-shadow 0.25s ease;
+                opacity: 0;
+                transform: translateY(12px);
+                animation: investmentCardReveal 0.6s ease forwards;
+                will-change: transform;
+                min-height: 320px;
+              }
+
+              .investment-market__card:nth-child(1) { animation-delay: 0.05s; }
+              .investment-market__card:nth-child(2) { animation-delay: 0.1s; }
+              .investment-market__card:nth-child(3) { animation-delay: 0.15s; }
+              .investment-market__card:nth-child(4) { animation-delay: 0.2s; }
+              .investment-market__card:nth-child(5) { animation-delay: 0.25s; }
+              .investment-market__card:nth-child(6) { animation-delay: 0.3s; }
+
+              .investment-market__card[data-highlighted="true"] {
+                border: 2px solid rgba(255, 94, 1, 0.65);
+                box-shadow: none;
+              }
+
+              .investment-market__media {\n                position: relative;\n                height: clamp(60px, 8vw, 100px);\n                overflow: hidden;\n                margin: 0 -1rem;\n              }
+
+              .investment-market__media img {\r\n                width: 100%;\r\n                height: 100%;\r\n                max-height: 140px;
+                object-fit: cover;
+                transition: transform 0.45s ease;
+              }
+
+              .investment-market__status {
+                position: absolute;
+                top: 18px;
+                left: 18px;
+                padding: 0.45rem 1.2rem;
+                border-radius: 999px;
+                font-size: 0.78rem;
+                letter-spacing: 0.12em;
+                text-transform: uppercase;
+                font-weight: 700;
+                color: #ffffff;
+              }
+
+              .investment-market__roi {
+                position: absolute;
+                top: 18px;
+                right: 18px;
+                display: inline-flex;
+                align-items: center;
+                gap: 6px;
+                padding: 6px 12px;
+                border-radius: 999px;
+                background: rgba(15, 23, 42, 0.9);
+                color: #f8fafc;
+                text-transform: uppercase;
+                letter-spacing: 0.12em;
+                font-size: 0.7rem;
+                font-weight: 700;
+              }
+
+              .investment-market__roi-value {
+                font-size: 0.8rem;
+                letter-spacing: 0.08em;
+              }
+
+              .investment-market__roi-label {
+                font-size: 0.66rem;
+                letter-spacing: 0.1em;
+                text-transform: uppercase;
+                color: rgba(226, 232, 240, 0.78);
+              }
+
+              .investment-market__body {
+                display: flex;
+                flex-direction: column;
+                gap: 16px;
+                padding: clamp(16px, 3vw, 24px);
+              }
+
+              .investment-market__heading {
+                display: flex;
+                flex-direction: column;
+                gap: 10px;
+              }
+
+              .investment-market__tag {
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                padding: 4px 12px;
+                border-radius: 999px;
+                font-size: 0.7rem;
+                font-weight: 700;
+                letter-spacing: 0.12em;
+                text-transform: uppercase;
+                color: #ff5e01;
+                background: rgba(255, 94, 1, 0.12);
+              }
+
+              .investment-market__heading h3 {
+                margin: 0;
+                font-size: 1.18rem;
+                line-height: 1.28;
+                color: #0f172a;
+              }
+
+              .investment-market__location {
+                display: flex;
+                align-items: center;
+                gap: 6px;
+                font-size: 0.82rem;
+                font-weight: 600;
+                color: #475569;
+              }
+
+              .investment-market__summary {
+                margin: 0;
+                font-size: 0.85rem;
+                line-height: 1.5;
+                color: #64748b;
+              }
+
+              .investment-market__metrics,
+              .investment-market__details-grid {
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+                gap: 12px;
+                padding: 14px 16px;
+                border-radius: 14px;
+                border: 1px solid rgba(203, 213, 225, 0.45);
+                background: rgba(248, 250, 252, 0.9);
+              }
+
+              .investment-market__metric,
+              .investment-market__details-item {
+                display: flex;
+                flex-direction: column;
+                gap: 4px;
+              }
+
+              .investment-market__metric-label,
+              .investment-market__details-label {
+                font-size: 0.68rem;
+                letter-spacing: 0.12em;
+                text-transform: uppercase;
+                font-weight: 600;
+                color: #94a3b8;
+              }
+
+              .investment-market__metric-value,
+              .investment-market__details-value {
+                font-size: 0.95rem;
+                font-weight: 600;
+                color: #0f172a;
+              }
+
+              .investment-market__insights {
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+                gap: 10px;
+                padding: 14px 16px;
+                border-radius: 12px;
+                background: rgba(248, 250, 252, 0.86);
+                border: 1px dashed rgba(203, 213, 225, 0.6);
+              }
+
+              .investment-market__insight {
+                display: grid;
+                gap: 4px;
+              }
+
+              .investment-market__insight-label {
+                font-size: 0.64rem;
+                letter-spacing: 0.16em;
+                text-transform: uppercase;
+                color: #64748b;
+                font-weight: 600;
+              }
+
+              .investment-market__insight-value {
+                font-size: 0.9rem;
+                font-weight: 700;
+                color: #0f172a;
+              }
+
+              .investment-market__progress {
+                display: flex;
+                flex-direction: column;
+                gap: 10px;
+              }
+
+              .investment-market__progress-header {
+                display: flex;
+                justify-content: space-between;
+                font-size: 0.9rem;
+                font-weight: 600;
+                color: #475569;
+              }
+
+              .investment-market__progress-bar {
+                position: relative;
+                width: 100%;
+                height: 8px;
+                border-radius: 999px;
+                background: rgba(255, 94, 1, 0.12);
+                overflow: hidden;
+              }
+
+              .investment-market__progress-fill {
+                position: absolute;
+                inset: 0;
+                background: linear-gradient(90deg, #ff5e01 0%, #ff8534 100%);
+                border-radius: 999px;
+                transition: width 0.4s ease;
+              }
+
+              .investment-market__actions {
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                flex-wrap: wrap;
+                gap: 12px;
+                margin-top: 6px;
+              }
+
+              .investment-market__actions > * {
+                flex: 0 1 210px;
+                max-width: 220px;
+              }
+
+              .cta-button-wrapper .button {
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                width: 100%;
+                padding: 0.75rem 1.6rem;
+                border-radius: 12px;
+                font-weight: 600;
+                text-decoration: none;
+                letter-spacing: 0.01em;
+              }
+
+              .cta-button-wrapper .button-text {
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                width: 100%;
+              }
+
+              .investment-market__secondary,
+              .investment-market__primary {
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                width: 100%;
+                padding: 0.75rem 1.6rem;
+                border-radius: 12px;
+                font-weight: 600;
+                text-decoration: none;
+                transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease, color 0.2s ease;
+              }
+
+              .investment-market__secondary {
+                border: 1px solid rgba(15, 23, 42, 0.12);
+                color: #0f172a;
+                background: rgba(15, 23, 42, 0.05);
+              }
+
+              .investment-market__secondary:hover {
+                transform: translateY(-1px);
+                background: rgba(255, 94, 1, 0.12);
+                border-color: rgba(255, 94, 1, 0.55);
+                color: #c2410c;
+              }
+
+              .investment-market__primary {
+                background: linear-gradient(135deg, #ff5e01, #ff7a2f);
+                color: #ffffff;
+                box-shadow: 0 16px 35px -20px rgba(255, 94, 1, 0.75);
+              }
+
+              .investment-market__primary:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 20px 45px -20px rgba(255, 94, 1, 0.8);
+              }
+
+              .investment-market__support {
+                margin-top: 10px;
+                display: flex;
+                gap: 10px;
+                justify-content: center;
+                flex-wrap: wrap;
+              }
+
+              .investment-market__support > * {
+                flex: 0 1 auto;
+                white-space: nowrap;
+              }
+
+              @media (min-width: 768px) {
+                .investment-market__support {
+                  flex-wrap: nowrap;
+                }
+              }
+
+              .investment-market__document,
+              .investment-market__share {
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                padding: 0.55rem 1.1rem;
+                border-radius: 8px;
+                font-weight: 600;
+                border: 1px solid rgba(15, 23, 42, 0.12);
+                background: #f9fafb;
+                color: #0f172a;
+                text-decoration: none;
+                transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease, color 0.2s ease;
+              }
+
+              .investment-market__document:hover,
+              .investment-market__share:hover {
+                transform: translateY(-1px);
+                background: rgba(226, 232, 240, 0.9);
+                box-shadow: 0 10px 25px -18px rgba(15, 23, 42, 0.4);
+                color: #0f172a;
+              }
+
+              .investment-market__share {
+                cursor: pointer;
+              }
+
+              @media (max-width: 1024px) {
+                .investment-market__header {
+                  grid-template-columns: 1fr;
+                  gap: 32px;
+                }
+
+                .investment-market__stats {
+                  grid-template-columns: repeat(2, minmax(0, 1fr));
+                }
+
+                .investment-market__card {
+                  flex: 0 0 clamp(320px, 55vw, 420px);
+                  box-shadow: none;
+                }
+              }
+
+              @media (max-width: 768px) {
+                .investment-market__filters {
+                  padding: 26px;
+                }
+
+                .investment-market__stats {
+                  grid-template-columns: 1fr;
+                }
+
+                .investment-market__card {
+                  flex: 0 0 clamp(280px, 85vw, 360px);
+                  box-shadow: none;
+                }
+
+                .investment-market__actions {
+                  flex-direction: column;
+                }
+
+                .investment-market__actions > * {
+                  max-width: 100%;
+                }
+
+                .investment-market__trust-badges {
+                  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+                }
+
+                .investment-market__insights {
+                  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+                }
+              }
+
+              @media (max-width: 575px) {
+                .investment-market__shell {
+                  gap: 32px;
+                }
+
+                .investment-market__filters {
+                  padding: 22px;
+                  gap: 18px;
+                }
+
+                .investment-market__search-input {
+                  padding: 0.65rem 0.9rem;
+                }
+
+                .investment-market__chip {
+                  flex: 1 1 calc(50% - 8px);
+                  text-align: center;
+                }
+
+                .investment-market__select-group {
+                  min-width: 100%;
+                }
+
+                .investment-market__reset {
+                  width: 100%;
+                  text-align: center;
+                  min-width: 0;
+                  justify-content: center;
+                  align-self: center;
+                  padding: 0.55rem 1rem;
+                  font-size: 0.92rem;
+                }
+
+                .investment-market__support {
+                  flex-wrap: wrap;
+                  gap: 10px;
+                }
+
+                .investment-market__support > * {
+                  flex: 1 1 100%;
+                  text-align: center;
+                }
+
+                .investment-market__media {\n                  height: clamp(85px, 24vw, 120px);\n                  margin: 0 -1rem;\n                }
+
+                .investment-market__body {
+                  padding: 16px;
+                }
+
+                .investment-market__metrics,
+              .investment-market__details-grid {
+                  grid-template-columns: 1fr;
+                  gap: 10px;
+                }
+
+                .investment-market__trust {
+                  padding: 18px;
+                  gap: 12px;
+                }
+
+                .investment-market__trust-badges {
+                  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+                }
+
+                .investment-market__card {
+                  flex: 0 0 100%;
+                  box-shadow: none;
+                }
+
+                .investment-market__insights {
+                  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+                }
+
+                .investment-market__support {
+                  flex-direction: column;
+                }
+              }
+            `}</style>
+          </section>
+
+          <section className="investment-how-it-works">
+            <div className="investment-how-it-works__shell">
+              <div className="investment-how-it-works__intro">
+                <span className="investment-how-it-works__eyebrow">How REMMIC works</span>
+                <h3>From discovery to distributions in three simple steps</h3>
+                <p>Navigate a fully digital, compliance-ready investment experience tailored for serious property investors.</p>
+              </div>
+              <div className="investment-how-it-works__grid">
+                <article className="investment-how-it-works__card">
+                  <span className="investment-how-it-works__step">01</span>
+                  <h4>Review the deal room</h4>
+                  <p>Access property decks, sponsor track records, and underwriting models. Every asset is internally reviewed and third-party verified.</p>
+                </article>
+                <article className="investment-how-it-works__card">
+                  <span className="investment-how-it-works__step">02</span>
+                  <h4>Commit capital digitally</h4>
+                  <p>Reserve your allocation, sign documents with e-sign, and fund through segregated escrow - no manual paperwork required.</p>
+                </article>
+                <article className="investment-how-it-works__card">
+                  <span className="investment-how-it-works__step">03</span>
+                  <h4>Track performance & payouts</h4>
+                  <p>Monitor rental income, value appreciation, and quarterly statements directly from your REMMIC dashboard.</p>
+                </article>
+              </div>
+            </div>
+            <style jsx>{`
+              .investment-how-it-works {
+                padding: clamp(60px, 8vw, 90px) clamp(20px, 6vw, 60px);
+                background: #f9fafb;
+                color: #0f172a;
+              }
+
+              .investment-how-it-works__shell {
+                width: min(1100px, 100%);
+                margin: 0 auto;
+                display: grid;
+                gap: clamp(32px, 6vw, 40px);
+              }
+
+              .investment-how-it-works__intro {
+                display: grid;
+                gap: 12px;
+                text-align: center;
+              }
+
+              .investment-how-it-works__eyebrow {
+                font-size: 0.78rem;
+                letter-spacing: 0.16em;
+                text-transform: uppercase;
+                color: #f97316;
+                font-weight: 700;
+              }
+
+              .investment-how-it-works__intro h3 {
+                margin: 0;
+                font-size: clamp(1.8rem, 4vw, 2.6rem);
+                font-weight: 700;
+                color: #0f172a;
+              }
+
+              .investment-how-it-works__intro p {
+                margin: 0;
+                font-size: 1rem;
+                color: #475569;
+              }
+
+              .investment-how-it-works__grid {
+                display: grid;
+                gap: clamp(18px, 4vw, 24px);
+                grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+              }
+
+              .investment-how-it-works__card {
+                background: #f9fafb;
+                border: 1px solid rgba(203, 213, 225, 0.55);
+                border-radius: 20px;
+                padding: clamp(20px, 4vw, 28px);
+                display: grid;
+                gap: 12px;
+                text-align: left;
+                box-shadow: none;
+              }
+
+              .investment-how-it-works__step {
+                font-size: 0.78rem;
+                letter-spacing: 0.2em;
+                text-transform: uppercase;
+                color: rgba(249, 115, 22, 0.9);
+                font-weight: 700;
+              }
+
+              .investment-how-it-works__card h4 {
+                margin: 0;
+                font-size: 1.2rem;
+                font-weight: 600;
+                color: #0f172a;
+              }
+
+              .investment-how-it-works__card p {
+                margin: 0;
+                font-size: 0.95rem;
+                color: #475569;
+                line-height: 1.6;
+              }
+
+              @media (max-width: 640px) {
+                .investment-how-it-works__intro {
+                  text-align: left;
+                }
+              }
+            `}</style>
+          </section>
+
+          <section className="investment-insight">
+            <div className="investment-insight__shell">
+              <div className="investment-insight__column">
+                <h3>Investor spotlight</h3>
+                <blockquote>
+                  "REMMIC's digital workflows cut our investment time in half. Escrow updates, sponsor calls, and documents are all in one place."
+                </blockquote>
+                <cite>Fatima H., Karachi-based investor</cite>
+              </div>
+              <div className="investment-insight__column">
+                <h4>Need a quick answer?</h4>
+                <ul>
+                  <li><a href="#">How funding and escrow works</a></li>
+                  <li><a href="#">Liquidity options & secondary market</a></li>
+                  <li><a href="#">Sponsor due diligence process</a></li>
+                  <li><a href="#">Tax statements & reporting</a></li>
+                </ul>
+                <a className="investment-insight__cta" href="mailto:invest@remmic.com">Email our investment desk</a>
+              </div>
+              <div className="investment-insight__column">
+                <h4>Upcoming milestones</h4>
+                <div className="investment-insight__timeline">
+                  <div>
+                    <strong>March 28</strong>
+                    <span>New Islamabad rental pool closes</span>
+                  </div>
+                  <div>
+                    <strong>April 04</strong>
+                    <span>Virtual sponsor Q&A session</span>
+                  </div>
+                  <div>
+                    <strong>April 18</strong>
+                    <span>Dividend distribution window</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <style jsx>{`
+              .investment-insight {
+                padding: clamp(60px, 7vw, 90px) clamp(20px, 6vw, 60px);
+                background: #f9fafb;
+              }
+
+              .investment-insight__shell {
+                width: min(1100px, 100%);
+                margin: 0 auto;
+                display: grid;
+                gap: clamp(24px, 6vw, 32px);
+                grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+              }
+
+              .investment-insight__column {
+                background: #f9fafb;
+                border-radius: 20px;
+                border: 1px solid rgba(226, 232, 240, 0.6);
+                box-shadow: none;
+                padding: clamp(20px, 4vw, 28px);
+                display: grid;
+                gap: 16px;
+              }
+
+              blockquote {
+                margin: 0;
+                font-size: 1.05rem;
+                color: #0f172a;
+                line-height: 1.6;
+              }
+
+              cite {
+                font-size: 0.9rem;
+                color: #475569;
+              }
+
+              .investment-insight__column ul {
+                list-style: none;
+                padding: 0;
+                margin: 0;
+                display: grid;
+                gap: 10px;
+              }
+
+              .investment-insight__column a {
+                color: #0f172a;
+                text-decoration: none;
+                font-weight: 600;
+              }
+
+              .investment-insight__cta {
+                display: inline-flex;
+                align-items: center;
+                gap: 6px;
+              }
+
+              .investment-insight__cta::after {
+                content: '';
+              }
+
+              .investment-insight__timeline {
+                display: grid;
+                gap: 12px;
+              }
+
+              .investment-insight__timeline strong {
+                display: block;
+                font-weight: 700;
+                color: #0f172a;
+              }
+
+              .investment-insight__timeline span {
+                color: #475569;
+                font-size: 0.92rem;
+              }
+            `}</style>
+          </section>
+
+
+          {/* Why REMMIC Section */}          {/* Why REMMIC Section */}
+          
+
+          {/* CTA Section */}
+          <section className="section-cta">
+            <div className="padding-global" style={{ maxWidth: '1600px', margin: '0 auto', padding: '0 48px' }}>
+              <div className="container-large" style={{ maxWidth: '100%' }}>
+                <div className="padding-section-medium">
+                  <div data-w-id="03b4adc1-f918-bae5-37d1-18bef1a11870" className="cta-component">
+                    <div className="cta-content">
+                      <h2 className="heading-style-h2">Join the future of real estate</h2>
+                      <div className="cta-button-wrapper">
+                        <a href="/contact" className="button is-secondary w-inline-block">
+                          <div className="button-text">Get Started</div>
+                        </a>
+                        <a href="/signup" className="button w-inline-block">
+                          <div className="button-text">Try For Free</div>
+                        </a>
+                      </div>
+                    </div>
+                    <div className="cta-image-wrapper">
+                      <img src="https://cdn.prod.website-files.com/68a06250db2face4039500cc/68a70f8af95c3cf69a01112e_Cta%20Image.png" 
+                           loading="lazy" 
+                           sizes="(max-width: 802px) 100vw, 802px" 
+                           srcSet="https://cdn.prod.website-files.com/68a06250db2face4039500cc/68a70f8af95c3cf69a01112e_Cta%20Image-p-500.png 500w, https://cdn.prod.website-files.com/68a06250db2face4039500cc/68a70f8af95c3cf69a01112e_Cta%20Image-p-800.png 800w, https://cdn.prod.website-files.com/68a06250db2face4039500cc/68a70f8af95c3cf69a01112e_Cta%20Image.png 802w" 
+                           alt="" 
+                           className="cta-image" />
+                    </div>
+                    <div className="cta-glass-image-wrapper">
+                      <img src="https://cdn.prod.website-files.com/68a06250db2face4039500cc/68a33e286e2e1212a5ec3dd9_glass.png" 
+                           loading="lazy" 
+                           alt="" 
+                           className="cta-glass-image" />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          {/* Testimonial Section */}
+          <section className="section-testimonial">
+            <div className="padding-global" style={{ maxWidth: '1600px', margin: '0 auto', padding: '0 48px' }}>
+              <div className="container-large" style={{ maxWidth: '100%' }}>
+                <div className="padding-section-medium">
+                  <div className="testimonial-component">
+                    <div data-w-id="7700d1c4-64a2-cbf3-320e-4553985a2ee0" className="testimonial-top-content">
+                      <div className="feature-head-line">
+                        <div>Testimonial</div>
+                      </div>
+                      <h2 className="heading-style-h2">Loved by Property Managers Worldwide</h2>
+                    </div>
+                    <div data-w-id="7700d1c4-64a2-cbf3-320e-4553985a2ee6" className="testimonial-bottom-content-wrap">
+                      <div data-delay="4000" 
+                           data-animation="over" 
+                           className="testimonial-slider w-slider" 
+                           data-autoplay="false" 
+                           data-easing="ease" 
+                           data-hide-arrows="false" 
+                           data-disable-swipe="false" 
+                           data-autoplay-limit="0" 
+                           data-nav-spacing="3" 
+                           data-duration="500" 
+                           data-infinite="true">
+                        <div className="testimonial-slider-mask w-slider-mask">
+                          <div className="testimonial-slide w-slide">
+                            <div className="testimonial-card">
+                              <div className="testimonial-top-content-wrapper">
+                                <img src="https://cdn.prod.website-files.com/68a06250db2face4039500cc/68aae546a140f93a4bb33a7a_%E2%80%9C.svg" loading="lazy" alt="" className="testimonial-icon" />
+                                <div className="testimonial-right-star-wrap">
+                                  {[...Array(5)].map((_, i) => (
+                                    <img key={i} src="https://cdn.prod.website-files.com/68a06250db2face4039500cc/68aae546cc071081e444df28_Star%2011.svg" loading="lazy" alt="" className="star-image" />
+                                  ))}
+                                </div>
+                              </div>
+                              <h6 className="heading-style-h6 is-testimonial">
+                                "I've tried several property management tools, but none compare to this. The dashboards are clear, automation features are fantastic, and everything feels seamless. Rent collection, tenant communication, and lease management are now stress-free. I highly recommend it to anyone managing multiple units. It has truly elevated the way I run my properties."
+                              </h6>
+                              <div className="testimonial-bottom-content">
+                                <div className="testimonial-bottom-left-content">
+                                  <div className="testimonial-author-image-wrap">
+                                    <img src="https://cdn.prod.website-files.com/68a06250db2face4039500cc/68ab1722605478a79ebf18d8_Testimonial%201.png" loading="lazy" alt="" className="testimonial-author-image" />
+                                  </div>
+                                  <div className="author-content">
+                                    <div className="text-size-regular is-black-900">Daniel Reyes</div>
+                                    <div className="text-size-small tex-color-black-700">Real Estate Investor</div>
+                                  </div>
+                                </div>
+                                <a href="https://x.com/" target="_blank" className="author-social-media-link-wrap w-inline-block">
+                                  <div className="author-social-media-link">
+                                    <img src="https://cdn.prod.website-files.com/68a06250db2face4039500cc/68ab181859e87c557d75e6c5_x.com.svg" loading="lazy" alt="" className="social-icon normal" />
+                                    <img src="https://cdn.prod.website-files.com/68a06250db2face4039500cc/68ac24611de591518864682a_twitter%2002.svg" loading="lazy" alt="X" className="social-icon hover" />
+                                  </div>
+                                </a>
+                              </div>
+                            </div>
+                          </div>
+                          <div className="testimonial-slide w-slide">
+                            <div className="testimonial-card">
+                              <div className="testimonial-top-content-wrapper">
+                                <img src="https://cdn.prod.website-files.com/68a06250db2face4039500cc/68aae546a140f93a4bb33a7a_%E2%80%9C.svg" loading="lazy" alt="" className="testimonial-icon" />
+                                <div className="testimonial-right-star-wrap">
+                                  {[...Array(5)].map((_, i) => (
+                                    <img key={i} src="https://cdn.prod.website-files.com/68a06250db2face4039500cc/68aae546cc071081e444df28_Star%2011.svg" loading="lazy" alt="" className="star-image" />
+                                  ))}
+                                </div>
+                              </div>
+                              <h6 className="heading-style-h6 is-testimonial">
+                                "Managing multiple properties used to be chaotic, but this platform changed everything. I can track payments, schedule maintenance, and communicate with tenants all in one place. It's intuitive, reliable, and has saved me countless hours each week. Truly a game-changer for property managers! I now feel more in control and confident about my property business than ever before."
+                              </h6>
+                              <div className="testimonial-bottom-content">
+                                <div className="testimonial-bottom-left-content">
+                                  <div className="testimonial-author-image-wrap">
+                                    <img src="https://cdn.prod.website-files.com/68a06250db2face4039500cc/68ab1bc75dd5d4ab5f790c53_3.png" loading="lazy" alt="" className="testimonial-author-image" />
+                                  </div>
+                                  <div className="author-content">
+                                    <div className="text-size-regular is-black-900">Alex Morgan</div>
+                                    <div className="text-size-small tex-color-black-700">Landlord & Portfolio Manager</div>
+                                  </div>
+                                </div>
+                                <a href="https://x.com/" target="_blank" className="author-social-media-link-wrap w-inline-block">
+                                  <div className="author-social-media-link">
+                                    <img src="https://cdn.prod.website-files.com/68a06250db2face4039500cc/68ab181859e87c557d75e6c5_x.com.svg" loading="lazy" alt="" className="social-icon normal" />
+                                    <img src="https://cdn.prod.website-files.com/68a06250db2face4039500cc/68ac24611de591518864682a_twitter%2002.svg" loading="lazy" alt="X" className="social-icon hover" />
+                                  </div>
+                                </a>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                        <div className="testimonial-left-arrow w-slider-arrow-left">
+                          <div className="testimonial-arrow-wrap">
+                            <img src="https://cdn.prod.website-files.com/68a06250db2face4039500cc/68ab1acd805301b6dbaa349e_Left%20.svg" loading="lazy" alt="" className="normal-arrow" />
+                            <img src="https://cdn.prod.website-files.com/68a06250db2face4039500cc/68ab1acd605478a79ebfddcb_Left%20Hover.svg" loading="lazy" alt="" className="hover-arrow" />
+                          </div>
+                        </div>
+                        <div className="testimonial-right-arrow w-slider-arrow-right">
+                          <div className="testimonial-arrow-wrap">
+                            <img src="https://cdn.prod.website-files.com/68a06250db2face4039500cc/68ab1acd1b87ff896e8e5e70_Right%20.svg" loading="lazy" alt="" className="normal-arrow" />
+                            <img src="https://cdn.prod.website-files.com/68a06250db2face4039500cc/68ab1acd02e976cbdb58eeb8_Hover%20Right%20.svg" loading="lazy" alt="" className="hover-arrow" />
+                          </div>
+                        </div>
+                        <div className="testimonial-nav w-slider-nav w-slider-nav-invert w-round"></div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+
+        </main>
+
+        {/* Secondary Market Section */}
+        <section style={{ background: '#f9fafb', padding: '60px 0' }}>
+          <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '0 20px' }}>
+            <div style={{ textAlign: 'center', marginBottom: '40px' }}>
+              <h2 style={{ fontSize: '32px', fontWeight: '700', color: '#1f2937', marginBottom: '16px' }}>
+                Secondary Market
+              </h2>
+              <p style={{ fontSize: '18px', color: '#6b7280', margin: 0 }}>
+                Trade shares with other investors in our secure secondary marketplace
+              </p>
+            </div>
+            {filteredInvestments.length > 0 && (
+              <div className="secondary-market-wrapper">
+              <SecondaryMarket 
+                propertyId={investmentShares[0]?.id || 'demo-property'}
+                propertyTitle={investmentShares[0]?.title || 'Model Town Residency'}
+                currentSharePrice={investmentShares[0]?.sharePrice || 50000}
+              />
+              </div>
+            )}
+          </div>
+        </section>
+
+        {/* Footer */}
+        <Footer />
+      </div>
+    </>
+  )
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

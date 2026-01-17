@@ -1,0 +1,109 @@
+*** Begin Patch
+*** Update File: pages/land-registration.js
+@@
+-                      <div className="form-row">
+-                        <div className="contact-input-field-wrapper">
+-                          <label htmlFor="cnicdoc">Upload CNIC Document *</label>
+-                          <input
+-                            type="file"
+-                            id="cnicdoc"
+-                            name="cnicdoc"
+-                            onChange={handleInputChange}
+-                            required
+-                            accept=".pdf,.jpg,.jpeg,.png"
+-                            style={{
+-                              borderRadius: '12px',
+-                              border: '2px solid #e5e7eb',
+-                              padding: '12px 16px',
+-                              fontSize: '14px',
+-                              transition: 'all 0.3s ease',
+-                              boxShadow: '0 2px 4px rgba(0,0,0,0.05)',
+-                              background: 'white'
+-                            }}
+-                            onFocus={(e) => e.target.style.borderColor = '#ff5e01'}
+-                            onBlur={(e) => e.target.style.borderColor = '#e5e7eb'}
+-                          />
+-                        </div>
+-                        <div className="contact-input-field-wrapper">
+-                          <label htmlFor="landdoc">Upload Land Document *</label>
+-                          <input
+-                            type="file"
+-                            id="landdoc"
+-                            name="landdoc"
+-                            onChange={handleInputChange}
+-                            required
+-                            accept=".pdf,.jpg,.jpeg,.png"
+-                            style={{
+-                              borderRadius: '12px',
+-                              border: '2px solid #e5e7eb',
+-                              padding: '12px 16px',
+-                              fontSize: '14px',
+-                              transition: 'all 0.3s ease',
+-                              boxShadow: '0 2px 4px rgba(0,0,0,0.05)',
+-                              background: 'white'
+-                            }}
+-                            onFocus={(e) => e.target.style.borderColor = '#ff5e01'}
+-                            onBlur={(e) => e.target.style.borderColor = '#e5e7eb'}
+-                          />
+-                        </div>
+-                      </div>
++                      <div className="form-row">
++                        <div className="contact-input-field-wrapper" style={{ width: '100%' }}>
++                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
++                            <label htmlFor="cnicdoc" style={{ marginBottom: '8px' }}>Upload CNIC Document *</label>
++                            <span style={{ fontSize: '12px', color: '#6b7280' }}>
++                              {formData.cnicdoc ? `${formData.cnicdoc.name} attached` : 'Attach CNIC (PDF/JPG/PNG)'}
++                            </span>
++                          </div>
++                          <input
++                            type="file"
++                            id="cnicdoc"
++                            name="cnicdoc"
++                            onChange={handleInputChange}
++                            required
++                            accept=".pdf,.jpg,.jpeg,.png"
++                            style={{
++                              borderRadius: '12px',
++                              border: '2px dashed #e5e7eb',
++                              padding: '12px 16px',
++                              fontSize: '14px',
++                              transition: 'all 0.3s ease',
++                              boxShadow: '0 2px 4px rgba(0,0,0,0.05)',
++                              background: '#f9fafb'
++                            }}
++                            onFocus={(e) => e.target.style.borderColor = '#ff5e01'}
++                            onBlur={(e) => e.target.style.borderColor = '#e5e7eb'}
++                          />
++                        </div>
++                      </div>
++
++                      <div className="form-row" style={{ marginTop: '12px' }}>
++                        <div className="contact-input-field-wrapper" style={{ width: '100%' }}>
++                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
++                            <label htmlFor="landdoc" style={{ marginBottom: '8px' }}>Upload Land Document *</label>
++                            <span style={{ fontSize: '12px', color: '#6b7280' }}>
++                              {formData.landdoc ? `${formData.landdoc.name} attached` : 'Attach land doc (PDF/JPG/PNG)'}
++                            </span>
++                          </div>
++                          <input
++                            type="file"
++                            id="landdoc"
++                            name="landdoc"
++                            onChange={handleInputChange}
++                            required
++                            accept=".pdf,.jpg,.jpeg,.png"
++                            style={{
++                              borderRadius: '12px',
++                              border: '2px dashed #e5e7eb',
++                              padding: '12px 16px',
++                              fontSize: '14px',
++                              transition: 'all 0.3s ease',
++                              boxShadow: '0 2px 4px rgba(0,0,0,0.05)',
++                              background: '#f9fafb'
++                            }}
++                            onFocus={(e) => e.target.style.borderColor = '#ff5e01'}
++                            onBlur={(e) => e.target.style.borderColor = '#e5e7eb'}
++                          />
++                        </div>
++                      </div>
+*** End Patch
