@@ -13,6 +13,14 @@ export default function Dashboard() {
   const [userProperties, setUserProperties] = useState([])
   const [userInvestments, setUserInvestments] = useState([])
   const [activeSection, setActiveSection] = useState('overview')
+  
+  // Check for URL section parameter
+  useEffect(() => {
+    const { section } = router.query
+    if (section && ['overview', 'properties', 'investments', 'activity'].includes(section)) {
+      setActiveSection(section)
+    }
+  }, [router.query])
   const [isVisible, setIsVisible] = useState(false)
 
   useEffect(() => {
@@ -62,8 +70,33 @@ export default function Dashboard() {
             setUserInvestments(invResult.investments || [])
           }
         } catch (e) {
-          const stored = localStorage.getItem('userInvestments')
-          if (stored) setUserInvestments(JSON.parse(stored))
+          let stored = localStorage.getItem('userInvestments')
+          if (stored) {
+            let investments = JSON.parse(stored)
+            
+            // Update existing investments with ownership percentage if missing
+            let hasUpdates = false
+            investments = investments.map(investment => {
+              if (!investment.ownershipPercentage && investment.shares) {
+                hasUpdates = true
+                const totalShares = investment.totalShares || 1000 // fallback
+                const ownershipPercentage = ((investment.shares / totalShares) * 100).toFixed(2)
+                return {
+                  ...investment,
+                  totalShares,
+                  ownershipPercentage: parseFloat(ownershipPercentage)
+                }
+              }
+              return investment
+            })
+            
+            // Save updated data back to localStorage
+            if (hasUpdates) {
+              localStorage.setItem('userInvestments', JSON.stringify(investments))
+            }
+            
+            setUserInvestments(investments)
+          }
         }
       }
     }
@@ -470,7 +503,27 @@ export default function Dashboard() {
                           </div>
                           <div className="investment-card__stat">
                             <span className="label">Ownership</span>
-                            <span className="value">{investment.ownershipPercentage || 0}%</span>
+                            <span className="value">
+                              {(() => {
+                                // If ownershipPercentage is already calculated
+                                if (investment.ownershipPercentage) {
+                                  return `${investment.ownershipPercentage}%`;
+                                }
+                                
+                                // If we have shares and totalShares, calculate
+                                if (investment.shares && investment.totalShares) {
+                                  return `${((investment.shares / investment.totalShares) * 100).toFixed(2)}%`;
+                                }
+                                
+                                // Fallback for older investments - assume 1000 total shares
+                                if (investment.shares) {
+                                  const fallbackTotalShares = 1000;
+                                  return `${((investment.shares / fallbackTotalShares) * 100).toFixed(2)}%`;
+                                }
+                                
+                                return '0%';
+                              })()}
+                            </span>
                           </div>
                           <div className="investment-card__stat">
                             <span className="label">Date</span>

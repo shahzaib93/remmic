@@ -40,7 +40,7 @@ export default function Navbar() {
   const navItems = [
     { href: '/how-it-works', label: 'How It Works' },
     { href: '/marketplace', label: 'Marketplace' },
-    { href: '/investment-models', label: 'Invest' },
+    { href: '/investment-shares', label: 'Invest' },
     { href: '/services', label: 'Services' },
     { href: '/trust-security', label: 'Trust' },
     { href: '/about', label: 'About' },
