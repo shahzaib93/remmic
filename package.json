@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "description": "REMMIC Real Estate Platform",
   "scripts": {
-    "dev": "next dev -p 3008",
+    "dev": "set NEXT_SWC_DISABLED=1 && node node_modules/next/dist/bin/next dev -p 3008",
     "build": "next build",
     "start": "next start",
     "docker:build": "docker build -t remmic-app .",
@@ -45,6 +45,7 @@
   },
   "devDependencies": {
     "autoprefixer": "^10.4.23",
+    "cross-env": "^10.1.0",
     "postcss": "^8.5.6",
     "tailwindcss": "^3.4.19"
   }

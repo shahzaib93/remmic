@@ -59,7 +59,10 @@
       "Bash(timeout 10 npm run dev -- -p 3013)",
       "Bash(timeout 15 npm run dev -- -p 3013)",
       "Bash(npm cache clean:*)",
-      "Bash(timeout 15 npm run dev -- -p 3014)"
+      "Bash(timeout 15 npm run dev -- -p 3014)",
+      "Bash(npx next dev:*)",
+      "Bash(ls:*)",
+      "Bash(npm list:*)"
     ],
     "additionalDirectories": [
       "/home/aicoder/Documents/Remmic"

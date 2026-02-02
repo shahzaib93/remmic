@@ -15,10 +15,11 @@ export default function Home() {
   const getHighDemandProperties = () => {
     return mockProperties
       .slice(0, 8) // Get first 8 properties
-      .map(property => {
-        // Calculate ROI based on property price range and type
-        let roi = 8.5 + (Math.random() * 6) // Base 8.5% + up to 6% variation
-        
+      .map((property, index) => {
+        // Deterministic variation based on property price and index (avoids hydration mismatch)
+        const seed = ((property.price % 1000) / 1000)
+        let roi = 8.5 + (seed * 6) // Base 8.5% + up to 6% variation
+
         if (property.propertyType?.includes('Commercial') || property.propertyType?.includes('Office')) {
           roi += 3 // Commercial properties typically have higher ROI
         }
@@ -50,7 +51,7 @@ export default function Home() {
         }
 
         // Calculate minimum investment (typically 20-30% of property value)
-        const minInvestmentPercent = 0.2 + (Math.random() * 0.1) // 20-30%
+        const minInvestmentPercent = 0.2 + (((index + 1) * 7 % 10) / 100) // deterministic 20-29%
         const minInvestment = Math.round(property.price * minInvestmentPercent / 100000) * 100000
 
         return {
