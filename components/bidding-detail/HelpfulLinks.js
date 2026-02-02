@@ -39,7 +39,7 @@ export default function HelpfulLinks() {
   return (
     <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
       <h2 className="text-lg font-bold text-gray-900 mb-6 flex items-center gap-2">
-        <svg className="w-5 h-5 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <svg className="w-5 h-5 text-[#c9a227]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
         </svg>
         Helpful Links
@@ -67,7 +67,7 @@ export default function HelpfulLinks() {
               <div className="flex items-center gap-2 mb-2 text-white/80">
                 {link.icon}
               </div>
-              <h3 className="text-white font-semibold text-lg group-hover:text-indigo-300 transition-colors">
+              <h3 className="text-white font-semibold text-lg group-hover:text-[#facc15] transition-colors">
                 {link.title}
               </h3>
               <p className="text-white/70 text-sm mt-1">{link.description}</p>

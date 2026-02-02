@@ -2,6 +2,7 @@ import Head from 'next/head'
 import { useEffect, useState, useRef } from 'react'
 import Navbar from '../components/Navbar'
 import Footer from '../components/Footer'
+import { mockProperties, formatPrice } from '../data/mockProperties'
 import AOS from 'aos'
 import 'aos/dist/aos.css'
 
@@ -9,6 +10,62 @@ export default function Home() {
   const [isVisible, setIsVisible] = useState(false)
   const [trustVisible, setTrustVisible] = useState(false)
   const trustRef = useRef(null)
+
+  // Get high-demand properties with calculated ROI and risk assessment
+  const getHighDemandProperties = () => {
+    return mockProperties
+      .slice(0, 8) // Get first 8 properties
+      .map(property => {
+        // Calculate ROI based on property price range and type
+        let roi = 8.5 + (Math.random() * 6) // Base 8.5% + up to 6% variation
+        
+        if (property.propertyType?.includes('Commercial') || property.propertyType?.includes('Office')) {
+          roi += 3 // Commercial properties typically have higher ROI
+        }
+        if (property.price > 50000000) {
+          roi += 2 // Higher-value properties often have better ROI
+        }
+        if (property.badge === 'Featured') {
+          roi += 1.5 // Featured properties have premium ROI
+        }
+
+        // Determine risk level based on price and property type
+        let risk = 'Medium Risk'
+        if (property.price < 20000000 && property.beds <= 3) {
+          risk = 'Low Risk'
+        } else if (property.price > 70000000 || property.propertyType?.includes('Commercial')) {
+          risk = 'High Risk'
+        }
+
+        // Generate status based on property badge and type
+        let status = 'Available'
+        if (property.badge === 'Featured') {
+          status = 'Featured'
+        } else if (property.badge === 'Auction') {
+          status = 'Live Auction'
+        } else if (property.badge === 'New') {
+          status = 'Just Listed'
+        } else if (property.type === 'auction') {
+          status = 'Bidding Live'
+        }
+
+        // Calculate minimum investment (typically 20-30% of property value)
+        const minInvestmentPercent = 0.2 + (Math.random() * 0.1) // 20-30%
+        const minInvestment = Math.round(property.price * minInvestmentPercent / 100000) * 100000
+
+        return {
+          ...property,
+          roi: roi.toFixed(1),
+          risk,
+          status,
+          minInvestment,
+          // Add display title for cards
+          displayTitle: property.title.length > 25 ? property.title.substring(0, 22) + '...' : property.title
+        }
+      })
+  }
+
+  const highDemandProperties = getHighDemandProperties()
 
   useEffect(() => {
     const timer = setTimeout(() => setIsVisible(true), 100)
@@ -292,221 +349,107 @@ export default function Home() {
               
               <div className="hot-assets-strip__scroll">
                 <div className="hot-assets-strip__track">
-                  {/* Asset Card 1 */}
-                  <div className="hot-asset-card">
-                    <div className="hot-asset-card__image">
-                      <img src="https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=800&q=80" alt="Luxury Villa in DHA Phase 5" />
-                      <div className="hot-asset-card__status">
-                        <span className="hot-asset-card__status-dot"></span>
-                        Live Auction
+                  {/* Render dynamic properties */}
+                  {highDemandProperties.map((property, index) => (
+                    <div key={property.id} className="hot-asset-card">
+                      <div className="hot-asset-card__image">
+                        <img 
+                          src={property.image} 
+                          alt={property.title}
+                          onError={(e) => {
+                            e.target.src = 'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=800&q=80'
+                          }}
+                        />
+                        <div className={`hot-asset-card__status ${property.status === 'Featured' ? 'hot-asset-card__status--featured' : ''}`}>
+                          <span className="hot-asset-card__status-dot"></span>
+                          {property.status}
+                        </div>
+                      </div>
+                      <div className="hot-asset-card__content">
+                        <div className="hot-asset-card__insurance">
+                          <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4z"/>
+                          </svg>
+                          REM Verified
+                        </div>
+                        <h4 className="hot-asset-card__title">{property.displayTitle}</h4>
+                        <div className="hot-asset-card__metrics">
+                          <span className="hot-asset-card__roi">{property.roi}% ROI</span>
+                          <span className={`hot-asset-card__risk ${
+                            property.risk === 'Low Risk' ? 'hot-asset-card__risk--low' : 
+                            property.risk === 'High Risk' ? 'hot-asset-card__risk--high' : 
+                            'hot-asset-card__risk--medium'
+                          }`}>
+                            {property.risk}
+                          </span>
+                        </div>
+                        <div className="hot-asset-card__details">
+                          <span>
+                            {property.beds ? `${property.beds} Bed` : ''} 
+                            {property.beds && property.baths ? ' • ' : ''}
+                            {property.baths ? `${property.baths} Bath` : ''} 
+                            {(property.beds || property.baths) && property.area ? ' • ' : ''}
+                            {property.area} • {property.city}
+                          </span>
+                        </div>
+                        <div className="hot-asset-card__min">
+                          <span>Min. Investment:</span>
+                          <strong>{formatPrice(property.minInvestment)}</strong>
+                        </div>
                       </div>
                     </div>
-                    <div className="hot-asset-card__content">
-                      <div className="hot-asset-card__insurance">
-                        <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
-                          <path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4z"/>
-                        </svg>
-                        Insured
-                      </div>
-                      <h4 className="hot-asset-card__title">Luxury Villa DHA Phase 5</h4>
-                      <div className="hot-asset-card__metrics">
-                        <span className="hot-asset-card__roi">12.4% ROI</span>
-                        <span className="hot-asset-card__risk hot-asset-card__risk--low">Low Risk</span>
-                      </div>
-                      <div className="hot-asset-card__details">
-                        <span>5 Bed • 4 Bath • DHA Lahore</span>
-                      </div>
-                      <div className="hot-asset-card__min">
-                        <span>Min. Investment:</span>
-                        <strong>PKR 2.5M</strong>
-                      </div>
-                    </div>
-                  </div>
+                  ))}
 
-                  {/* Asset Card 2 */}
-                  <div className="hot-asset-card">
-                    <div className="hot-asset-card__image">
-                      <img src="https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=800&q=80" alt="Commercial Plaza Gulberg" />
-                      <div className="hot-asset-card__status hot-asset-card__status--featured">
-                        <span className="hot-asset-card__status-dot"></span>
-                        Featured
+                  {/* Duplicate first few cards for seamless loop */}
+                  {highDemandProperties.slice(0, 3).map((property, index) => (
+                    <div key={`duplicate-${property.id}`} className="hot-asset-card">
+                      <div className="hot-asset-card__image">
+                        <img 
+                          src={property.image} 
+                          alt={property.title}
+                          onError={(e) => {
+                            e.target.src = 'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=800&q=80'
+                          }}
+                        />
+                        <div className={`hot-asset-card__status ${property.status === 'Featured' ? 'hot-asset-card__status--featured' : ''}`}>
+                          <span className="hot-asset-card__status-dot"></span>
+                          {property.status}
+                        </div>
+                      </div>
+                      <div className="hot-asset-card__content">
+                        <div className="hot-asset-card__insurance">
+                          <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4z"/>
+                          </svg>
+                          REM Verified
+                        </div>
+                        <h4 className="hot-asset-card__title">{property.displayTitle}</h4>
+                        <div className="hot-asset-card__metrics">
+                          <span className="hot-asset-card__roi">{property.roi}% ROI</span>
+                          <span className={`hot-asset-card__risk ${
+                            property.risk === 'Low Risk' ? 'hot-asset-card__risk--low' : 
+                            property.risk === 'High Risk' ? 'hot-asset-card__risk--high' : 
+                            'hot-asset-card__risk--medium'
+                          }`}>
+                            {property.risk}
+                          </span>
+                        </div>
+                        <div className="hot-asset-card__details">
+                          <span>
+                            {property.beds ? `${property.beds} Bed` : ''} 
+                            {property.beds && property.baths ? ' • ' : ''}
+                            {property.baths ? `${property.baths} Bath` : ''} 
+                            {(property.beds || property.baths) && property.area ? ' • ' : ''}
+                            {property.area} • {property.city}
+                          </span>
+                        </div>
+                        <div className="hot-asset-card__min">
+                          <span>Min. Investment:</span>
+                          <strong>{formatPrice(property.minInvestment)}</strong>
+                        </div>
                       </div>
                     </div>
-                    <div className="hot-asset-card__content">
-                      <div className="hot-asset-card__insurance">
-                        <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
-                          <path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4z"/>
-                        </svg>
-                        Insured
-                      </div>
-                      <h4 className="hot-asset-card__title">Commercial Plaza Gulberg</h4>
-                      <div className="hot-asset-card__metrics">
-                        <span className="hot-asset-card__roi">14.1% ROI</span>
-                        <span className="hot-asset-card__risk hot-asset-card__risk--medium">Medium Risk</span>
-                      </div>
-                      <div className="hot-asset-card__details">
-                        <span>8000 sqft • Commercial • Lahore</span>
-                      </div>
-                      <div className="hot-asset-card__min">
-                        <span>Min. Investment:</span>
-                        <strong>PKR 5.0M</strong>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Asset Card 3 */}
-                  <div className="hot-asset-card">
-                    <div className="hot-asset-card__image">
-                      <img src="https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=800&q=80" alt="Apartment Block Bahria Town" />
-                      <div className="hot-asset-card__status">
-                        <span className="hot-asset-card__status-dot"></span>
-                        Just Listed
-                      </div>
-                    </div>
-                    <div className="hot-asset-card__content">
-                      <div className="hot-asset-card__insurance">
-                        <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
-                          <path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4z"/>
-                        </svg>
-                        Insured
-                      </div>
-                      <h4 className="hot-asset-card__title">Apartment Block Bahria</h4>
-                      <div className="hot-asset-card__metrics">
-                        <span className="hot-asset-card__roi">9.8% ROI</span>
-                        <span className="hot-asset-card__risk hot-asset-card__risk--low">Low Risk</span>
-                      </div>
-                      <div className="hot-asset-card__details">
-                        <span>3 Bed • 2 Bath • Bahria Town</span>
-                      </div>
-                      <div className="hot-asset-card__min">
-                        <span>Min. Investment:</span>
-                        <strong>PKR 1.8M</strong>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Asset Card 4 */}
-                  <div className="hot-asset-card">
-                    <div className="hot-asset-card__image">
-                      <img src="https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=800&q=80" alt="Industrial Warehouse Karachi" />
-                      <div className="hot-asset-card__status">
-                        <span className="hot-asset-card__status-dot"></span>
-                        High Demand
-                      </div>
-                    </div>
-                    <div className="hot-asset-card__content">
-                      <div className="hot-asset-card__insurance">
-                        <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
-                          <path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4z"/>
-                        </svg>
-                        Insured
-                      </div>
-                      <h4 className="hot-asset-card__title">Industrial Warehouse</h4>
-                      <div className="hot-asset-card__metrics">
-                        <span className="hot-asset-card__roi">13.5% ROI</span>
-                        <span className="hot-asset-card__risk hot-asset-card__risk--medium">Medium Risk</span>
-                      </div>
-                      <div className="hot-asset-card__details">
-                        <span>15000 sqft • Industrial • Karachi</span>
-                      </div>
-                      <div className="hot-asset-card__min">
-                        <span>Min. Investment:</span>
-                        <strong>PKR 6.0M</strong>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Asset Card 5 */}
-                  <div className="hot-asset-card">
-                    <div className="hot-asset-card__image">
-                      <img src="https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=800&q=80" alt="Retail Space F-7 Islamabad" />
-                      <div className="hot-asset-card__status">
-                        <span className="hot-asset-card__status-dot"></span>
-                        Almost Full
-                      </div>
-                    </div>
-                    <div className="hot-asset-card__content">
-                      <div className="hot-asset-card__insurance">
-                        <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
-                          <path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4z"/>
-                        </svg>
-                        Insured
-                      </div>
-                      <h4 className="hot-asset-card__title">Retail Space F-7</h4>
-                      <div className="hot-asset-card__metrics">
-                        <span className="hot-asset-card__roi">11.1% ROI</span>
-                        <span className="hot-asset-card__risk hot-asset-card__risk--low">Low Risk</span>
-                      </div>
-                      <div className="hot-asset-card__details">
-                        <span>2500 sqft • Retail • Islamabad</span>
-                      </div>
-                      <div className="hot-asset-card__min">
-                        <span>Min. Investment:</span>
-                        <strong>PKR 1.2M</strong>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Duplicate cards for seamless loop */}
-                  <div className="hot-asset-card">
-                    <div className="hot-asset-card__image">
-                      <img src="https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=800&q=80" alt="Luxury Villa in DHA Phase 5" />
-                      <div className="hot-asset-card__status">
-                        <span className="hot-asset-card__status-dot"></span>
-                        Live Auction
-                      </div>
-                    </div>
-                    <div className="hot-asset-card__content">
-                      <div className="hot-asset-card__insurance">
-                        <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
-                          <path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4z"/>
-                        </svg>
-                        Insured
-                      </div>
-                      <h4 className="hot-asset-card__title">Luxury Villa DHA Phase 5</h4>
-                      <div className="hot-asset-card__metrics">
-                        <span className="hot-asset-card__roi">12.4% ROI</span>
-                        <span className="hot-asset-card__risk hot-asset-card__risk--low">Low Risk</span>
-                      </div>
-                      <div className="hot-asset-card__details">
-                        <span>5 Bed • 4 Bath • DHA Lahore</span>
-                      </div>
-                      <div className="hot-asset-card__min">
-                        <span>Min. Investment:</span>
-                        <strong>PKR 2.5M</strong>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="hot-asset-card">
-                    <div className="hot-asset-card__image">
-                      <img src="https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=800&q=80" alt="Commercial Plaza Gulberg" />
-                      <div className="hot-asset-card__status hot-asset-card__status--featured">
-                        <span className="hot-asset-card__status-dot"></span>
-                        Featured
-                      </div>
-                    </div>
-                    <div className="hot-asset-card__content">
-                      <div className="hot-asset-card__insurance">
-                        <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
-                          <path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4z"/>
-                        </svg>
-                        Insured
-                      </div>
-                      <h4 className="hot-asset-card__title">Commercial Plaza Gulberg</h4>
-                      <div className="hot-asset-card__metrics">
-                        <span className="hot-asset-card__roi">14.1% ROI</span>
-                        <span className="hot-asset-card__risk hot-asset-card__risk--medium">Medium Risk</span>
-                      </div>
-                      <div className="hot-asset-card__details">
-                        <span>8000 sqft • Commercial • Lahore</span>
-                      </div>
-                      <div className="hot-asset-card__min">
-                        <span>Min. Investment:</span>
-                        <strong>PKR 5.0M</strong>
-                      </div>
-                    </div>
-                  </div>
+                  ))}
                 </div>
               </div>
 
@@ -917,12 +860,6 @@ export default function Home() {
           overflow: hidden;
           box-shadow: 0 32px 64px rgba(0, 0, 0, 0.25);
           transform: perspective(1000px) rotateY(-2deg);
-          transition: all 0.4s ease;
-        }
-
-        .hero__image-main:hover {
-          transform: perspective(1000px) rotateY(0deg) scale(1.01);
-          box-shadow: 0 40px 80px rgba(0, 0, 0, 0.3);
         }
 
         .hero__image-main::before {
@@ -935,22 +872,12 @@ export default function Home() {
           background: linear-gradient(135deg, transparent 0%, rgba(201, 162, 39, 0.1) 100%);
           z-index: 1;
           opacity: 0;
-          transition: opacity 0.3s ease;
-        }
-
-        .hero__image-main:hover::before {
-          opacity: 1;
         }
 
         .hero__image-main img {
           width: 100%;
           height: 500px;
           object-fit: cover;
-          transition: transform 0.6s ease;
-        }
-
-        .hero__image-main:hover img {
-          transform: scale(1.05);
         }
 
         .hero__badge-verified {
@@ -1682,26 +1609,31 @@ export default function Home() {
           margin-bottom: 60px;
           mask: linear-gradient(90deg, transparent 0%, black 5%, black 95%, transparent 100%);
           -webkit-mask: linear-gradient(90deg, transparent 0%, black 5%, black 95%, transparent 100%);
+          transform: translateZ(0); /* Hardware acceleration */
+          backface-visibility: hidden;
+          perspective: 1000px;
         }
 
         .hot-assets-strip__track {
           display: flex;
           gap: 24px;
-          animation: scroll-horizontal 45s linear infinite;
+          animation: scroll-horizontal 25s linear infinite;
           width: max-content;
           will-change: transform;
+          transform: translateZ(0); /* Hardware acceleration */
         }
 
         .hot-assets-strip__track:hover {
           animation-play-state: paused;
+          transition: animation-play-state 0.3s ease;
         }
 
         @keyframes scroll-horizontal {
           0% {
-            transform: translateX(0);
+            transform: translate3d(0, 0, 0);
           }
           100% {
-            transform: translateX(calc(-50% - 12px));
+            transform: translate3d(calc(-50% - 12px), 0, 0);
           }
         }
 
@@ -1713,12 +1645,15 @@ export default function Home() {
           border: 1px solid rgba(255, 255, 255, 0.08);
           border-radius: 16px;
           overflow: hidden;
-          transition: all 0.3s ease;
+          transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), 
+                      box-shadow 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+                      border-color 0.3s cubic-bezier(0.4, 0, 0.2, 1);
           position: relative;
+          transform: translateZ(0); /* Hardware acceleration */
         }
 
         .hot-asset-card:hover {
-          transform: translateY(-6px);
+          transform: translate3d(0, -6px, 0);
           box-shadow: 0 16px 48px rgba(0, 0, 0, 0.25);
           border-color: rgba(201, 162, 39, 0.25);
         }
@@ -1733,11 +1668,12 @@ export default function Home() {
           width: 100%;
           height: 100%;
           object-fit: cover;
-          transition: transform 0.3s ease;
+          transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+          transform: translateZ(0); /* Hardware acceleration */
         }
 
         .hot-asset-card:hover .hot-asset-card__image img {
-          transform: scale(1.05);
+          transform: scale3d(1.05, 1.05, 1);
         }
 
         .hot-asset-card__status {
@@ -2829,15 +2765,15 @@ export default function Home() {
 
           .hot-assets-strip__track {
             gap: 16px;
-            animation: scroll-horizontal 35s linear infinite;
+            animation: scroll-horizontal 20s linear infinite;
           }
 
           @keyframes scroll-horizontal {
             0% {
-              transform: translateX(0);
+              transform: translate3d(0, 0, 0);
             }
             100% {
-              transform: translateX(calc(-50% - 8px));
+              transform: translate3d(calc(-50% - 8px), 0, 0);
             }
           }
 

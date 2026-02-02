@@ -54,7 +54,7 @@ export default function Rental() {
           id: p.id || `rental-${idx}`,
           title: p.title || 'Rental Property',
           description: p.description || 'Beautiful property available for rent',
-          image: p.images?.[0] || p.image || '/images/property-placeholder.jpg',
+          image: p.images?.[0] || p.image || 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAwIiBoZWlnaHQ9IjI0MCIgdmlld0JveD0iMCAwIDQwMCAyNDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSI0MDAiIGhlaWdodD0iMjQwIiBmaWxsPSIjRjNGNEY2Ii8+CjxwYXRoIGQ9Ik0xNzAgMTIwSDE2MEwxODAgMTAwTDE5NSAxMTVMMjIwIDkwTDI0MCA5NVYxMzBIMTcwWiIgZmlsbD0iI0Q0RDlERiIvPgo8cGF0aCBkPSJNMTgwIDEwNUMxODMuMzE0IDEwNSAxODYgMTAyLjMxNCAxODYgOTlDMTg2IDk1LjY4NiAxODMuMzE0IDkzIDE4MCA5M0MxNzYuNjg2IDkzIDE3NCA5NS42ODYgMTc0IDk5QzE3NCAxMDIuMzE0IDE3Ni42ODYgMTA1IDE4MCAxMDVaIiBmaWxsPSIjRDRENURGIi8+Cjx0ZXh0IHg9IjIwMCIgeT0iMTU1IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmaWxsPSIjOUI5Q0E1IiBmb250LWZhbWlseT0iQXJpYWwiIGZvbnQtc2l6ZT0iMTQiPlByb3BlcnR5IEltYWdlPC90ZXh0Pgo8L3N2Zz4=',
           location: p.location || 'Location TBA',
           area: p.areaSize || p.area || p.plotSize || '--',
           price: formatPrice(p.monthlyRent || p.price),
@@ -121,745 +121,243 @@ export default function Rental() {
         <meta name="viewport" content="width=device-width, initial-scale=1" />
       </Head>
 
-      <Navbar />
+      <div className="min-h-screen bg-gradient-to-b from-[#f8f7f5] to-white">
+        <Navbar />
 
-      <main className="rental">
-        {/* Hero */}
-        <section className="rental-hero">
-          <div className="rental-hero__container">
-            <div className="rental-hero__content">
-              <span className="rental-hero__eyebrow">Rental Properties</span>
-              <h1 className="rental-hero__title">
-                Find Your Perfect<br />
-                <span className="rental-hero__accent">Rental Home</span>
-              </h1>
-              <p className="rental-hero__desc">
-                Browse verified rental properties with transparent pricing.
-                From apartments to villas, find the perfect space for your lifestyle.
-              </p>
-              <div className="rental-hero__stats">
-                <div className="rental-hero__stat">
-                  <span className="rental-hero__stat-value">{properties.length}</span>
-                  <span className="rental-hero__stat-label">Properties</span>
-                </div>
-                <div className="rental-hero__stat">
-                  <span className="rental-hero__stat-value">{availableCount}</span>
-                  <span className="rental-hero__stat-label">Available</span>
-                </div>
-                <div className="rental-hero__stat">
-                  <span className="rental-hero__stat-value">100%</span>
-                  <span className="rental-hero__stat-label">Verified</span>
+        <main className="pt-24 pb-16">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            {/* Page Header */}
+            <section className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-[#0f172a] via-[#1e293b] to-[#0f172a] text-white p-8 sm:p-12 mb-10 shadow-xl">
+              <div className="absolute inset-0 opacity-30 bg-[radial-gradient(circle_at_top,_#c9a227,_transparent_45%)]" />
+              <div className="relative text-center max-w-3xl mx-auto space-y-4">
+                <span className="inline-block text-xs tracking-[0.5em] uppercase text-[#facc15] font-semibold">
+                  Rentals
+                </span>
+                <h1 className="text-3xl sm:text-5xl font-bold leading-tight">
+                  Find Your Perfect Rental Home Across Pakistan
+                </h1>
+                <p className="text-base sm:text-lg text-white/80">
+                  Browse verified rental properties with transparent pricing. 
+                  From apartments to villas, find the perfect space for your lifestyle.
+                </p>
+                <div className="flex justify-center items-center gap-8 pt-4">
+                  <div className="text-center">
+                    <div className="text-2xl font-bold text-[#facc15]">{properties.length}</div>
+                    <div className="text-sm text-white/70">Properties</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-2xl font-bold text-[#facc15]">{availableCount}</div>
+                    <div className="text-sm text-white/70">Available</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-2xl font-bold text-[#facc15]">100%</div>
+                    <div className="text-sm text-white/70">Verified</div>
+                  </div>
                 </div>
               </div>
-            </div>
-          </div>
-        </section>
+            </section>
 
-        {/* Filters */}
-        <section className="rental-filters">
-          <div className="rental-filters__container">
-            <div className="rental-filters__search">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
-              </svg>
-              <input
-                type="text"
-                placeholder="Search by location or title..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-              />
-            </div>
-            <div className="rental-filters__options">
-              <select value={selectedType} onChange={(e) => setSelectedType(e.target.value)}>
-                <option value="all">All Types</option>
-                <option value="residential">Residential</option>
-                <option value="commercial">Commercial</option>
-                <option value="apartment">Apartment</option>
-                <option value="house">House</option>
-                <option value="villa">Villa</option>
-              </select>
-              <select value={selectedSort} onChange={(e) => setSelectedSort(e.target.value)}>
-                <option value="newest">Newest First</option>
-                <option value="price-low">Price: Low to High</option>
-                <option value="price-high">Price: High to Low</option>
-              </select>
-            </div>
-          </div>
-        </section>
+            {/* Filters */}
+            <section className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mb-8">
+              <div className="flex flex-col sm:flex-row gap-4">
+                <div className="flex-1 relative">
+                  <svg className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+                  </svg>
+                  <input
+                    type="text"
+                    placeholder="Search by location or title..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#c9a227] focus:border-[#c9a227] outline-none"
+                  />
+                </div>
+                <div className="flex gap-4">
+                  <select 
+                    value={selectedType} 
+                    onChange={(e) => setSelectedType(e.target.value)}
+                    className="px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#c9a227] focus:border-[#c9a227] outline-none bg-white"
+                  >
+                    <option value="all">All Types</option>
+                    <option value="residential">Residential</option>
+                    <option value="commercial">Commercial</option>
+                    <option value="apartment">Apartment</option>
+                    <option value="house">House</option>
+                    <option value="villa">Villa</option>
+                  </select>
+                  <select 
+                    value={selectedSort} 
+                    onChange={(e) => setSelectedSort(e.target.value)}
+                    className="px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#c9a227] focus:border-[#c9a227] outline-none bg-white"
+                  >
+                    <option value="newest">Newest First</option>
+                    <option value="price-low">Price: Low to High</option>
+                    <option value="price-high">Price: High to Low</option>
+                  </select>
+                </div>
+              </div>
+            </section>
 
-        {/* Properties Grid */}
-        <section className="rental-properties">
-          <div className="rental-properties__container">
-            <div className="rental-properties__header">
-              <h2 className="rental-properties__title">
-                {selectedType === 'all' ? 'All Rentals' : `${selectedType.charAt(0).toUpperCase() + selectedType.slice(1)} Rentals`}
-              </h2>
-              <span className="rental-properties__count">{filteredProperties.length} properties</span>
-            </div>
-
-            {filteredProperties.length > 0 ? (
-              <div className="rental-properties__grid">
+            {/* Properties Grid */}
+            {filteredProperties.length === 0 ? (
+              <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-12 text-center">
+                <div className="w-20 h-20 mx-auto mb-6 bg-[#c9a227]/10 rounded-full flex items-center justify-center">
+                  <svg className="w-10 h-10 text-[#c9a227]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/>
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 22V12h6v10"/>
+                  </svg>
+                </div>
+                <h3 className="text-xl font-semibold text-[#1a1a1a] mb-2">
+                  No rental properties found
+                </h3>
+                <p className="text-gray-500 mb-6 max-w-md mx-auto">
+                  We couldn't find any properties matching your search criteria.
+                  Try adjusting your filters or search term.
+                </p>
+                <a
+                  href="/land-registration"
+                  className="inline-block px-6 py-3 bg-gradient-to-r from-[#c9a227] to-[#b8922a] text-white rounded-xl font-medium hover:from-[#b8922a] hover:to-[#a67c00] transition-all shadow-md hover:shadow-lg"
+                >
+                  List Your Property
+                </a>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {filteredProperties.map((property) => (
-                  <article key={property.id} className="rental-card">
-                    <div className="rental-card__image">
-                      <img src={property.image} alt={property.title} loading="lazy" />
-                      <span className={`rental-card__badge rental-card__badge--${property.status === 'Available' ? 'available' : 'occupied'}`}>
+                  <div key={property.id} className="bg-white rounded-2xl border border-gray-100 overflow-hidden shadow-sm hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
+                    <div className="relative h-48 overflow-hidden bg-gray-200">
+                      <img 
+                        src={property.image} 
+                        alt={property.title} 
+                        className="w-full h-full object-cover transition-transform duration-300 hover:scale-105" 
+                        onError={(e) => {
+                          e.target.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAwIiBoZWlnaHQ9IjI0MCIgdmlld0JveD0iMCAwIDQwMCAyNDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSI0MDAiIGhlaWdodD0iMjQwIiBmaWxsPSIjRjNGNEY2Ii8+CjxwYXRoIGQ9Ik0xNzAgMTIwSDE2MEwxODAgMTAwTDE5NSAxMTVMMjIwIDkwTDI0MCA5NVYxMzBIMTcwWiIgZmlsbD0iI0Q0RDlERiIvPgo8cGF0aCBkPSJNMTgwIDEwNUMxODMuMzE0IDEwNSAxODYgMTAyLjMxNCAxODYgOTlDMTg2IDk1LjY4NiAxODMuMzE0IDkzIDE4MCA5M0MxNzYuNjg2IDkzIDE3NCA5NS42ODYgMTc0IDk5QzE3NCAxMDIuMzE0IDE3Ni42ODYgMTA1IDE4MCAxMDVaIiBmaWxsPSIjRDRENURGIi8+Cjx0ZXh0IHg9IjIwMCIgeT0iMTU1IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmaWxsPSIjOUI5Q0E1IiBmb250LWZhbWlseT0iQXJpYWwiIGZvbnQtc2l6ZT0iMTQiPlByb3BlcnR5IEltYWdlPC90ZXh0Pgo8L3N2Zz4='
+                        }}
+                      />
+                      <div className={`absolute top-4 left-4 px-3 py-1 rounded-full text-xs font-medium ${
+                        property.status === 'Available' ? 'bg-green-500 text-white' : 'bg-gray-500 text-white'
+                      }`}>
                         {property.status}
-                      </span>
-                      <div className="rental-card__price">{property.price}</div>
+                      </div>
+                      <div className="absolute bottom-4 right-4 px-3 py-1 bg-black/80 text-[#c9a227] rounded-lg text-sm font-semibold">
+                        {property.price}
+                      </div>
                     </div>
 
-                    <div className="rental-card__body">
-                      <div className="rental-card__header">
-                        <h3 className="rental-card__title">{property.title}</h3>
-                        <p className="rental-card__location">
-                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                            <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/>
+                    <div className="p-5">
+                      <div className="mb-3">
+                        <h3 className="text-lg font-semibold text-gray-900 mb-1">{property.title}</h3>
+                        <p className="flex items-center text-gray-500 text-sm">
+                          <svg className="w-4 h-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/>
+                            <circle cx="12" cy="10" r="3"/>
                           </svg>
                           {property.location}
                         </p>
                       </div>
 
-                      <div className="rental-card__features">
-                        <div className="rental-card__feature">
-                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                            <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/>
+                      <div className="flex items-center gap-4 mb-3 p-3 bg-gray-50 rounded-xl">
+                        <div className="flex items-center text-gray-600 text-sm">
+                          <svg className="w-4 h-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/>
                           </svg>
-                          <span>{property.area}</span>
+                          {property.area}
                         </div>
-                        <div className="rental-card__feature">
-                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                            <path d="M2 4v16M22 4v16M6 20h12M6 4h12"/>
+                        <div className="flex items-center text-gray-600 text-sm">
+                          <svg className="w-4 h-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2 4v16M22 4v16M6 20h12M6 4h12"/>
                           </svg>
-                          <span>{property.bedrooms} Beds</span>
+                          {property.bedrooms} Beds
                         </div>
-                        <div className="rental-card__feature">
-                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                            <path d="M9 6l6 6-6 6"/>
+                        <div className="flex items-center text-gray-600 text-sm">
+                          <svg className="w-4 h-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 6l6 6-6 6"/>
                           </svg>
-                          <span>{property.bathrooms} Baths</span>
+                          {property.bathrooms} Baths
                         </div>
                       </div>
 
-                      <p className="rental-card__desc">{property.description}</p>
+                      <p className="text-gray-600 text-sm mb-4 line-clamp-2">{property.description}</p>
 
-                      <a href={`/rental-detail?id=${property.id}`} className="rental-card__cta">
+                      <a 
+                        href={`/rental-detail?id=${property.id}`} 
+                        className="flex items-center justify-center gap-2 w-full py-3 bg-gradient-to-r from-[#c9a227] to-[#b8922a] hover:from-[#b8922a] hover:to-[#a67c00] text-white rounded-xl font-medium transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg"
+                      >
                         View Details
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                          <path d="M5 12h14M12 5l7 7-7 7"/>
+                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 12h14M12 5l7 7-7 7"/>
                         </svg>
                       </a>
                     </div>
-                  </article>
+                  </div>
                 ))}
-              </div>
-            ) : (
-              <div className="rental-properties__empty">
-                <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-                  <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><path d="M9 22V12h6v10"/>
-                </svg>
-                <h3>No Rental Properties Found</h3>
-                <p>Adjust your filters or check back soon for new listings.</p>
-                <a href="/land-registration" className="rental-properties__empty-cta">
-                  List Your Property
-                </a>
               </div>
             )}
           </div>
-        </section>
+        </main>
 
         {/* How It Works */}
-        <section className="rental-how">
-          <div className="rental-how__container">
-            <div className="rental-how__header">
-              <span className="rental-how__eyebrow">How It Works</span>
-              <h2 className="rental-how__title">Rent with Confidence</h2>
+        <section className="py-16 px-4 sm:px-6 lg:px-8 bg-white">
+          <div className="max-w-6xl mx-auto">
+            <div className="text-center mb-12">
+              <span className="inline-block text-xs tracking-[0.5em] uppercase text-[#c9a227] font-semibold mb-4">
+                How It Works
+              </span>
+              <h2 className="text-3xl sm:text-4xl font-bold text-gray-900">
+                Rent with Confidence
+              </h2>
             </div>
 
-            <div className="rental-how__steps">
-              <div className="rental-step">
-                <div className="rental-step__number">01</div>
-                <h3 className="rental-step__title">Browse Properties</h3>
-                <p className="rental-step__desc">Explore verified rental listings with real photos and accurate details.</p>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+              <div className="text-center p-8 bg-gray-50 rounded-2xl border border-gray-100">
+                <div className="w-12 h-12 bg-gradient-to-r from-[#c9a227] to-[#d4b13d] rounded-full flex items-center justify-center text-black font-bold text-lg mb-6 mx-auto">
+                  01
+                </div>
+                <h3 className="text-xl font-semibold text-gray-900 mb-3">Browse Properties</h3>
+                <p className="text-gray-600">Explore verified rental listings with real photos and accurate details.</p>
               </div>
-              <div className="rental-step">
-                <div className="rental-step__number">02</div>
-                <h3 className="rental-step__title">Schedule Viewing</h3>
-                <p className="rental-step__desc">Book a visit to see the property in person or take a virtual tour.</p>
+              <div className="text-center p-8 bg-gray-50 rounded-2xl border border-gray-100">
+                <div className="w-12 h-12 bg-gradient-to-r from-[#c9a227] to-[#d4b13d] rounded-full flex items-center justify-center text-black font-bold text-lg mb-6 mx-auto">
+                  02
+                </div>
+                <h3 className="text-xl font-semibold text-gray-900 mb-3">Schedule Viewing</h3>
+                <p className="text-gray-600">Book a visit to see the property in person or take a virtual tour.</p>
               </div>
-              <div className="rental-step">
-                <div className="rental-step__number">03</div>
-                <h3 className="rental-step__title">Sign & Move In</h3>
-                <p className="rental-step__desc">Complete digital paperwork and get your keys. It's that simple.</p>
+              <div className="text-center p-8 bg-gray-50 rounded-2xl border border-gray-100">
+                <div className="w-12 h-12 bg-gradient-to-r from-[#c9a227] to-[#d4b13d] rounded-full flex items-center justify-center text-black font-bold text-lg mb-6 mx-auto">
+                  03
+                </div>
+                <h3 className="text-xl font-semibold text-gray-900 mb-3">Sign & Move In</h3>
+                <p className="text-gray-600">Complete digital paperwork and get your keys. It's that simple.</p>
               </div>
             </div>
           </div>
         </section>
 
         {/* CTA Section */}
-        <section className="rental-cta">
-          <div className="rental-cta__container">
-            <div className="rental-cta__content">
-              <h2>Have a Property to Rent?</h2>
-              <p>List your property on REMMIC and reach verified tenants</p>
-              <div className="rental-cta__buttons">
-                <a href="/land-registration" className="rental-cta__btn rental-cta__btn--primary">
-                  List Property
-                </a>
-                <a href="/contact" className="rental-cta__btn rental-cta__btn--secondary">
-                  Contact Us
-                </a>
-              </div>
+        <section className="py-16 px-4 sm:px-6 lg:px-8 bg-gradient-to-r from-[#0f172a] via-[#1e293b] to-[#0f172a] text-white">
+          <div className="max-w-4xl mx-auto text-center">
+            <h2 className="text-3xl sm:text-4xl font-bold mb-4">Have a Property to Rent?</h2>
+            <p className="text-xl text-white/80 mb-8">List your property on REMMIC and reach verified tenants</p>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <a 
+                href="/land-registration" 
+                className="px-8 py-4 bg-gradient-to-r from-[#c9a227] to-[#b8922a] hover:from-[#b8922a] hover:to-[#a67c00] text-black rounded-xl font-semibold transition-all hover:-translate-y-0.5 hover:shadow-lg"
+              >
+                List Property
+              </a>
+              <a 
+                href="/contact" 
+                className="px-8 py-4 bg-transparent border border-white/30 hover:bg-white/10 text-white rounded-xl font-semibold transition-all"
+              >
+                Contact Us
+              </a>
             </div>
           </div>
         </section>
-      </main>
+      </div>
 
       <Footer />
-
-      <style jsx>{`
-        .rental {
-          background: #f9fafb;
-          padding-top: 80px;
-        }
-
-        /* Hero */
-        .rental-hero {
-          padding: clamp(60px, 8vw, 100px) clamp(20px, 4vw, 48px);
-          background: linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 100%);
-          position: relative;
-          overflow: hidden;
-        }
-
-        .rental-hero::before {
-          content: '';
-          position: absolute;
-          top: -50%;
-          right: -30%;
-          width: 80%;
-          height: 200%;
-          background: radial-gradient(ellipse, rgba(201, 162, 39, 0.1) 0%, transparent 60%);
-          pointer-events: none;
-        }
-
-        .rental-hero__container {
-          max-width: 1200px;
-          margin: 0 auto;
-          position: relative;
-          z-index: 1;
-        }
-
-        .rental-hero__content {
-          max-width: 650px;
-        }
-
-        .rental-hero__eyebrow {
-          display: inline-block;
-          padding: 8px 18px;
-          border-radius: 999px;
-          background: rgba(201, 162, 39, 0.15);
-          color: #c9a227;
-          font-size: 0.8rem;
-          font-weight: 700;
-          letter-spacing: 0.1em;
-          text-transform: uppercase;
-          margin-bottom: 20px;
-        }
-
-        .rental-hero__title {
-          margin: 0 0 20px;
-          font-size: clamp(2.2rem, 5vw, 3.5rem);
-          font-weight: 700;
-          color: #ffffff;
-          line-height: 1.1;
-        }
-
-        .rental-hero__accent {
-          color: #c9a227;
-        }
-
-        .rental-hero__desc {
-          margin: 0 0 32px;
-          font-size: 1.1rem;
-          color: rgba(255, 255, 255, 0.7);
-          line-height: 1.7;
-        }
-
-        .rental-hero__stats {
-          display: flex;
-          gap: 40px;
-        }
-
-        .rental-hero__stat {
-          display: flex;
-          flex-direction: column;
-          gap: 4px;
-        }
-
-        .rental-hero__stat-value {
-          font-size: 1.8rem;
-          font-weight: 700;
-          color: #c9a227;
-        }
-
-        .rental-hero__stat-label {
-          font-size: 0.85rem;
-          color: rgba(255, 255, 255, 0.6);
-        }
-
-        /* Filters */
-        .rental-filters {
-          padding: 24px clamp(20px, 4vw, 48px);
-          background: #ffffff;
-          border-bottom: 1px solid #e5e7eb;
-          position: sticky;
-          top: 80px;
-          z-index: 100;
-        }
-
-        .rental-filters__container {
-          max-width: 1200px;
-          margin: 0 auto;
-          display: flex;
-          gap: 16px;
-          flex-wrap: wrap;
-        }
-
-        .rental-filters__search {
-          flex: 1;
-          min-width: 280px;
-          display: flex;
-          align-items: center;
-          gap: 12px;
-          padding: 12px 16px;
-          background: #f3f4f6;
-          border-radius: 12px;
-          color: #6b7280;
-        }
-
-        .rental-filters__search input {
-          flex: 1;
-          border: none;
-          background: transparent;
-          font-size: 1rem;
-          color: #111827;
-          outline: none;
-        }
-
-        .rental-filters__search input::placeholder {
-          color: #9ca3af;
-        }
-
-        .rental-filters__options {
-          display: flex;
-          gap: 12px;
-        }
-
-        .rental-filters__options select {
-          padding: 12px 16px;
-          border: 1px solid #e5e7eb;
-          border-radius: 12px;
-          font-size: 0.95rem;
-          color: #374151;
-          background: #ffffff;
-          cursor: pointer;
-          outline: none;
-        }
-
-        /* Properties */
-        .rental-properties {
-          padding: clamp(40px, 6vw, 80px) clamp(20px, 4vw, 48px);
-        }
-
-        .rental-properties__container {
-          max-width: 1200px;
-          margin: 0 auto;
-        }
-
-        .rental-properties__header {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          margin-bottom: 32px;
-        }
-
-        .rental-properties__title {
-          margin: 0;
-          font-size: 1.5rem;
-          font-weight: 700;
-          color: #111827;
-        }
-
-        .rental-properties__count {
-          color: #6b7280;
-          font-size: 0.95rem;
-        }
-
-        .rental-properties__grid {
-          display: grid;
-          grid-template-columns: repeat(3, 1fr);
-          gap: 28px;
-        }
-
-        /* Rental Card */
-        .rental-card {
-          background: #ffffff;
-          border-radius: 20px;
-          overflow: hidden;
-          border: 1px solid #e5e7eb;
-          transition: transform 0.3s ease, box-shadow 0.3s ease;
-        }
-
-        .rental-card:hover {
-          transform: translateY(-4px);
-          box-shadow: 0 20px 40px -12px rgba(0, 0, 0, 0.15);
-        }
-
-        .rental-card__image {
-          position: relative;
-          height: 200px;
-          overflow: hidden;
-        }
-
-        .rental-card__image img {
-          width: 100%;
-          height: 100%;
-          object-fit: cover;
-          transition: transform 0.4s ease;
-        }
-
-        .rental-card:hover .rental-card__image img {
-          transform: scale(1.05);
-        }
-
-        .rental-card__badge {
-          position: absolute;
-          top: 14px;
-          left: 14px;
-          padding: 6px 14px;
-          border-radius: 999px;
-          font-size: 0.72rem;
-          font-weight: 700;
-          letter-spacing: 0.05em;
-          text-transform: uppercase;
-        }
-
-        .rental-card__badge--available {
-          background: #10b981;
-          color: #ffffff;
-        }
-
-        .rental-card__badge--occupied {
-          background: #6b7280;
-          color: #ffffff;
-        }
-
-        .rental-card__price {
-          position: absolute;
-          bottom: 14px;
-          right: 14px;
-          padding: 8px 14px;
-          background: rgba(0, 0, 0, 0.8);
-          color: #c9a227;
-          font-size: 0.95rem;
-          font-weight: 700;
-          border-radius: 10px;
-        }
-
-        .rental-card__body {
-          padding: 20px;
-          display: flex;
-          flex-direction: column;
-          gap: 14px;
-        }
-
-        .rental-card__header {
-          display: flex;
-          flex-direction: column;
-          gap: 6px;
-        }
-
-        .rental-card__title {
-          margin: 0;
-          font-size: 1.1rem;
-          font-weight: 600;
-          color: #111827;
-          line-height: 1.3;
-        }
-
-        .rental-card__location {
-          margin: 0;
-          display: flex;
-          align-items: center;
-          gap: 6px;
-          font-size: 0.85rem;
-          color: #6b7280;
-        }
-
-        .rental-card__features {
-          display: flex;
-          gap: 16px;
-          padding: 12px;
-          background: #f9fafb;
-          border-radius: 10px;
-        }
-
-        .rental-card__feature {
-          display: flex;
-          align-items: center;
-          gap: 6px;
-          font-size: 0.85rem;
-          color: #6b7280;
-        }
-
-        .rental-card__desc {
-          margin: 0;
-          font-size: 0.9rem;
-          color: #6b7280;
-          line-height: 1.5;
-          display: -webkit-box;
-          -webkit-line-clamp: 2;
-          -webkit-box-orient: vertical;
-          overflow: hidden;
-        }
-
-        .rental-card__cta {
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          gap: 8px;
-          padding: 12px;
-          background: linear-gradient(135deg, #c9a227, #d4b13d);
-          border-radius: 12px;
-          color: #0a0a0a;
-          font-weight: 600;
-          font-size: 0.95rem;
-          text-decoration: none;
-          transition: transform 0.2s ease, box-shadow 0.2s ease;
-        }
-
-        .rental-card__cta:hover {
-          transform: translateY(-2px);
-          box-shadow: 0 8px 20px -6px rgba(201, 162, 39, 0.5);
-        }
-
-        /* Empty State */
-        .rental-properties__empty {
-          text-align: center;
-          padding: 80px 20px;
-          color: #6b7280;
-        }
-
-        .rental-properties__empty svg {
-          margin-bottom: 24px;
-          color: #d1d5db;
-        }
-
-        .rental-properties__empty h3 {
-          margin: 0 0 8px;
-          font-size: 1.3rem;
-          color: #374151;
-        }
-
-        .rental-properties__empty p {
-          margin: 0 0 24px;
-        }
-
-        .rental-properties__empty-cta {
-          display: inline-flex;
-          padding: 12px 24px;
-          background: linear-gradient(135deg, #c9a227, #d4b13d);
-          border-radius: 10px;
-          color: #0a0a0a;
-          font-weight: 600;
-          text-decoration: none;
-        }
-
-        /* How It Works */
-        .rental-how {
-          padding: clamp(60px, 8vw, 100px) clamp(20px, 4vw, 48px);
-          background: #ffffff;
-        }
-
-        .rental-how__container {
-          max-width: 1000px;
-          margin: 0 auto;
-        }
-
-        .rental-how__header {
-          text-align: center;
-          margin-bottom: 48px;
-        }
-
-        .rental-how__eyebrow {
-          display: inline-block;
-          padding: 6px 16px;
-          border-radius: 999px;
-          background: rgba(201, 162, 39, 0.12);
-          color: #c9a227;
-          font-size: 0.78rem;
-          font-weight: 700;
-          letter-spacing: 0.1em;
-          text-transform: uppercase;
-          margin-bottom: 16px;
-        }
-
-        .rental-how__title {
-          margin: 0;
-          font-size: clamp(1.8rem, 4vw, 2.5rem);
-          font-weight: 700;
-          color: #111827;
-        }
-
-        .rental-how__steps {
-          display: grid;
-          grid-template-columns: repeat(3, 1fr);
-          gap: 32px;
-        }
-
-        .rental-step {
-          text-align: center;
-          padding: 32px 24px;
-          background: #f9fafb;
-          border-radius: 20px;
-          border: 1px solid #e5e7eb;
-        }
-
-        .rental-step__number {
-          display: inline-flex;
-          align-items: center;
-          justify-content: center;
-          width: 48px;
-          height: 48px;
-          background: linear-gradient(135deg, #c9a227, #d4b13d);
-          border-radius: 50%;
-          font-size: 1rem;
-          font-weight: 700;
-          color: #0a0a0a;
-          margin-bottom: 20px;
-        }
-
-        .rental-step__title {
-          margin: 0 0 12px;
-          font-size: 1.15rem;
-          font-weight: 600;
-          color: #111827;
-        }
-
-        .rental-step__desc {
-          margin: 0;
-          font-size: 0.95rem;
-          color: #6b7280;
-          line-height: 1.6;
-        }
-
-        /* CTA */
-        .rental-cta {
-          padding: clamp(60px, 8vw, 100px) clamp(20px, 4vw, 48px);
-          background: linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 100%);
-        }
-
-        .rental-cta__container {
-          max-width: 800px;
-          margin: 0 auto;
-        }
-
-        .rental-cta__content {
-          text-align: center;
-        }
-
-        .rental-cta__content h2 {
-          margin: 0 0 12px;
-          font-size: clamp(1.8rem, 4vw, 2.5rem);
-          font-weight: 700;
-          color: #ffffff;
-        }
-
-        .rental-cta__content p {
-          margin: 0 0 32px;
-          font-size: 1.1rem;
-          color: rgba(255, 255, 255, 0.7);
-        }
-
-        .rental-cta__buttons {
-          display: flex;
-          justify-content: center;
-          gap: 16px;
-          flex-wrap: wrap;
-        }
-
-        .rental-cta__btn {
-          display: inline-flex;
-          padding: 14px 32px;
-          border-radius: 12px;
-          font-size: 1rem;
-          font-weight: 600;
-          text-decoration: none;
-          transition: all 0.2s ease;
-        }
-
-        .rental-cta__btn--primary {
-          background: linear-gradient(135deg, #c9a227, #d4b13d);
-          color: #0a0a0a;
-        }
-
-        .rental-cta__btn--primary:hover {
-          transform: translateY(-2px);
-          box-shadow: 0 8px 20px rgba(201, 162, 39, 0.3);
-        }
-
-        .rental-cta__btn--secondary {
-          background: transparent;
-          color: #ffffff;
-          border: 1px solid rgba(255, 255, 255, 0.3);
-        }
-
-        .rental-cta__btn--secondary:hover {
-          background: rgba(255, 255, 255, 0.1);
-        }
-
-        /* Responsive */
-        @media (max-width: 1024px) {
-          .rental-properties__grid {
-            grid-template-columns: repeat(2, 1fr);
-          }
-
-          .rental-how__steps {
-            grid-template-columns: 1fr;
-            max-width: 400px;
-            margin: 0 auto;
-          }
-        }
-
-        @media (max-width: 640px) {
-          .rental-hero__stats {
-            flex-direction: column;
-            gap: 16px;
-          }
-
-          .rental-filters__container {
-            flex-direction: column;
-          }
-
-          .rental-filters__options {
-            width: 100%;
-          }
-
-          .rental-filters__options select {
-            flex: 1;
-          }
-
-          .rental-properties__grid {
-            grid-template-columns: 1fr;
-          }
-
-          .rental-properties__header {
-            flex-direction: column;
-            align-items: flex-start;
-            gap: 8px;
-          }
-        }
-      `}</style>
     </>
   )
 }

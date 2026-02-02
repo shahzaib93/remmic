@@ -72,38 +72,44 @@ export default function HowItWorks() {
             </div>
           </section>
 
-          <section className="timeline" aria-label="How REMMIC Works timeline">
+          <section className="timeline" aria-labelledby="timeline-title">
             <div className="timeline__intro">
-              <h2 className="timeline__title">Follow the Investment Journey</h2>
+              <h2 id="timeline-title" className="timeline__title">Follow the Investment Journey</h2>
               <p className="timeline__subtitle">
                 Each step is designed so investors, partners and regulators can track controls end-to-end.
               </p>
             </div>
 
             <div className="timeline__wrapper">
-              <div className="timeline__hint" aria-hidden="true">
-                <span>Scroll to explore</span>
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M12 4l-1.41 1.41L16.17 11H4v2h12.17l-5.58 5.59L12 20l8-8z"/>
-                </svg>
-              </div>
-              <div className="timeline__scroller">
-                <div className="timeline__track">
+              <div 
+                className="timeline__scroller" 
+                role="region" 
+                aria-label="Investment process timeline"
+                tabIndex="0"
+              >
+                <div className="timeline__track" role="list">
                   {HOW_IT_WORKS_STEPS.map((step, index) => (
-                    <article className="timeline__step" key={step.title}>
+                    <article 
+                      className="timeline__step" 
+                      key={step.title}
+                      role="listitem"
+                      tabIndex="0"
+                      aria-labelledby={`step-${index + 1}-title`}
+                      aria-describedby={`step-${index + 1}-description`}
+                    >
                       <div className="timeline__step-header">
-                        <div className="timeline__step-number">
+                        <div className="timeline__step-number" aria-hidden="true">
                           <span>{step.order}</span>
                         </div>
                         <div className="timeline__step-meta">
-                          <span className="timeline__step-label">Step {index + 1}</span>
-                          <h3 className="timeline__step-title">{step.title}</h3>
+                          <span className="timeline__step-label" aria-hidden="true">Step {index + 1}</span>
+                          <h3 id={`step-${index + 1}-title`} className="timeline__step-title">{step.title}</h3>
                         </div>
                       </div>
-                      <p className="timeline__step-description">{step.description}</p>
-                      <ul className="timeline__step-points">
-                        {step.points.map((point) => (
-                          <li key={point}>{point}</li>
+                      <p id={`step-${index + 1}-description`} className="timeline__step-description">{step.description}</p>
+                      <ul className="timeline__step-points" aria-label={`${step.title} features`}>
+                        {step.points.map((point, pointIndex) => (
+                          <li key={point} aria-setsize={step.points.length} aria-posinset={pointIndex + 1}>{point}</li>
                         ))}
                       </ul>
                       {index < HOW_IT_WORKS_STEPS.length - 1 && (
@@ -253,15 +259,78 @@ export default function HowItWorks() {
           font-size: 0.9375rem;
           color: #6b7280;
           line-height: 1.65;
-          margin: 0 auto;
+          margin: 0 auto 24px;
           max-width: 480px;
           font-family: 'Manrope', sans-serif;
+        }
+
+        .timeline__progress {
+          max-width: 200px;
+          margin: 0 auto;
+        }
+
+        .timeline__progress-bar {
+          width: 100%;
+          height: 3px;
+          background: linear-gradient(90deg, rgba(201, 162, 39, 0.2), rgba(201, 162, 39, 0.6), rgba(201, 162, 39, 0.2));
+          border-radius: 2px;
+          position: relative;
+          overflow: hidden;
+        }
+
+        .timeline__progress-bar::after {
+          content: '';
+          position: absolute;
+          top: 0;
+          left: -100%;
+          width: 100%;
+          height: 100%;
+          background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+          animation: progressShimmer 2s ease-in-out infinite;
+        }
+
+        @keyframes progressShimmer {
+          0% { left: -100%; }
+          100% { left: 100%; }
         }
 
         .timeline__wrapper {
           position: relative;
           max-width: 1400px;
           margin: 0 auto;
+        }
+
+        .timeline__progress-indicator {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 16px;
+          margin-bottom: 32px;
+          padding: 0 20px;
+        }
+
+        .timeline__progress-track {
+          width: 200px;
+          height: 3px;
+          background: rgba(201, 162, 39, 0.15);
+          border-radius: 2px;
+          overflow: hidden;
+          position: relative;
+        }
+
+        .timeline__progress-bar {
+          width: 25%;
+          height: 100%;
+          background: linear-gradient(90deg, #c9a227, #d4b13d);
+          border-radius: 2px;
+          transition: width 0.3s ease;
+        }
+
+        .timeline__progress-text {
+          font-size: 0.8125rem;
+          color: #6b7280;
+          font-weight: 500;
+          font-family: 'Manrope', sans-serif;
         }
 
         .timeline__hint {
@@ -326,26 +395,34 @@ export default function HowItWorks() {
         }
 
         .timeline__step {
-          min-width: 320px;
-          flex: 0 0 320px;
-          min-height: 340px;
+          min-width: 340px;
+          flex: 0 0 340px;
+          min-height: 380px;
           display: flex;
           flex-direction: column;
           background: linear-gradient(180deg, #0a0a0a 0%, #111111 100%);
           color: #fff;
-          border-radius: 16px;
-          padding: 28px;
+          border-radius: 20px;
+          padding: 32px;
           position: relative;
-          border: 1px solid rgba(201, 162, 39, 0.15);
+          border: 1px solid rgba(201, 162, 39, 0.2);
           scroll-snap-align: start;
-          box-shadow: 0 12px 40px rgba(0, 0, 0, 0.1);
-          transition: all 0.3s ease;
+          box-shadow: 0 16px 48px rgba(0, 0, 0, 0.12);
+          transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+          cursor: pointer;
         }
 
         .timeline__step:hover {
-          transform: translateY(-3px);
-          box-shadow: 0 18px 50px rgba(0, 0, 0, 0.14);
-          border-color: rgba(201, 162, 39, 0.3);
+          transform: translateY(-6px);
+          box-shadow: 0 24px 64px rgba(0, 0, 0, 0.18);
+          border-color: rgba(201, 162, 39, 0.4);
+          background: linear-gradient(180deg, #0b0b0b 0%, #131313 100%);
+        }
+
+        .timeline__step:focus {
+          outline: 3px solid rgba(201, 162, 39, 0.6);
+          outline-offset: 2px;
+          border-color: rgba(201, 162, 39, 0.5);
         }
 
         .timeline__step:first-child {
@@ -386,23 +463,35 @@ export default function HowItWorks() {
         }
 
         .timeline__step-number {
-          width: 60px;
-          height: 60px;
-          border-radius: 16px;
+          width: 64px;
+          height: 64px;
+          border-radius: 20px;
           display: flex;
           align-items: center;
           justify-content: center;
-          background: linear-gradient(135deg, rgba(201, 162, 39, 0.15) 0%, rgba(201, 162, 39, 0.05) 100%);
-          border: 1px solid rgba(201, 162, 39, 0.35);
+          background: linear-gradient(135deg, rgba(201, 162, 39, 0.2) 0%, rgba(201, 162, 39, 0.08) 100%);
+          border: 2px solid rgba(201, 162, 39, 0.4);
           flex-shrink: 0;
+          position: relative;
+        }
+
+        .timeline__step-number::before {
+          content: '';
+          position: absolute;
+          inset: 0;
+          border-radius: 18px;
+          background: linear-gradient(135deg, rgba(201, 162, 39, 0.1), transparent);
+          z-index: 0;
         }
 
         .timeline__step-number span {
-          font-size: 1.375rem;
-          font-weight: 800;
-          color: #c9a227;
-          letter-spacing: -0.02em;
+          font-size: 1.5rem;
+          font-weight: 700;
+          color: #d4b13d;
+          letter-spacing: -0.03em;
           font-family: 'Playfair Display', serif;
+          position: relative;
+          z-index: 1;
         }
 
         .timeline__step-meta {
@@ -422,20 +511,22 @@ export default function HowItWorks() {
 
         .timeline__step-title {
           margin: 0;
-          font-size: 1.375rem;
-          color: #fff;
+          font-size: 1.5rem;
+          color: #ffffff;
           font-weight: 600;
-          line-height: 1.3;
+          line-height: 1.25;
           font-family: 'Playfair Display', serif;
+          letter-spacing: -0.01em;
         }
 
         .timeline__step-description {
           margin: 0 0 20px;
-          color: rgba(255, 255, 255, 0.65);
-          line-height: 1.65;
-          font-size: 0.875rem;
+          color: rgba(255, 255, 255, 0.85);
+          line-height: 1.6;
+          font-size: 0.9375rem;
           flex-grow: 1;
-          font-family: 'Manrope', sans-serif;
+          font-family: 'Inter', sans-serif;
+          font-weight: 400;
         }
 
         .timeline__step-points {
@@ -444,28 +535,44 @@ export default function HowItWorks() {
           list-style: none;
           display: flex;
           flex-direction: column;
-          gap: 8px;
-          margin-top: auto;
+          gap: 10px;
         }
 
         .timeline__step-points li {
-          padding-left: 18px;
+          padding-left: 24px;
           position: relative;
-          font-size: 0.8125rem;
-          color: rgba(255, 255, 255, 0.8);
+          font-size: 0.875rem;
+          color: rgba(255, 255, 255, 0.75);
           line-height: 1.5;
-          font-family: 'Manrope', sans-serif;
+          font-family: 'Inter', sans-serif;
+          font-weight: 500;
         }
 
         .timeline__step-points li::before {
           content: '';
-          width: 6px;
-          height: 6px;
+          width: 8px;
+          height: 8px;
           border-radius: 50%;
-          background: #c9a227;
+          background: linear-gradient(135deg, #d4b13d, #c9a227);
           position: absolute;
           left: 0;
-          top: 6px;
+          top: 7px;
+          box-shadow: 0 0 8px rgba(201, 162, 39, 0.4);
+        }
+
+        /* Mobile Separator */
+        .timeline__mobile-separator {
+          display: none;
+          margin: 24px 0;
+          text-align: center;
+        }
+
+        .timeline__mobile-line {
+          width: 60px;
+          height: 2px;
+          background: linear-gradient(90deg, transparent, rgba(201, 162, 39, 0.4), transparent);
+          margin: 0 auto;
+          border-radius: 1px;
         }
 
         /* Scroll Fade Hints */
@@ -619,9 +726,10 @@ export default function HowItWorks() {
         /* Responsive Design */
         @media (max-width: 1024px) {
           .timeline__step {
-            min-width: 280px;
-            flex: 0 0 280px;
-            min-height: 320px;
+            min-width: 300px;
+            flex: 0 0 300px;
+            min-height: 360px;
+            padding: 24px;
           }
 
           .timeline__fade {
@@ -660,6 +768,10 @@ export default function HowItWorks() {
             display: none;
           }
 
+          .timeline__progress-indicator {
+            display: none;
+          }
+
           .timeline__wrapper {
             margin: 0 -6%;
             padding: 0 6%;
@@ -678,7 +790,37 @@ export default function HowItWorks() {
             min-width: 100%;
             flex: 1;
             min-height: auto;
-            padding: 24px;
+            padding: 28px;
+            flex-direction: column;
+            border-radius: 16px;
+          }
+          
+          .timeline__step-header {
+            flex-direction: row;
+            width: 100%;
+            margin-right: 0;
+            margin-bottom: 20px;
+            justify-content: flex-start;
+            gap: 18px;
+          }
+          
+          .timeline__step-meta {
+            flex: 1;
+          }
+
+          .timeline__step + .timeline__step {
+            position: relative;
+          }
+
+          .timeline__step + .timeline__step::before {
+            content: '';
+            position: absolute;
+            top: -8px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 40px;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, rgba(201, 162, 39, 0.3), transparent);
           }
 
           .timeline__step:first-child,
@@ -688,6 +830,10 @@ export default function HowItWorks() {
 
           .timeline__connector {
             display: none;
+          }
+
+          .timeline__mobile-separator {
+            display: block;
           }
 
           .timeline__fade {

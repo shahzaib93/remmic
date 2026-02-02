@@ -27,11 +27,11 @@ export default function BiddingActionCard({
   }
 
   return (
-    <div className="bg-white rounded-2xl border border-gray-100 shadow-lg p-6">
+    <div className="bg-white/90 backdrop-blur-sm rounded-2xl border border-[#c9a227]/20 shadow-xl p-6">
       {/* Register Button */}
       <button
         onClick={onRegisterToBid}
-        className="w-full py-4 px-6 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-xl transition-colors flex items-center justify-center gap-2 shadow-sm hover:shadow-md"
+        className="w-full py-4 px-6 bg-gradient-to-r from-[#c9a227] to-[#b8922a] hover:from-[#b8922a] hover:to-[#a67c00] text-white font-semibold rounded-xl transition-all flex items-center justify-center gap-2 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
       >
         <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -41,9 +41,9 @@ export default function BiddingActionCard({
 
       {/* Auction Info Boxes */}
       <div className="mt-5 grid grid-cols-3 gap-3">
-        <div className="bg-gray-50 rounded-xl p-3 text-center">
+        <div className="bg-gradient-to-r from-[#c9a227]/5 to-[#b8922a]/5 border border-[#c9a227]/15 rounded-xl p-3 text-center">
           <div className="flex items-center justify-center mb-2">
-            <svg className="w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <svg className="w-4 h-4 text-[#c9a227]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
             </svg>
           </div>
@@ -51,9 +51,9 @@ export default function BiddingActionCard({
           <p className="text-sm font-semibold text-gray-900">{formatDate(auctionDate)}</p>
         </div>
 
-        <div className="bg-gray-50 rounded-xl p-3 text-center">
+        <div className="bg-gradient-to-r from-[#c9a227]/5 to-[#b8922a]/5 border border-[#c9a227]/15 rounded-xl p-3 text-center">
           <div className="flex items-center justify-center mb-2">
-            <svg className="w-4 h-4 text-emerald-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <svg className="w-4 h-4 text-[#b8922a]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
           </div>
@@ -61,9 +61,9 @@ export default function BiddingActionCard({
           <p className="text-sm font-semibold text-gray-900">{formatTime(biddingOpens)}</p>
         </div>
 
-        <div className="bg-gray-50 rounded-xl p-3 text-center">
+        <div className="bg-gradient-to-r from-[#c9a227]/5 to-[#b8922a]/5 border border-[#c9a227]/15 rounded-xl p-3 text-center">
           <div className="flex items-center justify-center mb-2">
-            <svg className="w-4 h-4 text-rose-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <svg className="w-4 h-4 text-[#a67c00]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
           </div>
@@ -75,7 +75,7 @@ export default function BiddingActionCard({
       {/* Book Viewing Button */}
       <button
         onClick={onBookViewing}
-        className="w-full mt-4 py-3 px-6 bg-white border-2 border-gray-200 hover:border-indigo-600 text-gray-700 hover:text-indigo-600 font-medium rounded-xl transition-all flex items-center justify-center gap-2"
+        className="w-full mt-4 py-3 px-6 bg-white border-2 border-[#c9a227]/30 hover:border-[#c9a227] text-gray-700 hover:text-[#8b6914] font-medium rounded-xl transition-all flex items-center justify-center gap-2 hover:bg-[#c9a227]/5"
       >
         <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />

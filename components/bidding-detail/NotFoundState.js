@@ -39,7 +39,7 @@ export default function NotFoundState({ propertyId = '' }) {
         <div className="flex flex-col sm:flex-row gap-3 justify-center">
           <Link
             href="/marketplace"
-            className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-indigo-600 text-white font-semibold rounded-xl hover:bg-indigo-700 transition-colors"
+            className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-gradient-to-r from-[#c9a227] to-[#b8922a] hover:from-[#b8922a] hover:to-[#a67c00] text-white font-semibold rounded-xl transition-all"
           >
             <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path
@@ -70,7 +70,7 @@ export default function NotFoundState({ propertyId = '' }) {
         {/* Help Text */}
         <p className="mt-8 text-sm text-gray-400">
           Need help? Contact us at{' '}
-          <a href="tel:+92423576123" className="text-indigo-600 hover:underline">
+          <a href="tel:+92423576123" className="text-[#c9a227] hover:underline">
             +92 42 35761234
           </a>
         </p>

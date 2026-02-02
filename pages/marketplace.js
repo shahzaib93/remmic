@@ -93,15 +93,21 @@ export default function Marketplace() {
         <main className="pt-24 pb-16">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             {/* Page Header */}
-            <div className="text-center mb-10">
-              <h1 className="text-4xl sm:text-5xl font-bold text-[#1a1a1a] mb-4">
-                Properties for Sale
-              </h1>
-              <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-                Discover premium properties across Pakistan. Browse our curated collection
-                of homes, apartments, and investment opportunities.
-              </p>
-            </div>
+            <section className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-[#0f172a] via-[#1e293b] to-[#0f172a] text-white p-8 sm:p-12 mb-10 shadow-xl">
+              <div className="absolute inset-0 opacity-30 bg-[radial-gradient(circle_at_top,_#c9a227,_transparent_45%)]" />
+              <div className="relative text-center max-w-3xl mx-auto space-y-4">
+                <span className="inline-block text-xs tracking-[0.5em] uppercase text-[#facc15] font-semibold">
+                  Marketplace
+                </span>
+                <h1 className="text-3xl sm:text-5xl font-bold leading-tight">
+                  Invest in Landmark Properties Across Pakistan
+                </h1>
+                <p className="text-base sm:text-lg text-white/80">
+                  Curated homes, villas, and commercial assets from REMMIC&apos;s trusted partners. 
+                  Filter, compare, and bid with confidence.
+                </p>
+              </div>
+            </section>
 
             {/* Toolbar */}
             <MarketplaceToolbar

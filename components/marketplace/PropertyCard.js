@@ -1,14 +1,22 @@
 import { useState } from 'react'
 import { formatPrice } from '../../data/mockProperties'
+import BiddingModal from './BiddingModal'
 
 export default function PropertyCard({ property, viewMode = 'grid' }) {
   const [isFavorite, setIsFavorite] = useState(false)
   const [imageLoaded, setImageLoaded] = useState(false)
+  const [showBiddingModal, setShowBiddingModal] = useState(false)
 
   const handleFavorite = (e) => {
     e.preventDefault()
     e.stopPropagation()
     setIsFavorite(!isFavorite)
+  }
+
+  const handleBidNow = (e) => {
+    e.preventDefault()
+    e.stopPropagation()
+    setShowBiddingModal(true)
   }
 
   const getBadgeColor = (badge) => {
@@ -27,7 +35,7 @@ export default function PropertyCard({ property, viewMode = 'grid' }) {
   if (viewMode === 'list') {
     return (
       <div className="bg-white rounded-2xl overflow-hidden shadow-sm border border-gray-100">
-        <a href={`/bidding-detail?id=${property.id}`} className="flex flex-col md:flex-row">
+        <div className="flex flex-col md:flex-row">
           {/* Image Section */}
           <div className="relative w-full md:w-72 h-48 md:h-auto flex-shrink-0">
             {!imageLoaded && (
@@ -106,15 +114,28 @@ export default function PropertyCard({ property, viewMode = 'grid' }) {
 
             {/* CTA Buttons */}
             <div className="flex gap-3">
-              <button className="flex-1 px-4 py-2.5 bg-gradient-to-r from-[#c9a227] to-[#b8922a] text-white rounded-xl font-medium shadow-md">
-                View Details
+              <button 
+                onClick={handleBidNow}
+                className="flex-1 px-4 py-2.5 bg-gradient-to-r from-[#c9a227] to-[#b8922a] text-white rounded-xl font-medium shadow-md hover:from-[#b8922a] hover:to-[#a67c00] transition-all"
+              >
+                Bid Now
               </button>
-              <button className="px-4 py-2.5 border border-[#c9a227]/30 text-[#c9a227] rounded-xl font-medium">
-                Contact
-              </button>
+              <a
+                href={`/bidding-detail?id=${property.id}`}
+                className="px-4 py-2.5 border border-[#c9a227]/30 text-[#c9a227] rounded-xl font-medium hover:bg-[#fff9ed] transition-colors"
+              >
+                Details
+              </a>
             </div>
           </div>
-        </a>
+        </div>
+
+        {/* Bidding Modal */}
+        <BiddingModal 
+          property={property}
+          isOpen={showBiddingModal}
+          onClose={() => setShowBiddingModal(false)}
+        />
       </div>
     )
   }
@@ -122,7 +143,7 @@ export default function PropertyCard({ property, viewMode = 'grid' }) {
   // Grid View
   return (
     <div className="bg-white rounded-2xl overflow-hidden shadow-sm border border-gray-100 flex flex-col h-full">
-      <a href={`/bidding-detail?id=${property.id}`} className="flex flex-col h-full">
+      <div className="flex flex-col h-full">
         {/* Image Section */}
         <div className="relative aspect-[4/3] overflow-hidden">
           {!imageLoaded && (
@@ -199,15 +220,28 @@ export default function PropertyCard({ property, viewMode = 'grid' }) {
 
           {/* CTA Buttons */}
           <div className="flex gap-2">
-            <button className="flex-1 px-3 py-2 bg-gradient-to-r from-[#c9a227] to-[#b8922a] text-white rounded-xl text-sm font-medium shadow-md">
-              View Details
+            <button
+              onClick={handleBidNow}
+              className="flex-1 px-3 py-2 bg-gradient-to-r from-[#c9a227] via-[#b8922a] to-[#a67c00] text-white rounded-xl text-sm font-semibold shadow-md text-center hover:from-[#b8922a] hover:via-[#a67c00] hover:to-[#8b6914] transition-all border border-[#c9a227]/40"
+            >
+              Bid Now
             </button>
-            <button className="px-3 py-2 border border-[#c9a227]/30 text-[#c9a227] rounded-xl text-sm font-medium">
-              Contact
-            </button>
+            <a
+              href={`/bidding-detail?id=${property.id}`}
+              className="px-3 py-2 rounded-xl text-sm font-medium text-[#c9a227] text-center border border-[#c9a227]/30 hover:bg-[#fff9ed]"
+            >
+              Details
+            </a>
           </div>
         </div>
-      </a>
+      </div>
+
+      {/* Bidding Modal */}
+      <BiddingModal 
+        property={property}
+        isOpen={showBiddingModal}
+        onClose={() => setShowBiddingModal(false)}
+      />
     </div>
   )
 }

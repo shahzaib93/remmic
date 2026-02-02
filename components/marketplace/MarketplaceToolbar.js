@@ -45,27 +45,28 @@ export default function MarketplaceToolbar({
         </div>
 
         {/* Center: Search Input */}
-        <div className="flex-1 w-full lg:max-w-md">
+        <div className="flex-1 w-full lg:max-w-xl">
+          <label className="block text-xs font-semibold text-gray-500 mb-2 tracking-[0.3em] uppercase">
+            Search Listings
+          </label>
           <div className="relative">
-            <svg
-              className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-            </svg>
+            <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+              <svg className="w-5 h-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              </svg>
+            </div>
             <input
               type="text"
-              placeholder="Search by address or city..."
+              placeholder="Try “DHA Phase 6”, “Bahria”, or “Karachi”…"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-12 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#c9a227] focus:border-transparent transition-all"
+              className="w-full pl-12 pr-4 py-3 bg-gradient-to-r from-white to-[#fdf8f1] border border-[#f1e3c3] rounded-2xl text-gray-900 placeholder-[#bba670] font-medium shadow-inner focus:outline-none focus:ring-2 focus:ring-[#c9a227]/70 focus:border-transparent transition-all"
             />
             {searchTerm && (
               <button
                 onClick={() => setSearchTerm('')}
-                className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                className="absolute right-4 top-1/2 -translate-y-1/2 text-[#bba670] hover:text-[#8c712c] transition-colors"
+                aria-label="Clear search"
               >
                 <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -120,10 +121,13 @@ export default function MarketplaceToolbar({
       </div>
 
       {/* Results Count */}
-      <div className="mt-4 pt-4 border-t border-gray-100">
-        <p className="text-sm text-gray-500">
-          Showing <span className="font-semibold text-gray-900">{totalResults}</span> properties
+      <div className="mt-6 pt-4 border-t border-gray-100 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+        <p className="text-sm tracking-[0.15em] uppercase text-gray-600">
+          Showing <span className="text-[#c9a227] font-semibold tracking-[0.25em]">{totalResults}</span> properties
         </p>
+        <div className="text-xs text-gray-400 italic">
+          Scroll to explore curated REMMIC listings
+        </div>
       </div>
     </div>
   )

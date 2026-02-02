@@ -4,6 +4,7 @@ import Navbar from '../components/Navbar'
 import Footer from '../components/Footer'
 import { useFirebase } from '../contexts/FirebaseContext'
 import { ensurePropertyImage, resolvePropertyIdentifier } from '../utils/propertyStorage'
+import { mockProperties } from '../data/mockProperties'
 
 export default function Bidding() {
   const [isClient, setIsClient] = useState(false)
@@ -50,10 +51,10 @@ export default function Bidding() {
 
     const loadProperties = async () => {
       try {
-        let allProps = []
+        let fetchedProps = []
         const result = await getAllProperties()
         if (result?.success && Array.isArray(result.properties)) {
-          allProps = result.properties.filter(p =>
+          fetchedProps = result.properties.filter(p =>
             (p.type === 'bidding' || p.bidding?.startDateTime) &&
             p.status?.toLowerCase() === 'approved'
           )
@@ -65,14 +66,26 @@ export default function Bidding() {
           ['land-registration-form', 'land-registration', 'dashboard'].includes(p.source)
         )
 
-        const combined = [...allProps, ...localBidding]
-        const unique = combined.filter((p, i, arr) => arr.findIndex(x => x.id === p.id) === i)
+        // Include mock properties so marketplace/bidding detail data stays consistent
+        const mockBidding = mockProperties.filter((p) => p.biddingOpens || p.bidding?.startDateTime)
+
+        const combined = [...mockBidding, ...fetchedProps, ...localBidding]
+        const unique = combined.filter((p, i, arr) => {
+          const candidateId = p.id || p.propertyId || resolvePropertyIdentifier(p, `bid-${i}`)
+          return arr.findIndex((x, xi) => {
+            const compareId = x.id || x.propertyId || resolvePropertyIdentifier(x, `bid-${xi}`)
+            return compareId === candidateId
+          }) === i
+        })
 
         const processed = unique.map((p, idx) => {
           const bidInfo = getBiddingStatus(p)
           const identifier = resolvePropertyIdentifier(p, `bid-${idx}`)
+          const resolvedId = p.id || identifier
           return {
-            id: identifier,
+            id: resolvedId,
+            slug: identifier,
+            originalId: p.id || p.propertyId || identifier,
             title: p.title || 'Auction Property',
             description: p.description || 'Details coming soon',
             image: ensurePropertyImage(p),

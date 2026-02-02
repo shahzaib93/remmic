@@ -2,9 +2,6 @@
 const nextConfig = {
   reactStrictMode: false, // Disable strict mode to prevent double rendering issues
   
-  // Enable standalone output for Docker optimization
-  output: 'standalone',
-  
   // Optimize webpack for better performance and reduce warnings
   webpack: (config, { buildId, dev, isServer, defaultLoaders, webpack }) => {
     // Reduce webpack warnings about missing optional dependencies
@@ -27,15 +24,26 @@ const nextConfig = {
       /Critical dependency: the request of a dependency is an expression/,
     ]
 
-    // Simplify webpack configuration to prevent chunk issues
-    if (dev) {
-      config.optimization.splitChunks = {
+    // Simplified webpack configuration to prevent chunk issues
+    config.optimization = {
+      ...config.optimization,
+      splitChunks: {
         chunks: 'all',
+        minSize: 0,
         cacheGroups: {
-          vendor: false,
-          default: false,
+          default: {
+            minChunks: 1,
+            priority: -20,
+            reuseExistingChunk: true,
+          },
+          vendor: {
+            test: /[\\/]node_modules[\\/]/,
+            name: 'vendors',
+            priority: -10,
+            chunks: 'all',
+          },
         },
-      }
+      },
     }
 
     return config

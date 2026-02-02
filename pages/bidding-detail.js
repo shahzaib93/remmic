@@ -116,12 +116,12 @@ export default function BiddingDetail() {
         />
       </Head>
 
-      <div className="min-h-screen bg-gray-50">
+      <div className="min-h-screen bg-gradient-to-br from-[#faf9f7] to-[#f5f3ef]">
         <Navbar />
 
         <main className="pt-20 pb-16">
           {/* Hero Section - Gallery + Map */}
-          <section className="bg-white border-b border-gray-100">
+          <section className="bg-white/80 backdrop-blur-sm border-b border-[#c9a227]/20">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
               <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
                 {/* Left - Gallery (60%) */}
@@ -155,7 +155,7 @@ export default function BiddingDetail() {
           </section>
 
           {/* Property Title + Meta Row */}
-          <section className="bg-white border-b border-gray-100">
+          <section className="bg-white/80 backdrop-blur-sm border-b border-[#c9a227]/20">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
               {isLoading ? (
                 <div className="animate-pulse">
@@ -178,19 +178,19 @@ export default function BiddingDetail() {
                     <div className="flex items-center gap-3 flex-wrap">
                       {property?.badge && (
                         <span
-                          className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold ${
+                          className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold shadow-lg ${
                             property.badge === 'Auction'
-                              ? 'bg-rose-500 text-white'
+                              ? 'bg-gradient-to-r from-[#d4b13d] to-[#c9a227] text-white'
                               : property.badge === 'Featured'
-                              ? 'bg-amber-500 text-white'
-                              : 'bg-emerald-500 text-white'
+                              ? 'bg-gradient-to-r from-[#c9a227] to-[#b8922a] text-white'
+                              : 'bg-gradient-to-r from-[#b8922a] to-[#a67c00] text-white'
                           }`}
                         >
                           {property.badge}
                         </span>
                       )}
                       {property?.type === 'auction' && !property?.badge && (
-                        <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-rose-500 text-white">
+                        <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-gradient-to-r from-[#d4b13d] to-[#c9a227] text-white shadow-lg">
                           Auction
                         </span>
                       )}
@@ -200,11 +200,11 @@ export default function BiddingDetail() {
                     </div>
                     <button
                       onClick={handleToggleFavorite}
-                      className="flex-shrink-0 p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                      className="flex-shrink-0 p-2 hover:bg-[#c9a227]/10 rounded-lg transition-colors"
                     >
                       <svg
                         className={`w-6 h-6 transition-colors ${
-                          isFavorite ? 'text-rose-500 fill-rose-500' : 'text-gray-400'
+                          isFavorite ? 'text-[#c9a227] fill-[#c9a227]' : 'text-gray-400'
                         }`}
                         viewBox="0 0 24 24"
                         stroke="currentColor"
@@ -223,20 +223,20 @@ export default function BiddingDetail() {
 
                   {/* Meta Info Row */}
                   <div className="flex flex-wrap gap-3">
-                    <div className="flex items-center gap-2 px-4 py-2.5 bg-gray-50 rounded-xl">
-                      <svg className="w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <div className="flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-[#c9a227]/5 to-[#b8922a]/5 border border-[#c9a227]/20 rounded-xl">
+                      <svg className="w-4 h-4 text-[#c9a227]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 20l4-16m2 16l4-16M6 9h14M4 15h14" />
                       </svg>
-                      <span className="text-sm text-gray-600">
-                        <span className="font-medium">Lot ID:</span> {property?.lotId}
+                      <span className="text-sm text-gray-700">
+                        <span className="font-medium text-[#8b6914]">Lot ID:</span> {property?.lotId}
                       </span>
                     </div>
-                    <div className="flex items-center gap-2 px-4 py-2.5 bg-gray-50 rounded-xl">
-                      <svg className="w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <div className="flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-[#c9a227]/5 to-[#b8922a]/5 border border-[#c9a227]/20 rounded-xl">
+                      <svg className="w-4 h-4 text-[#c9a227]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                       </svg>
-                      <span className="text-sm text-gray-600">
-                        <span className="font-medium">Country:</span> {property?.country}
+                      <span className="text-sm text-gray-700">
+                        <span className="font-medium text-[#8b6914]">Country:</span> {property?.country}
                       </span>
                     </div>
                     <div className="flex items-center gap-2 px-4 py-2.5 bg-gray-50 rounded-xl">
@@ -247,12 +247,12 @@ export default function BiddingDetail() {
                         <span className="font-medium">Tenure:</span> {property?.tenure}
                       </span>
                     </div>
-                    <div className="flex items-center gap-2 px-4 py-2.5 bg-gray-50 rounded-xl">
-                      <svg className="w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <div className="flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-[#c9a227]/5 to-[#b8922a]/5 border border-[#c9a227]/20 rounded-xl">
+                      <svg className="w-4 h-4 text-[#c9a227]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
                       </svg>
-                      <span className="text-sm text-gray-600">
-                        <span className="font-medium">Type:</span> {property?.propertyType}
+                      <span className="text-sm text-gray-700">
+                        <span className="font-medium text-[#8b6914]">Type:</span> {property?.propertyType}
                       </span>
                     </div>
                   </div>
@@ -273,15 +273,15 @@ export default function BiddingDetail() {
                   </div>
                 ) : (
                   <div>
-                    <p className="text-sm text-gray-500 font-medium uppercase tracking-wide mb-1">
+                    <p className="text-sm text-[#8b6914] font-semibold uppercase tracking-wide mb-1">
                       Guide Price
                     </p>
-                    <p className="text-4xl sm:text-5xl font-bold text-gray-900 mb-2">
+                    <p className="text-4xl sm:text-5xl font-bold bg-gradient-to-r from-[#c9a227] to-[#b8922a] bg-clip-text text-transparent mb-2">
                       {formatPricePKR(property?.guidePrice || property?.price)}
                     </p>
                     <p className="text-gray-500">
                       A security deposit of{' '}
-                      <span className="font-semibold text-gray-700">
+                      <span className="font-semibold text-[#8b6914]">
                         {formatPricePKR(property?.securityDeposit || 500000)}
                       </span>{' '}
                       is required to participate in bidding.
@@ -291,8 +291,8 @@ export default function BiddingDetail() {
                     <div className="mt-6 flex flex-wrap gap-4">
                       {property?.beds > 0 && (
                         <div className="flex items-center gap-2">
-                          <div className="w-10 h-10 bg-indigo-50 rounded-lg flex items-center justify-center">
-                            <svg className="w-5 h-5 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <div className="w-10 h-10 bg-gradient-to-r from-[#c9a227]/10 to-[#b8922a]/10 border border-[#c9a227]/20 rounded-lg flex items-center justify-center">
+                            <svg className="w-5 h-5 text-[#c9a227]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
                             </svg>
                           </div>
@@ -304,8 +304,8 @@ export default function BiddingDetail() {
                       )}
                       {property?.baths > 0 && (
                         <div className="flex items-center gap-2">
-                          <div className="w-10 h-10 bg-indigo-50 rounded-lg flex items-center justify-center">
-                            <svg className="w-5 h-5 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <div className="w-10 h-10 bg-gradient-to-r from-[#c9a227]/10 to-[#b8922a]/10 border border-[#c9a227]/20 rounded-lg flex items-center justify-center">
+                            <svg className="w-5 h-5 text-[#c9a227]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                             </svg>
                           </div>
@@ -316,8 +316,8 @@ export default function BiddingDetail() {
                         </div>
                       )}
                       <div className="flex items-center gap-2">
-                        <div className="w-10 h-10 bg-indigo-50 rounded-lg flex items-center justify-center">
-                          <svg className="w-5 h-5 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <div className="w-10 h-10 bg-[#c9a227]/10 rounded-lg flex items-center justify-center">
+                          <svg className="w-5 h-5 text-[#c9a227]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" />
                           </svg>
                         </div>
@@ -328,8 +328,8 @@ export default function BiddingDetail() {
                       </div>
                       {property?.parking && (
                         <div className="flex items-center gap-2">
-                          <div className="w-10 h-10 bg-indigo-50 rounded-lg flex items-center justify-center">
-                            <svg className="w-5 h-5 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <div className="w-10 h-10 bg-gradient-to-r from-[#c9a227]/10 to-[#b8922a]/10 border border-[#c9a227]/20 rounded-lg flex items-center justify-center">
+                            <svg className="w-5 h-5 text-[#c9a227]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
                             </svg>
                           </div>

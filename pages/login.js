@@ -1,5 +1,5 @@
 import Head from 'next/head'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/router'
 import Link from 'next/link'
 import Navbar from '../components/Navbar'
@@ -8,7 +8,7 @@ import { useFirebase } from '../contexts/FirebaseContext'
 
 export default function Login() {
   const router = useRouter()
-  const { login, loginWithGoogle } = useFirebase()
+  const { login, loginWithGoogle, user } = useFirebase()
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -17,6 +17,15 @@ export default function Login() {
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState('')
   const [showPassword, setShowPassword] = useState(false)
+
+  // Redirect if user is already logged in
+  useEffect(() => {
+    if (user) {
+      const redirectTo = localStorage.getItem('redirectAfterLogin') || '/dashboard'
+      localStorage.removeItem('redirectAfterLogin')
+      router.replace(redirectTo)
+    }
+  }, [user, router])
 
   const handleLogin = async (e) => {
     e.preventDefault()
@@ -27,9 +36,9 @@ export default function Login() {
       const result = await login(formData.email, formData.password, formData.role)
 
       if (result.success) {
-        const redirectTo = localStorage.getItem('redirectAfterLogin') || '/'
+        const redirectTo = localStorage.getItem('redirectAfterLogin') || '/dashboard'
         localStorage.removeItem('redirectAfterLogin')
-        router.push(redirectTo)
+        router.replace(redirectTo)
       } else {
         setError(result.error || 'Login failed. Please try again.')
       }
@@ -49,7 +58,7 @@ export default function Login() {
       if (result.success) {
         const redirectTo = localStorage.getItem('redirectAfterLogin') || '/dashboard'
         localStorage.removeItem('redirectAfterLogin')
-        router.push(redirectTo)
+        router.replace(redirectTo)
       } else {
         setError(result.error || 'Google sign-in failed. Please try again.')
       }

@@ -1334,115 +1334,85 @@ export default function InvestmentShares() {
       >
         <Navbar />
         
-        <main className="pt-24 bg-gray-50">
+        <main className="pt-12 bg-gray-50">
 
           <section id="live-market" className="investment-market">
             <div className="investment-market__shell">
-              <div className="investment-market__header">
-                <div className="investment-market__intro">
-                  <h2 className="investment-market__title">Live Investment Opportunities</h2>
-                  <p className="investment-market__subtitle">
-                    Invest in premium properties through REMMIC's exclusive consortium partnerships. We connect you with opportunities from trusted developers that you can't access alone.
-                  </p>
-                  <div className="investment-market__meta">
-                    <span className="investment-market__meta-dot" aria-hidden="true" />
-                    <span>{activeOpportunitiesCount} active {activeOpportunityLabel}</span>
-                    <span className="investment-market__meta-divider" aria-hidden="true">&bull;</span>
-                    <span>{heroPrimaryLocation}</span>
-                  </div>
-                  <div className="investment-market__hero-cta">
-                    <a className="investment-market__hero-button" href="#live-market">Browse live deals</a>
-                    <a className="investment-market__hero-link" href="mailto:invest@remmic.com">Talk to an advisor</a>
-                  </div>
-                </div>
-                <div className="investment-market__stats">
-                  {heroStats.map((stat) => (
-                    <div key={stat.label} className="investment-market__stat">
-                      <span className="investment-market__stat-label">{stat.label}</span>
-                      <span className="investment-market__stat-value">{stat.value}</span>
-                      <span className="investment-market__stat-hint">{stat.hint}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
 
               <div className="investment-market__filters">
-                <div className="investment-market__top-filters">
-                  <div className="investment-market__search">
-                    <label htmlFor="investment-market-search">Search opportunities</label>
-                    <div className="investment-market__search-input">
-                      <input
-                        id="investment-market-search"
-                        type="search"
-                        value={searchTerm}
-                        onChange={(event) => setSearchTerm(event.target.value)}
-                        placeholder="Search by project or company name"
-                      />
-                    </div>
+                <div className="investment-market__controls-row">
+                  <div className="investment-market__search-compact">
+                    <input
+                      id="investment-market-search"
+                      type="search"
+                      value={searchTerm}
+                      onChange={(event) => setSearchTerm(event.target.value)}
+                      placeholder="Search opportunities..."
+                      aria-label="Search opportunities"
+                    />
                   </div>
 
-                  <div className="investment-market__select-group">
-                    <label htmlFor="investment-market-location">Location</label>
-                    <select
-                      id="investment-market-location"
-                      value={selectedLocation}
-                      onChange={(event) => setSelectedLocation(event.target.value)}
-                    >
-                      <option value="all">All locations</option>
-                      {availableLocations.map((location) => (
-                        <option key={location} value={location}>
-                          {location}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
+                  <select
+                    id="investment-market-location"
+                    value={selectedLocation}
+                    onChange={(event) => setSelectedLocation(event.target.value)}
+                    aria-label="Filter by location"
+                  >
+                    <option value="all">All locations</option>
+                    {availableLocations.map((location) => (
+                      <option key={location} value={location}>
+                        {location}
+                      </option>
+                    ))}
+                  </select>
 
-                  <div className="investment-market__select-group">
-                    <label htmlFor="investment-market-sort">Sort by</label>
-                    <select
-                      id="investment-market-sort"
-                      value={selectedSort}
-                      onChange={(event) => setSelectedSort(event.target.value)}
-                    >
-                      <option value="recommended">Recommended</option>
-                      <option value="roi-desc">Highest ROI</option>
-                      <option value="roi-asc">Lowest ROI</option>
-                      <option value="min-low">Lowest min. investment</option>
-                      <option value="min-high">Highest min. investment</option>
-                      <option value="alphabetical">Alphabetical</option>
-                    </select>
-                  </div>
+                  <select
+                    id="investment-market-sort"
+                    value={selectedSort}
+                    onChange={(event) => setSelectedSort(event.target.value)}
+                    aria-label="Sort by"
+                  >
+                    <option value="recommended">Recommended</option>
+                    <option value="roi-desc">Highest ROI</option>
+                    <option value="roi-asc">Lowest ROI</option>
+                    <option value="min-low">Lowest min. investment</option>
+                    <option value="min-high">Highest min. investment</option>
+                    <option value="alphabetical">Alphabetical</option>
+                  </select>
                 </div>
 
-                <div className="investment-market__chip-row">
-                  {[{ key: 'all', label: 'All' }, { key: 'live', label: 'Live' }, { key: 'new', label: 'New' }, { key: 'coming-soon', label: 'Coming Soon' }, { key: 'fully-funded', label: 'Fully Funded' }].map((chip) => {
-                    const isActive = selectedFilter === chip.key
-                    return (
-                      <button
-                        key={chip.key}
-                        type="button"
-                        onClick={() => setSelectedFilter(chip.key)}
-                        className={`investment-market__chip${isActive ? ' is-active' : ''}`}
-                      >
-                        {chip.label}
-                      </button>
-                    )
-                  })}
-                </div>
+                <div className="investment-market__filter-row">
+                  <div className="investment-market__chips">
+                    {[{ key: 'all', label: 'All' }, { key: 'live', label: 'Live' }, { key: 'new', label: 'New' }, { key: 'coming-soon', label: 'Coming Soon' }, { key: 'fully-funded', label: 'Fully Funded' }].map((chip) => {
+                      const isActive = selectedFilter === chip.key
+                      return (
+                        <button
+                          key={chip.key}
+                          type="button"
+                          onClick={() => setSelectedFilter(chip.key)}
+                          className={`investment-market__chip${isActive ? ' is-active' : ''}`}
+                        >
+                          {chip.label}
+                        </button>
+                      )
+                    })}
+                  </div>
 
-                <button
-                  type="button"
-                  className="investment-market__reset"
-                  onClick={() => {
-                    setSearchTerm('')
-                    setSelectedFilter('all')
-                    setSelectedLocation('all')
-                    setSelectedRiskLevel('all')
-                    setSelectedSort('recommended')
-                  }}
-                >
-                  Reset filters
-                </button>
+                  <button
+                    type="button"
+                    className="investment-market__reset"
+                    onClick={() => {
+                      setSearchTerm('')
+                      setSelectedFilter('all')
+                      setSelectedLocation('all')
+                      setSelectedRiskLevel('all')
+                      setSelectedSort('recommended')
+                    }}
+                    title="Reset all filters"
+                  >
+                    Reset
+                  </button>
+                </div>
               </div>
 
               {/* Results Summary */}
@@ -1454,8 +1424,8 @@ export default function InvestmentShares() {
               </div>
 
               {/* Investment Cards Grid */}
-              <div ref={scrollerRef} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {filteredInvestments.map((share, index) => {
+              <div ref={scrollerRef} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                {filteredInvestments.slice(1).map((share, index) => {
                   const cardKey = share.__duplicate ? share.__duplicateKey || `duplicate-${index}` : share.id || `share-${index}`
                   const shareId = share.originalId || share.id
                   
@@ -1541,16 +1511,16 @@ export default function InvestmentShares() {
                 position: relative;
                 background: linear-gradient(180deg, #f8fafc 0%, #eef2ff 100%);
                 border-bottom: 1px solid rgba(15, 23, 42, 0.08);
-                padding: clamp(72px, 8vw, 110px) 0;
+                padding: clamp(16px, 2vw, 24px) 0;
               }
 
               .investment-market__shell {
                 width: min(1600px, 95%);
                 margin: 0 auto;
-                padding: 0 clamp(24px, 4vw, 48px);
+                padding: 0 clamp(8px, 2vw, 16px);
                 display: flex;
                 flex-direction: column;
-                gap: clamp(40px, 6vw, 60px);
+                gap: clamp(12px, 2vw, 20px);
               }
 
               .investment-market__header {
@@ -1707,25 +1677,127 @@ export default function InvestmentShares() {
               }
 
               .investment-market__filters {
-                background: #f9fafb;
-                border: 1px solid rgba(226, 232, 240, 0.6);
-                border-radius: 24px;
-                box-shadow: 0 20px 45px -32px rgba(15, 23, 42, 0.45);
-                padding: clamp(24px, 4vw, 32px);
+                background: #ffffff;
+                border: 1px solid rgba(226, 232, 240, 0.5);
+                border-radius: 8px;
+                box-shadow: 0 2px 12px -6px rgba(15, 23, 42, 0.15);
+                padding: 8px 12px;
                 display: flex;
                 flex-direction: column;
-                gap: clamp(18px, 4vw, 26px);
+                gap: 6px;
+                margin-bottom: 4px;
+              }
+
+              .investment-market__controls-row {
+                display: grid;
+                grid-template-columns: 2fr 1fr 1fr;
+                gap: 8px;
+                align-items: center;
+              }
+
+              .investment-market__search-compact {
+                position: relative;
+              }
+
+              .investment-market__search-compact input {
+                width: 100%;
+                padding: 6px 10px;
+                border: 1px solid rgba(226, 232, 240, 0.8);
+                border-radius: 6px;
+                background: #ffffff;
+                font-size: 0.8rem;
+                color: #334155;
+                outline: none;
+                transition: border-color 0.2s ease;
+              }
+
+              .investment-market__search-compact input:focus {
+                border-color: #c9a227;
+                box-shadow: 0 0 0 2px rgba(201, 162, 39, 0.1);
+              }
+
+              .investment-market__controls-row select {
+                width: 100%;
+                padding: 6px 8px;
+                border: 1px solid rgba(226, 232, 240, 0.8);
+                border-radius: 6px;
+                background: #ffffff;
+                font-size: 0.8rem;
+                color: #334155;
+                outline: none;
+                cursor: pointer;
+                transition: border-color 0.2s ease;
+              }
+
+              .investment-market__controls-row select:focus {
+                border-color: #c9a227;
+                box-shadow: 0 0 0 2px rgba(201, 162, 39, 0.1);
+              }
+
+              .investment-market__filter-row {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                gap: 8px;
+              }
+
+              .investment-market__chips {
+                display: flex;
+                gap: 4px;
+                flex-wrap: wrap;
+              }
+
+              .investment-market__chip {
+                padding: 4px 10px;
+                border: 1px solid rgba(226, 232, 240, 0.8);
+                border-radius: 4px;
+                background: #ffffff;
+                color: #64748b;
+                font-size: 0.75rem;
+                font-weight: 500;
+                cursor: pointer;
+                transition: all 0.2s ease;
+                white-space: nowrap;
+              }
+
+              .investment-market__chip:hover {
+                border-color: #c9a227;
+                color: #c9a227;
+              }
+
+              .investment-market__chip.is-active {
+                background: #c9a227;
+                border-color: #c9a227;
+                color: #ffffff;
+              }
+
+              .investment-market__reset {
+                padding: 4px 10px;
+                border: 1px solid rgba(226, 232, 240, 0.8);
+                border-radius: 4px;
+                background: #ffffff;
+                color: #64748b;
+                font-size: 0.75rem;
+                font-weight: 500;
+                cursor: pointer;
+                transition: all 0.2s ease;
+                white-space: nowrap;
+              }
+
+              .investment-market__reset:hover {
+                background: #f1f5f9;
+                border-color: #94a3b8;
               }
 
               .investment-market__trust {
                 display: grid;
-                gap: clamp(14px, 3vw, 18px);
-                margin-top: clamp(18px, 3vw, 22px);
-                padding: clamp(20px, 3.5vw, 26px);
-                border-radius: 20px;
+                gap: clamp(4px, 1vw, 8px);
+                margin-top: clamp(8px, 1vw, 12px);
+                padding: clamp(12px, 2vw, 16px);
+                border-radius: 12px;
                 border: 1px solid rgba(226, 232, 240, 0.65);
                 background: #f9fafb;
-                box-shadow: 0 20px 45px -32px rgba(15, 23, 42, 0.38);
+                box-shadow: 0 8px 24px -16px rgba(15, 23, 42, 0.25);
               }
 
               .investment-market__trust-intro {
@@ -1768,79 +1840,73 @@ export default function InvestmentShares() {
               }
 
 
-              .investment-market__search {
-                display: flex;
-                flex-direction: column;
-                gap: 10px;
+
+              .investment-market__controls-row {
+                display: grid;
+                grid-template-columns: 2fr 1fr 1fr;
+                gap: 8px;
+                align-items: center;
               }
 
-              .investment-market__top-filters {
-                display: flex;
-                gap: 16px;
-                align-items: flex-end;
-                margin-bottom: 20px;
-              }
-
-              .investment-market__top-filters .investment-market__search {
-                flex: 2;
-                min-width: 400px;
-              }
-
-              .investment-market__top-filters .investment-market__select-group {
-                flex: 0 0 200px;
-              }
-
-              .investment-market__search label {
-                font-size: 0.82rem;
-                font-weight: 700;
-                letter-spacing: 0.12em;
-                text-transform: uppercase;
+              .investment-market__search-compact input {
+                width: 100%;
+                padding: 10px 14px;
+                border: 1px solid rgba(148, 163, 184, 0.35);
+                border-radius: 8px;
+                background: #ffffff;
+                font-size: 0.9rem;
                 color: #0f172a;
+                transition: border-color 0.2s ease, box-shadow 0.2s ease;
               }
 
-              .investment-market__search-input {
+              .investment-market__search-compact input:focus {
+                outline: none;
+                border-color: rgba(37, 99, 235, 0.55);
+                box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.15);
+              }
+
+              .investment-market__controls-row select {
+                width: 100%;
+                padding: 10px 12px;
+                border: 1px solid rgba(148, 163, 184, 0.35);
+                border-radius: 8px;
+                background: #ffffff;
+                font-size: 0.9rem;
+                color: #0f172a;
+                transition: border-color 0.2s ease, box-shadow 0.2s ease;
+              }
+
+              .investment-market__controls-row select:focus {
+                outline: none;
+                border-color: rgba(37, 99, 235, 0.55);
+                box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.15);
+              }
+
+              .investment-market__filter-row {
                 display: flex;
                 align-items: center;
-                gap: 12px;
-                padding: 0.5rem 1rem;
-                border: 1px solid rgba(148, 163, 184, 0.35);
-                border-radius: 12px;
-                background: #f9fafb;
-                transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+                justify-content: space-between;
+                gap: 16px;
               }
 
-              .investment-market__search-input:focus-within {
-                border-color: rgba(37, 99, 235, 0.55);
-                box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.18);
-                background: var(--neutral--white-200);
-              }
-
-              .investment-market__search-input input {
-                flex: 1;
-                border: none;
-                background: transparent;
-                font-size: 1rem;
-                color: #0f172a;
-              }
-
-              .investment-market__chip-row {
+              .investment-market__chips {
                 display: flex;
                 flex-wrap: wrap;
-                gap: 10px;
-                justify-content: center;
+                gap: 8px;
+                flex: 1;
               }
 
               .investment-market__chip {
-                border-radius: 999px;
-                padding: 0.6rem 1.6rem;
+                border-radius: 20px;
+                padding: 8px 16px;
                 border: 1px solid rgba(226, 232, 240, 0.8);
-                background: #f9fafb;
-                color: #0f172a;
-                font-weight: 600;
-                font-size: 0.95rem;
+                background: #ffffff;
+                color: #475569;
+                font-weight: 500;
+                font-size: 0.85rem;
                 cursor: pointer;
-                transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease, color 0.2s ease;
-                box-shadow: 0 8px 18px -15px rgba(15, 23, 42, 0.6);
+                transition: all 0.2s ease;
+                white-space: nowrap;
               }
 
               .investment-market__chip:hover {
@@ -1850,11 +1916,10 @@ export default function InvestmentShares() {
               }
 
               .investment-market__chip.is-active {
-                border-color: rgba(201, 162, 39, 0.75);
-                background: linear-gradient(135deg, #c9a227, #d4b13d);
-                color: #0a0a0a;
-                box-shadow: 0 18px 35px -22px rgba(201, 162, 39, 0.7);
-                transform: translateY(-1px);
+                border-color: #c9a227;
+                background: #c9a227;
+                color: #ffffff;
+                font-weight: 600;
               }
 
               .investment-market__select-grid {
@@ -1865,54 +1930,18 @@ export default function InvestmentShares() {
                 align-items: flex-start;
               }
 
-              .investment-market__select-group {
-                display: flex;
-                flex-direction: column;
-                gap: 8px;
-                min-width: 220px;
-                flex: 1 1 220px;
-              }
-
-              .investment-market__select-group label {
-                font-size: 0.78rem;
-                font-weight: 700;
-                letter-spacing: 0.12em;
-                text-transform: uppercase;
-                color: #475569;
-              }
-
-              .investment-market__select-group select {
-                width: 100%;
-                border: 1px solid rgba(148, 163, 184, 0.35);
-                border-radius: 12px;
-                padding: 0.8rem 0.9rem;
-                font-size: 0.95rem;
-                background: #f9fafb;
-                color: #0f172a;
-                transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
-              }
-
-              .investment-market__select-group select:focus {
-                outline: none;
-                border-color: rgba(37, 99, 235, 0.55);
-                box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.16);
-                background: var(--neutral--white-200);
-              }
 
               .investment-market__reset {
-                align-self: center;
-                display: inline-flex;
-                align-items: center;
-                justify-content: center;
+                flex-shrink: 0;
                 background: none;
                 border: 1px solid rgba(201, 162, 39, 0.4);
-                padding: 0.5rem 1.5rem;
-                border-radius: 999px;
-                font-weight: 600;
-                font-size: 0.875rem;
+                padding: 8px 16px;
+                border-radius: 20px;
+                font-weight: 500;
+                font-size: 0.85rem;
                 color: #c9a227;
                 cursor: pointer;
-                transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+                transition: all 0.2s ease;
                 white-space: nowrap;
               }
 
@@ -2323,22 +2352,23 @@ export default function InvestmentShares() {
                   grid-template-columns: repeat(2, minmax(0, 1fr));
                 }
 
-                .investment-market__top-filters {
+                .investment-market__controls-row {
+                  grid-template-columns: 1fr;
+                  gap: 12px;
+                }
+
+                .investment-market__filter-row {
                   flex-direction: column;
                   align-items: stretch;
-                  gap: 18px;
+                  gap: 12px;
                 }
 
-                .investment-market__top-filters .investment-market__search,
-                .investment-market__top-filters .investment-market__select-group {
-                  flex: 1 1 100%;
-                  min-width: 0;
-                  width: 100%;
+                .investment-market__chips {
+                  justify-content: center;
                 }
 
-                .investment-market__top-filters .investment-market__search input,
-                .investment-market__top-filters select {
-                  width: 100%;
+                .investment-market__reset {
+                  align-self: center;
                 }
 
 
@@ -2346,7 +2376,35 @@ export default function InvestmentShares() {
 
               @media (max-width: 768px) {
                 .investment-market__filters {
-                  padding: 26px;
+                  padding: 10px 12px;
+                  gap: 8px;
+                }
+
+                .investment-market__controls-row {
+                  grid-template-columns: 1fr;
+                  gap: 8px;
+                }
+
+                .investment-market__filter-row {
+                  flex-direction: column;
+                  gap: 8px;
+                  align-items: stretch;
+                }
+
+                .investment-market__chips {
+                  justify-content: center;
+                  gap: 4px;
+                }
+
+                .investment-market__chip {
+                  font-size: 0.75rem;
+                  padding: 5px 10px;
+                }
+
+                .investment-market__reset {
+                  align-self: center;
+                  font-size: 0.75rem;
+                  padding: 5px 10px;
                 }
 
                 .investment-market__stats {
@@ -2374,14 +2432,14 @@ export default function InvestmentShares() {
 
               @media (max-width: 575px) {
                 .investment-market__shell {
-                  gap: 32px;
-                  padding: 0 16px;
+                  gap: 12px;
+                  padding: 0 8px;
                 }
 
                 .investment-market__filters {
-                  padding: 18px;
-                  gap: 16px;
-                  border-radius: 16px;
+                  padding: 8px;
+                  gap: 6px;
+                  border-radius: 8px;
                 }
 
                 .investment-market__stats {
@@ -2403,26 +2461,25 @@ export default function InvestmentShares() {
                   font-size: 0.65rem;
                 }
 
-                .investment-market__search-input {
-                  padding: 0.65rem 0.9rem;
-                }
-
-                .investment-market__chip {
-                  flex: 1 1 calc(50% - 6px);
-                  text-align: center;
-                  padding: 0.5rem 1rem;
+                .investment-market__search-compact input {
+                  padding: 8px 12px;
                   font-size: 0.85rem;
                 }
 
-                .investment-market__select-group {
-                  min-width: 100%;
+                .investment-market__controls-row select {
+                  padding: 8px 10px;
+                  font-size: 0.85rem;
                 }
 
+                .investment-market__chip {
+                  padding: 6px 12px;
+                  font-size: 0.8rem;
+                }
+
+
                 .investment-market__reset {
-                  width: 100%;
-                  text-align: center;
-                  padding: 0.55rem 1rem;
-                  font-size: 0.9rem;
+                  padding: 8px 14px;
+                  font-size: 0.8rem;
                 }
 
 
@@ -2431,8 +2488,8 @@ export default function InvestmentShares() {
                 }
 
                 .investment-market__trust {
-                  padding: 16px;
-                  gap: 12px;
+                  padding: 8px;
+                  gap: 4px;
                 }
 
                 .investment-market__trust-badges {
@@ -3278,8 +3335,6 @@ export default function InvestmentShares() {
     </>
   )
 }
-
-
 
 
 

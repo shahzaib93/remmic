@@ -102,7 +102,7 @@ export default function PropertyGallery({ images = [], hasVideo = false, has360T
             onClick={() => goToImage(index)}
             className={`flex-shrink-0 w-20 h-14 rounded-lg overflow-hidden transition-all ${
               currentIndex === index
-                ? 'ring-2 ring-indigo-600 ring-offset-2'
+                ? 'ring-2 ring-[#c9a227] ring-offset-2'
                 : 'opacity-70 hover:opacity-100'
             }`}
           >

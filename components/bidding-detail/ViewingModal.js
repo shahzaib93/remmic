@@ -86,7 +86,7 @@ export default function ViewingModal({ isOpen, onClose, propertyTitle = '', prop
                       required
                       value={formData.fullName}
                       onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
-                      className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
+                      className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#c9a227] focus:border-transparent transition-all"
                       placeholder="Enter your full name"
                     />
                   </div>
@@ -101,7 +101,7 @@ export default function ViewingModal({ isOpen, onClose, propertyTitle = '', prop
                         required
                         value={formData.email}
                         onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                        className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
+                        className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#c9a227] focus:border-transparent transition-all"
                         placeholder="your@email.com"
                       />
                     </div>
@@ -114,7 +114,7 @@ export default function ViewingModal({ isOpen, onClose, propertyTitle = '', prop
                         required
                         value={formData.phone}
                         onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                        className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
+                        className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#c9a227] focus:border-transparent transition-all"
                         placeholder="+92 300 0000000"
                       />
                     </div>
@@ -130,7 +130,7 @@ export default function ViewingModal({ isOpen, onClose, propertyTitle = '', prop
                         required
                         value={formData.preferredDate}
                         onChange={(e) => setFormData({ ...formData, preferredDate: e.target.value })}
-                        className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
+                        className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#c9a227] focus:border-transparent transition-all"
                       />
                     </div>
                     <div>
@@ -140,7 +140,7 @@ export default function ViewingModal({ isOpen, onClose, propertyTitle = '', prop
                       <select
                         value={formData.preferredTime}
                         onChange={(e) => setFormData({ ...formData, preferredTime: e.target.value })}
-                        className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all bg-white"
+                        className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#c9a227] focus:border-transparent transition-all bg-white"
                       >
                         <option value="">Select time</option>
                         <option value="morning">Morning (9AM - 12PM)</option>
@@ -158,7 +158,7 @@ export default function ViewingModal({ isOpen, onClose, propertyTitle = '', prop
                       value={formData.message}
                       onChange={(e) => setFormData({ ...formData, message: e.target.value })}
                       rows={3}
-                      className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all resize-none"
+                      className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#c9a227] focus:border-transparent transition-all resize-none"
                       placeholder="Any specific requirements or questions..."
                     />
                   </div>
@@ -168,7 +168,7 @@ export default function ViewingModal({ isOpen, onClose, propertyTitle = '', prop
                 <div className="px-6 py-4 border-t border-gray-100">
                   <button
                     type="submit"
-                    className="w-full py-3 px-4 bg-indigo-600 text-white font-semibold rounded-xl hover:bg-indigo-700 transition-colors flex items-center justify-center gap-2"
+                    className="w-full py-3 px-4 bg-gradient-to-r from-[#c9a227] to-[#b8922a] hover:from-[#b8922a] hover:to-[#a67c00] text-white font-semibold rounded-xl transition-all flex items-center justify-center gap-2"
                   >
                     <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />

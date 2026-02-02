@@ -64,7 +64,7 @@ export default function RegisterModal({ isOpen, onClose, propertyTitle = '' }) {
             {/* Progress Bar */}
             <div className="mt-4 h-1.5 bg-gray-100 rounded-full overflow-hidden">
               <div
-                className="h-full bg-indigo-600 transition-all duration-300"
+                className="h-full bg-gradient-to-r from-[#c9a227] to-[#b8922a] transition-all duration-300"
                 style={{ width: step === 1 ? '50%' : '100%' }}
               />
             </div>
@@ -84,7 +84,7 @@ export default function RegisterModal({ isOpen, onClose, propertyTitle = '' }) {
                       required
                       value={formData.fullName}
                       onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
-                      className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
+                      className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#c9a227] focus:border-transparent transition-all"
                       placeholder="Enter your full name"
                     />
                   </div>
@@ -98,7 +98,7 @@ export default function RegisterModal({ isOpen, onClose, propertyTitle = '' }) {
                       required
                       value={formData.email}
                       onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                      className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
+                      className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#c9a227] focus:border-transparent transition-all"
                       placeholder="your@email.com"
                     />
                   </div>
@@ -112,7 +112,7 @@ export default function RegisterModal({ isOpen, onClose, propertyTitle = '' }) {
                       required
                       value={formData.phone}
                       onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                      className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
+                      className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#c9a227] focus:border-transparent transition-all"
                       placeholder="+92 300 0000000"
                     />
                   </div>
@@ -126,7 +126,7 @@ export default function RegisterModal({ isOpen, onClose, propertyTitle = '' }) {
                       required
                       value={formData.cnic}
                       onChange={(e) => setFormData({ ...formData, cnic: e.target.value })}
-                      className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
+                      className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#c9a227] focus:border-transparent transition-all"
                       placeholder="00000-0000000-0"
                     />
                   </div>
@@ -165,15 +165,15 @@ export default function RegisterModal({ isOpen, onClose, propertyTitle = '' }) {
                       required
                       checked={formData.agreeTerms}
                       onChange={(e) => setFormData({ ...formData, agreeTerms: e.target.checked })}
-                      className="mt-1 w-4 h-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500"
+                      className="mt-1 w-4 h-4 text-[#c9a227] border-gray-300 rounded focus:ring-[#c9a227]"
                     />
                     <span className="text-sm text-gray-600">
                       I agree to the{' '}
-                      <a href="#" className="text-indigo-600 hover:underline">
+                      <a href="#" className="text-[#c9a227] hover:underline">
                         Terms & Conditions
                       </a>{' '}
                       and{' '}
-                      <a href="#" className="text-indigo-600 hover:underline">
+                      <a href="#" className="text-[#c9a227] hover:underline">
                         Privacy Policy
                       </a>
                     </span>
@@ -195,7 +195,7 @@ export default function RegisterModal({ isOpen, onClose, propertyTitle = '' }) {
               )}
               <button
                 type="submit"
-                className="flex-1 py-3 px-4 bg-indigo-600 text-white font-semibold rounded-xl hover:bg-indigo-700 transition-colors"
+                className="flex-1 py-3 px-4 bg-gradient-to-r from-[#c9a227] to-[#b8922a] hover:from-[#b8922a] hover:to-[#a67c00] text-white font-semibold rounded-xl transition-all"
               >
                 {step === 1 ? 'Continue' : 'Complete Registration'}
               </button>

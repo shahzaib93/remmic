@@ -14,20 +14,62 @@ export default function Evaluation() {
   const [docPreview, setDocPreview] = useState('')
   const [evaluationProperties, setEvaluationProperties] = useState([])
   const [formData, setFormData] = useState({
+    // Section A - Client Information
     fullName: '',
-    cnic: '',
-    contact: '',
+    cnicPassport: '',
+    nationality: 'pakistani',
+    nationalityOther: '',
+    mobileNumber: '',
     email: '',
-    address: '',
-    city: '',
+    currentAddress: '',
+    isLegalOwner: 'yes',
+    ownershipRelation: '',
+    
+    // Section B - Property Basic Information
     propertyType: '',
-    propertyAddress: '',
-    plotNumber: '',
-    areaSize: '',
-    areaUnit: 'marla',
-    areaMeasurement: 'sq_feet',
-    floors: '',
-    propertyValue: '',
+    propertyTypeOther: '',
+    country: 'Pakistan',
+    city: '',
+    areaSociety: '',
+    blockSector: '',
+    propertySize: '',
+    propertySizeUnit: 'sqft',
+    propertyNature: 'freehold',
+    
+    // Section C - Ownership & Legal Status
+    ownershipDocument: '',
+    ownershipDocumentOther: '',
+    transferStatus: '',
+    disputeFree: 'yes',
+    disputeExplanation: '',
+    outstandingDues: [],
+    
+    // Section D - Construction Details
+    constructionStatus: '',
+    constructionYear: '',
+    numberOfFloors: '',
+    approvedPlan: 'yes',
+    
+    // Section E - Financial Expectations
+    expectedPrice: '',
+    expectedPriceCurrency: 'PKR',
+    minimumPrice: '',
+    urgencyLevel: '',
+    openToAuction: 'yes',
+    auctionConditions: '',
+    
+    // Section F - Rental/Income
+    currentlyRented: 'no',
+    monthlyRental: '',
+    tenantType: '',
+    tenancyAgreement: 'no',
+    
+    // Section G - Media & Documents
+    propertyPhotos: 'no',
+    propertyVideos: 'no',
+    documentsUploaded: [],
+    
+    // File uploads
     propertyImage: [],
     documents: []
   })
@@ -370,46 +412,62 @@ export default function Evaluation() {
                 </button>
 
                 <div className="eval-form__header">
-                  <h2 className="eval-form__title">Property Evaluation Form</h2>
-                  <p className="eval-form__subtitle">Fill in your property details for professional valuation</p>
+                  <h2 className="eval-form__title">REMMIC – Real Estate Evaluation Intake Form (Phase 1)</h2>
+                  <p className="eval-form__subtitle">This form is used to collect verified information for internal evaluation before a property is approved for marketing, bidding, or investment on the REMMIC platform.</p>
                 </div>
 
                 <form onSubmit={handleFormSubmit} className="eval-form">
+                  {/* Section A - Client Information */}
                   <div className="eval-form__section">
-                    <h3 className="eval-form__section-title">Personal Information</h3>
+                    <h3 className="eval-form__section-title">SECTION A — CLIENT / OWNER INFORMATION</h3>
                     <div className="eval-form__grid">
-                      <div className="eval-form__field">
-                        <label>Full Name *</label>
+                      <div className="eval-form__field eval-form__field--full">
+                        <label>1. Full Name (as per CNIC / Passport) *</label>
                         <input type="text" name="fullName" value={formData.fullName} onChange={handleInputChange} required />
                       </div>
                       <div className="eval-form__field">
-                        <label>CNIC *</label>
-                        <input type="text" name="cnic" value={formData.cnic} onChange={handleInputChange} placeholder="XXXXX-XXXXXXX-X" required />
+                        <label>2. CNIC / Passport No. *</label>
+                        <input type="text" name="cnicPassport" value={formData.cnicPassport} onChange={handleInputChange} placeholder="XXXXX-XXXXXXX-X" required />
                       </div>
                       <div className="eval-form__field">
-                        <label>Contact Number *</label>
-                        <input type="tel" name="contact" value={formData.contact} onChange={handleInputChange} required />
+                        <label>3. Nationality *</label>
+                        <select name="nationality" value={formData.nationality} onChange={handleInputChange} required>
+                          <option value="pakistani">Pakistani</option>
+                          <option value="overseas_pakistani">Overseas Pakistani</option>
+                          <option value="foreign_national">Foreign National</option>
+                        </select>
+                      </div>
+                      {formData.nationality === 'foreign_national' && (
+                        <div className="eval-form__field">
+                          <label>Specify Nationality</label>
+                          <input type="text" name="nationalityOther" value={formData.nationalityOther} onChange={handleInputChange} />
+                        </div>
+                      )}
+                      <div className="eval-form__field">
+                        <label>4. Mobile Number (WhatsApp) *</label>
+                        <input type="tel" name="mobileNumber" value={formData.mobileNumber} onChange={handleInputChange} required />
                       </div>
                       <div className="eval-form__field">
-                        <label>Email *</label>
+                        <label>5. Email Address *</label>
                         <input type="email" name="email" value={formData.email} onChange={handleInputChange} required />
                       </div>
                       <div className="eval-form__field eval-form__field--full">
-                        <label>Address</label>
-                        <input type="text" name="address" value={formData.address} onChange={handleInputChange} />
+                        <label>6. Current Residential Address *</label>
+                        <input type="text" name="currentAddress" value={formData.currentAddress} onChange={handleInputChange} required />
                       </div>
                       <div className="eval-form__field">
-                        <label>City *</label>
-                        <select name="city" value={formData.city} onChange={handleInputChange} required>
-                          <option value="">Select City</option>
-                          <option value="Islamabad">Islamabad</option>
-                          <option value="Karachi">Karachi</option>
-                          <option value="Lahore">Lahore</option>
-                          <option value="Rawalpindi">Rawalpindi</option>
-                          <option value="Faisalabad">Faisalabad</option>
-                          <option value="Other">Other</option>
+                        <label>7. Are you the legal owner of the property? *</label>
+                        <select name="isLegalOwner" value={formData.isLegalOwner} onChange={handleInputChange} required>
+                          <option value="yes">Yes</option>
+                          <option value="no">No</option>
                         </select>
                       </div>
+                      {formData.isLegalOwner === 'no' && (
+                        <div className="eval-form__field">
+                          <label>Explain relationship</label>
+                          <input type="text" name="ownershipRelation" value={formData.ownershipRelation} onChange={handleInputChange} />
+                        </div>
+                      )}
                     </div>
                   </div>
 

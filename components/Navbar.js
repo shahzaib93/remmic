@@ -37,7 +37,7 @@ export default function Navbar() {
   }
 
   // Navigation items based on user's structure
-  const navItems = [
+  const baseNavItems = [
     { href: '/how-it-works', label: 'How It Works' },
     { href: '/marketplace', label: 'Marketplace' },
     { href: '/investment-shares', label: 'Invest' },
@@ -45,6 +45,17 @@ export default function Navbar() {
     { href: '/trust-security', label: 'Trust' },
     { href: '/about', label: 'About' },
   ]
+
+  // Auth-required navigation items (only show when logged in)
+  const authNavItems = [
+    { href: '/evaluation', label: 'Evaluation' },
+    { href: '/asset-management', label: 'Management' },
+  ]
+
+  // Combine nav items based on auth status
+  const navItems = navUser 
+    ? [...baseNavItems.slice(0, 3), ...authNavItems, ...baseNavItems.slice(3)]
+    : baseNavItems
 
 
   return (

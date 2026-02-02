@@ -1,22 +1,12 @@
 import React from 'react';
 import { useRouter } from 'next/router';
-import { Manrope, Playfair_Display } from 'next/font/google';
 import { FirebaseProvider } from '../contexts/FirebaseContext';
 import { AdminProvider } from '../contexts/AdminContext';
 import ErrorBoundary from '../components/ErrorBoundary';
 import '../styles/globals.css';
 
-const manrope = Manrope({
-  subsets: ['latin'],
-  weight: ['300', '400', '500', '600', '700', '800'],
-  variable: '--font-manrope',
-});
-
-const playfair = Playfair_Display({
-  subsets: ['latin'],
-  weight: ['400', '500', '600', '700'],
-  variable: '--font-playfair',
-});
+// Temporary fallback fonts due to Google Fonts connectivity issues
+const fontVariables = '--font-manrope: system-ui, -apple-system, sans-serif; --font-playfair: Georgia, serif;';
 
 export default function App({ Component, pageProps }) {
   const router = useRouter();
@@ -34,10 +24,19 @@ export default function App({ Component, pageProps }) {
   return (
     <ErrorBoundary>
       <FirebaseProvider>
-        <div className={`${manrope.variable} ${playfair.variable} ${manrope.className}`}>
+        <div style={{ fontFamily: 'system-ui, -apple-system, sans-serif' }}>
           {content}
         </div>
         <style jsx global>{`
+          :root {
+            --font-manrope: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+            --font-playfair: Georgia, 'Times New Roman', serif;
+          }
+          
+          * {
+            font-family: var(--font-manrope);
+          }
+          
           .remmic-tag {
             position: relative;
             display: inline-block;
