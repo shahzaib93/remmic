@@ -7,6 +7,13 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Prevent horizontal overflow shifting the whole page */
+html, body {
+  overflow-x: hidden;
+  width: 100%;
+  max-width: 100vw;
+}
+
 /* Design Tokens (CSS Custom Properties) */
 @import './design-tokens.css';
 

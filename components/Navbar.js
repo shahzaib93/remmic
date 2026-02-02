@@ -784,8 +784,60 @@ export default function Navbar() {
             display: none !important;
           }
 
+          :global(.navbar) {
+            height: 60px !important;
+            min-height: 60px !important;
+            max-height: 60px !important;
+          }
+
+          :global(.navbar-scrolled) {
+            height: 56px !important;
+            min-height: 56px !important;
+            max-height: 56px !important;
+          }
+
+          :global(.w-nav) {
+            height: 60px !important;
+          }
+
           :global(.nav-container) {
             justify-content: space-between !important;
+            padding: 0 16px !important;
+          }
+
+          :global(.nav-logo) {
+            height: 32px !important;
+          }
+        }
+
+        @media screen and (max-width: 479px) {
+          :global(.navbar) {
+            height: 56px !important;
+            min-height: 56px !important;
+            max-height: 56px !important;
+          }
+
+          :global(.navbar-scrolled) {
+            height: 52px !important;
+            min-height: 52px !important;
+            max-height: 52px !important;
+          }
+
+          :global(.w-nav) {
+            height: 56px !important;
+          }
+
+          :global(.nav-container) {
+            padding: 0 12px !important;
+          }
+
+          :global(.nav-logo) {
+            height: 28px !important;
+          }
+
+          .mobile-menu {
+            width: 100%;
+            right: -100%;
           }
         }
 
