@@ -5,39 +5,96 @@ import Footer from '../components/Footer'
 import PropertyCard, { PropertyCardSkeleton } from '../components/marketplace/PropertyCard'
 import MarketplaceToolbar, { FiltersDrawer } from '../components/marketplace/MarketplaceToolbar'
 import Pagination from '../components/marketplace/Pagination'
-import { mockProperties } from '../data/mockProperties'
+import { useFirebase } from '../contexts/FirebaseContext'
+import { ensurePropertyImage } from '../utils/propertyStorage'
+import { parsePriceNumber } from '../utils/priceFormat'
 
 const ITEMS_PER_PAGE = 9
 
+const normalizeMarketplaceProperty = (property) => {
+  const type = (property.type || property.originalType || '').toLowerCase()
+  const price = parsePriceNumber(property.priceNumeric ?? property.price ?? property.guidePrice) || 0
+
+  return {
+    ...property,
+    id: property.id || property.propertyId,
+    title: property.title || 'Property Listing',
+    address: property.address || property.location || 'Location TBA',
+    city: property.city || '',
+    price,
+    guidePrice: parsePriceNumber(property.guidePrice) || price,
+    startingBid: parsePriceNumber(property.startingBid ?? property.bidding?.minBidAmount) || price,
+    currentBid: parsePriceNumber(property.currentBid ?? property.bidding?.currentBid) || null,
+    securityDeposit: parsePriceNumber(property.securityDeposit ?? property.bidding?.securityDeposit) || null,
+    beds: Number(property.beds ?? property.bedrooms) || 0,
+    baths: Number(property.baths ?? property.bathrooms) || 0,
+    area: property.areaSize || property.area || 'Area not specified',
+    image: ensurePropertyImage(property),
+    images: Array.isArray(property.images) && property.images.length ? property.images : [ensurePropertyImage(property)],
+    badge: property.badge || (type === 'bidding' || type === 'auction' ? 'Auction' : 'Verified'),
+  }
+}
+
 export default function Marketplace() {
+  const { getAllProperties } = useFirebase()
   // State
   const [isLoading, setIsLoading] = useState(true)
+  const [properties, setProperties] = useState([])
   const [viewMode, setViewMode] = useState('grid')
   const [searchTerm, setSearchTerm] = useState('')
   const [sortOption, setSortOption] = useState('newest')
   const [currentPage, setCurrentPage] = useState(1)
   const [isFiltersOpen, setIsFiltersOpen] = useState(false)
 
-  // Simulate loading
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setIsLoading(false)
-    }, 1000)
-    return () => clearTimeout(timer)
+    let isActive = true
+
+    const loadProperties = async () => {
+      setIsLoading(true)
+      try {
+        const result = await getAllProperties()
+        const records = Array.isArray(result?.properties) ? result.properties : []
+        const visibleProperties = records
+          .filter((property) => {
+            const status = (property.statusCode || property.status || '').toLowerCase()
+            return status !== 'rejected' && status !== 'archived'
+          })
+          .map(normalizeMarketplaceProperty)
+
+        if (isActive) {
+          setProperties(visibleProperties)
+        }
+      } catch (error) {
+        console.error('Failed to load marketplace properties:', error)
+        if (isActive) {
+          setProperties([])
+        }
+      } finally {
+        if (isActive) {
+          setIsLoading(false)
+        }
+      }
+    }
+
+    loadProperties()
+
+    return () => {
+      isActive = false
+    }
   }, [])
 
   // Filter and sort properties
   const filteredProperties = useMemo(() => {
-    let result = [...mockProperties]
+    let result = [...properties]
 
     // Search filter
     if (searchTerm) {
       const term = searchTerm.toLowerCase()
       result = result.filter(
         (p) =>
-          p.address.toLowerCase().includes(term) ||
-          p.city.toLowerCase().includes(term) ||
-          p.title.toLowerCase().includes(term)
+          p.address?.toLowerCase().includes(term) ||
+          p.city?.toLowerCase().includes(term) ||
+          p.title?.toLowerCase().includes(term)
       )
     }
 
@@ -56,7 +113,7 @@ export default function Marketplace() {
     }
 
     return result
-  }, [searchTerm, sortOption])
+  }, [properties, searchTerm, sortOption])
 
   // Pagination
   const totalPages = Math.ceil(filteredProperties.length / ITEMS_PER_PAGE)

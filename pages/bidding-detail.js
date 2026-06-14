@@ -26,11 +26,82 @@ import {
   ViewingModal,
   NotFoundState,
 } from '../components/bidding-detail'
-import { getPropertyById, formatPricePKR } from '../data/mockProperties'
+import { useFirebase } from '../contexts/FirebaseContext'
+import { ensurePropertyImage } from '../utils/propertyStorage'
+import { formatPricePKR, parsePriceNumber } from '../utils/priceFormat'
+
+const slugifyValue = (value) => {
+  if (value == null) return ''
+  return value
+    .toString()
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+}
+
+const propertyMatchesId = (property, id) => {
+  const target = id?.toString()
+  if (!property || !target) return false
+
+  const candidates = [
+    property.id,
+    property.propertyId,
+    property.mockId,
+    property.lotId,
+    property.slug,
+    property.title,
+  ]
+
+  return candidates.some((candidate) => {
+    if (candidate == null) return false
+    const candidateString = candidate.toString()
+    return candidateString === target || slugifyValue(candidateString) === slugifyValue(target)
+  })
+}
+
+const normalizeBiddingDetailProperty = (property) => {
+  const image = ensurePropertyImage(property)
+  const type = (property.type || property.originalType || '').toLowerCase()
+  const bidding = property.bidding || {}
+  const price = parsePriceNumber(property.priceNumeric ?? property.price ?? property.guidePrice) || 0
+
+  return {
+    ...property,
+    id: property.id || property.propertyId,
+    type: type === 'bidding' ? 'auction' : type,
+    badge: property.badge || (type === 'bidding' || type === 'auction' ? 'Auction' : 'Verified'),
+    title: property.title || 'Auction Property',
+    address: property.address || property.location || property.title || 'Address TBA',
+    city: property.city || '',
+    postalCode: property.postalCode || '',
+    country: property.country || 'Pakistan',
+    price,
+    guidePrice: parsePriceNumber(property.guidePrice) || price,
+    startingBid: parsePriceNumber(property.startingBid ?? bidding.minBidAmount) || price,
+    currentBid: parsePriceNumber(property.currentBid ?? bidding.currentBid) || null,
+    securityDeposit: parsePriceNumber(property.securityDeposit ?? bidding.securityDeposit) || 500000,
+    beds: Number(property.beds ?? property.bedrooms) || 0,
+    baths: Number(property.baths ?? property.bathrooms) || 0,
+    area: property.areaSize || property.area || 'Area not specified',
+    image,
+    images: Array.isArray(property.images) && property.images.length ? property.images : [image],
+    propertyType: property.propertyType || property.category || 'Property',
+    lotId: property.lotId || property.propertyId || property.id,
+    tenure: property.tenure || 'Freehold',
+    auctionDate: property.auctionDate || null,
+    biddingOpens: property.biddingOpens || bidding.startDateTime || null,
+    biddingCloses: property.biddingCloses || bidding.endDateTime || null,
+    coordinates: property.coordinates || null,
+    summaryPoints: property.summaryPoints || [],
+    documents: property.documents || [],
+  }
+}
 
 export default function BiddingDetail() {
   const router = useRouter()
   const { id } = router.query
+  const { getAllProperties } = useFirebase()
 
   const [isLoading, setIsLoading] = useState(true)
   const [property, setProperty] = useState(null)
@@ -39,30 +110,49 @@ export default function BiddingDetail() {
   const [showRegisterModal, setShowRegisterModal] = useState(false)
   const [showViewingModal, setShowViewingModal] = useState(false)
 
-  // Load property data
   useEffect(() => {
-    if (id) {
+    if (!router.isReady || !id) return
+
+    let isActive = true
+    const propertyId = Array.isArray(id) ? id[0] : id
+
+    const loadProperty = async () => {
       setIsLoading(true)
       setNotFound(false)
 
-      // Simulate API fetch with timeout
-      const timer = setTimeout(() => {
-        const propertyData = getPropertyById(id)
+      try {
+        const result = await getAllProperties()
+        const properties = Array.isArray(result?.properties) ? result.properties : []
+        const propertyData = properties.find((candidate) => propertyMatchesId(candidate, propertyId))
+
+        if (!isActive) return
 
         if (propertyData) {
-          setProperty(propertyData)
+          setProperty(normalizeBiddingDetailProperty(propertyData))
           setNotFound(false)
         } else {
           setProperty(null)
           setNotFound(true)
         }
-
-        setIsLoading(false)
-      }, 800)
-
-      return () => clearTimeout(timer)
+      } catch (error) {
+        console.error('Failed to load bidding detail property:', error)
+        if (isActive) {
+          setProperty(null)
+          setNotFound(true)
+        }
+      } finally {
+        if (isActive) {
+          setIsLoading(false)
+        }
+      }
     }
-  }, [id])
+
+    loadProperty()
+
+    return () => {
+      isActive = false
+    }
+  }, [router.isReady, id])
 
   // Toggle favorite
   const handleToggleFavorite = () => {
@@ -189,7 +279,7 @@ export default function BiddingDetail() {
                           {property.badge}
                         </span>
                       )}
-                      {property?.type === 'auction' && !property?.badge && (
+                      {(property?.type === 'auction' || property?.type === 'bidding') && !property?.badge && (
                         <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-gradient-to-r from-[#d4b13d] to-[#c9a227] text-white shadow-lg">
                           Auction
                         </span>

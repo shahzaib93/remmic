@@ -4,7 +4,6 @@ import Navbar from '../components/Navbar'
 import Footer from '../components/Footer'
 import { useFirebase } from '../contexts/FirebaseContext'
 import { ensurePropertyImage, resolvePropertyIdentifier } from '../utils/propertyStorage'
-import { mockProperties } from '../data/mockProperties'
 
 export default function Bidding() {
   const [isClient, setIsClient] = useState(false)
@@ -25,12 +24,15 @@ export default function Bidding() {
   }
 
   const getBiddingStatus = (property) => {
-    if (!property.bidding?.startDateTime || !property.bidding?.endDateTime) {
+    const startDateTime = property.bidding?.startDateTime || property.biddingOpens
+    const endDateTime = property.bidding?.endDateTime || property.biddingCloses
+
+    if (!startDateTime || !endDateTime) {
       return { status: 'Pending', timeLeft: 'Schedule TBA', phase: 'pending' }
     }
     const now = new Date()
-    const start = new Date(property.bidding.startDateTime)
-    const end = new Date(property.bidding.endDateTime)
+    const start = new Date(startDateTime)
+    const end = new Date(endDateTime)
 
     if (now < start) {
       const diff = start - now
@@ -55,8 +57,8 @@ export default function Bidding() {
         const result = await getAllProperties()
         if (result?.success && Array.isArray(result.properties)) {
           fetchedProps = result.properties.filter(p =>
-            (p.type === 'bidding' || p.bidding?.startDateTime) &&
-            p.status?.toLowerCase() === 'approved'
+            (p.type === 'bidding' || p.type === 'auction' || p.bidding?.startDateTime || p.biddingOpens) &&
+            ['approved', 'active'].includes((p.statusCode || p.status || '').toLowerCase())
           )
         }
 
@@ -66,10 +68,7 @@ export default function Bidding() {
           ['land-registration-form', 'land-registration', 'dashboard'].includes(p.source)
         )
 
-        // Include mock properties so marketplace/bidding detail data stays consistent
-        const mockBidding = mockProperties.filter((p) => p.biddingOpens || p.bidding?.startDateTime)
-
-        const combined = [...mockBidding, ...fetchedProps, ...localBidding]
+        const combined = [...fetchedProps, ...localBidding]
         const unique = combined.filter((p, i, arr) => {
           const candidateId = p.id || p.propertyId || resolvePropertyIdentifier(p, `bid-${i}`)
           return arr.findIndex((x, xi) => {
@@ -94,6 +93,8 @@ export default function Bidding() {
             startingBid: formatPrice(p.bidding?.minBidAmount || p.startingBid || p.price),
             currentBid: formatPrice(p.bidding?.currentBid || p.bidding?.minBidAmount || p.startingBid),
             totalBids: p.bidding?.totalBids || 0,
+            biddingOpens: p.biddingOpens || p.bidding?.startDateTime,
+            biddingCloses: p.biddingCloses || p.bidding?.endDateTime,
             ...bidInfo,
             bidding: p.bidding
           }

@@ -2,28 +2,37 @@ import Head from 'next/head'
 import { useEffect, useState, useRef } from 'react'
 import Navbar from '../components/Navbar'
 import Footer from '../components/Footer'
-import { mockProperties, formatPrice } from '../data/mockProperties'
+import { useFirebase } from '../contexts/FirebaseContext'
+import { ensurePropertyImage } from '../utils/propertyStorage'
+import { formatPrice, parsePriceNumber } from '../utils/priceFormat'
 import AOS from 'aos'
 import 'aos/dist/aos.css'
 
 export default function Home() {
+  const { getAllProperties } = useFirebase()
   const [isVisible, setIsVisible] = useState(false)
   const [trustVisible, setTrustVisible] = useState(false)
+  const [highDemandProperties, setHighDemandProperties] = useState([])
   const trustRef = useRef(null)
 
-  // Get high-demand properties with calculated ROI and risk assessment
-  const getHighDemandProperties = () => {
-    return mockProperties
-      .slice(0, 8) // Get first 8 properties
+  const buildHighDemandProperties = (properties = []) => {
+    return properties
+      .filter((property) => {
+        const status = (property.statusCode || property.status || '').toLowerCase()
+        return status !== 'rejected' && status !== 'archived'
+      })
+      .slice(0, 8)
       .map((property, index) => {
+        const price = parsePriceNumber(property.priceNumeric ?? property.price ?? property.guidePrice) || 0
+
         // Deterministic variation based on property price and index (avoids hydration mismatch)
-        const seed = ((property.price % 1000) / 1000)
+        const seed = ((price % 1000) / 1000)
         let roi = 8.5 + (seed * 6) // Base 8.5% + up to 6% variation
 
         if (property.propertyType?.includes('Commercial') || property.propertyType?.includes('Office')) {
           roi += 3 // Commercial properties typically have higher ROI
         }
-        if (property.price > 50000000) {
+        if (price > 50000000) {
           roi += 2 // Higher-value properties often have better ROI
         }
         if (property.badge === 'Featured') {
@@ -32,45 +41,74 @@ export default function Home() {
 
         // Determine risk level based on price and property type
         let risk = 'Medium Risk'
-        if (property.price < 20000000 && property.beds <= 3) {
+        const bedrooms = Number(property.beds ?? property.bedrooms) || 0
+        if (price < 20000000 && bedrooms <= 3) {
           risk = 'Low Risk'
-        } else if (property.price > 70000000 || property.propertyType?.includes('Commercial')) {
+        } else if (price > 70000000 || property.propertyType?.includes('Commercial')) {
           risk = 'High Risk'
         }
 
         // Generate status based on property badge and type
-        let status = 'Available'
+        let status = property.status || 'Available'
         if (property.badge === 'Featured') {
           status = 'Featured'
         } else if (property.badge === 'Auction') {
           status = 'Live Auction'
         } else if (property.badge === 'New') {
           status = 'Just Listed'
-        } else if (property.type === 'auction') {
+        } else if (property.type === 'auction' || property.type === 'bidding') {
           status = 'Bidding Live'
         }
 
         // Calculate minimum investment (typically 20-30% of property value)
         const minInvestmentPercent = 0.2 + (((index + 1) * 7 % 10) / 100) // deterministic 20-29%
-        const minInvestment = Math.round(property.price * minInvestmentPercent / 100000) * 100000
+        const minInvestment = Math.round(price * minInvestmentPercent / 100000) * 100000
 
         return {
           ...property,
+          price,
+          beds: bedrooms,
+          baths: Number(property.baths ?? property.bathrooms) || 0,
+          area: property.areaSize || property.area || 'Area not specified',
+          image: ensurePropertyImage(property),
           roi: roi.toFixed(1),
           risk,
           status,
           minInvestment,
           // Add display title for cards
-          displayTitle: property.title.length > 25 ? property.title.substring(0, 22) + '...' : property.title
+          displayTitle: property.title?.length > 25 ? `${property.title.substring(0, 22)}...` : property.title || 'Property Listing'
         }
       })
   }
 
-  const highDemandProperties = getHighDemandProperties()
-
   useEffect(() => {
     const timer = setTimeout(() => setIsVisible(true), 100)
     return () => clearTimeout(timer)
+  }, [])
+
+  useEffect(() => {
+    let isActive = true
+
+    const loadProperties = async () => {
+      try {
+        const result = await getAllProperties()
+        const properties = Array.isArray(result?.properties) ? result.properties : []
+        if (isActive) {
+          setHighDemandProperties(buildHighDemandProperties(properties))
+        }
+      } catch (error) {
+        console.error('Failed to load high-demand properties:', error)
+        if (isActive) {
+          setHighDemandProperties([])
+        }
+      }
+    }
+
+    loadProperties()
+
+    return () => {
+      isActive = false
+    }
   }, [])
 
   useEffect(() => {

@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { formatPrice } from '../../data/mockProperties'
+import { formatPrice } from '../../utils/priceFormat'
 import BiddingModal from './BiddingModal'
 
 export default function PropertyCard({ property, viewMode = 'grid' }) {
