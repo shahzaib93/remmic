@@ -9,6 +9,10 @@ export default function PropertyMapPanel({
   isSaved = false
 }) {
   const [mapLoaded, setMapLoaded] = useState(false)
+  const lat = Number(coordinates?.lat)
+  const lng = Number(coordinates?.lng)
+  const hasCoordinates = Number.isFinite(lat) && Number.isFinite(lng)
+  const mapQuery = hasCoordinates ? `${lat},${lng}` : encodeURIComponent(address || 'Pakistan')
 
   const handleShare = () => {
     if (onShare) {
@@ -49,7 +53,7 @@ export default function PropertyMapPanel({
 
         {/* Google Maps Embed */}
         <iframe
-          src={`https://www.google.com/maps/embed/v1/place?key=AIzaSyBFw0Qbyq9zTFTd-tUY6dZWTgaQzuU17R8&q=${coordinates.lat},${coordinates.lng}&zoom=15`}
+          src={`https://www.google.com/maps/embed/v1/place?key=AIzaSyBFw0Qbyq9zTFTd-tUY6dZWTgaQzuU17R8&q=${mapQuery}&zoom=15`}
           className="w-full h-full border-0"
           allowFullScreen
           loading="lazy"
@@ -73,7 +77,7 @@ export default function PropertyMapPanel({
         {/* Map Controls Overlay */}
         <div className="absolute bottom-4 left-4">
           <a
-            href={`https://www.google.com/maps/search/?api=1&query=${coordinates.lat},${coordinates.lng}`}
+            href={`https://www.google.com/maps/search/?api=1&query=${mapQuery}`}
             target="_blank"
             rel="noopener noreferrer"
             className="flex items-center gap-2 px-3 py-2 bg-white rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors shadow-sm"
